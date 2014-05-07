@@ -948,7 +948,7 @@
   <customwidget>
    <class>TrackingView</class>
    <extends>QGraphicsView</extends>
-   <header>src/trackingview.h</header>
+   <header>point_tracker/trackingview.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

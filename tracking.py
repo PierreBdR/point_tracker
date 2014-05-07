@@ -15,7 +15,7 @@ if sys.platform == 'win32':
     lp << os.path.join(os.path.abspath('.'), 'site-packages', 'PyQt4', 'plugins')
     QCoreApplication.setLibraryPaths(lp)
 
-from src import tracking
+from point_tracker import tracking
 
 def run():
     tracking.ipython()
