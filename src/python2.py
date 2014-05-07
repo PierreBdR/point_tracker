@@ -5,7 +5,8 @@ if sys.version_info.major < 3:
     import __builtin__
     import itertools
     __builtin__.zip = itertools.izip
-    __builtin__.range = itertools.range
+    __builtin__.range = xrange
 else:
     import builtins
     builtins.unicode = str
+

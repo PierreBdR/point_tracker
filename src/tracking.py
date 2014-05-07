@@ -10,7 +10,7 @@ from . import image_cache
 from . import parameters
 from . import debug
 from .sys_utils import compileForm
-from path import path
+from .path import path
 
 def setAppConfig():
     QtCore.QCoreApplication.setOrganizationName("PBdR")

@@ -4,8 +4,8 @@ import scipy
 from scipy import nonzero, array, concatenate
 from scipy import misc
 import sys
-from path import path
-from project import Project
+from .path import path
+from .project import Project
 import csv
 import os.path
 
@@ -54,12 +54,12 @@ class Data(object):
 
     def process(self, i):
         img_file = self.list_imgs[i]
-        print "Processing image: %s" % img_file
+        print("Processing image: %s" % img_file)
         img = misc.imread(self.project.images_dir / img_file)
 # First, find the list of color points
         img_diff = img.astype('int16')
         if len(img_diff.shape) != 3 or img_diff.shape[2] != 3:
-            print "  Image has shape %s. Skipping." % (img_diff.shape,)
+            print("  Image has shape %s. Skipping." % (img_diff.shape,))
             return
         img_diff -= img_diff[...,[1,2,0]]
         Y,X = nonzero(img_diff.max(2) > 40)
@@ -69,7 +69,7 @@ class Data(object):
             c = img[y,x]
             pt = self.get_pts(c)
             pt[i] = (x,y)
-        print "  Total nb of points: %d" % len(self.pts)
+        print("  Total nb of points: %d" % len(self.pts))
 
     def save(self, filename):
         f = (self.project.data_dir / filename).open("wb")
@@ -108,12 +108,12 @@ def main():
             p = ""
     proj = Project(p)
     if not proj.valid:
-        print "Warning, the project directory doesn't have the valid structure."
+        print("Warning, the project directory doesn't have the valid structure.")
         a = raw_input("Do you want to convert it?").lower()
         if a == "y" or a == "yes":
             proj.create()
         else:
-            print "Ok, aborting."
+            print("Ok, aborting.")
             return
     proj.use()
     d = Data(proj)

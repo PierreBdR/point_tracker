@@ -7,7 +7,7 @@ __docformat__ = "restructuredtext"
 
 from PyQt4.QtCore import QPointF, QObject, SIGNAL
 from PyQt4.QtGui import QTransform
-from path import path
+from .path import path
 import csv
 import numpy
 from .utils import compare_versions
