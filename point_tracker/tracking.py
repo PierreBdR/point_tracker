@@ -62,3 +62,9 @@ def run():
     app, main_win = createWindow()
     app.exec_()
 
+def main():
+    if "interactive" in sys.argv:
+        ipython()
+    else:
+        run()
+

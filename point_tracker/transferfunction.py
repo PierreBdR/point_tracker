@@ -66,13 +66,13 @@ class TransferFunction(QtCore.QObject):
 
     def dumps(self):
         output = StringIO()
-        print >>output, "Interpolation: %s" % self.interpolation
-        print >>output, "Clamp: %s" % self.clamp
+        print("Interpolation: %s" % self.interpolation, file=output)
+        print("Clamp: %s" % self.clamp, file=output)
         col = self.exterior_color
-        print >>output, "ExteriorColor: %g,%g,%g,%g" % col
-        print >>output, "NbValues: %d" % len(self.point_list)
+        print("ExteriorColor: %g,%g,%g,%g" % col, file=output)
+        print("NbValues: %d" % len(self.point_list), file=output)
         for pos,color in self.point_list:
-            print >>output, "ColoredPos: %g - %g, %g, %g, %g" % ((pos,)+color)
+            print("ColoredPos: %g - %g, %g, %g, %g" % ((pos,)+color), file=output)
         return output.getvalue()
 
     def __eq__(self, other):

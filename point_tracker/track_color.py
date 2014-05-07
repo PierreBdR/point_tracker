@@ -63,7 +63,7 @@ class Data(object):
             return
         img_diff -= img_diff[...,[1,2,0]]
         Y,X = nonzero(img_diff.max(2) > 40)
-        print "  Found %d points" % len(X)
+        print("  Found %d points" % len(X))
 # Second, store their points
         for x,y in zip(X,Y):
             c = img[y,x]

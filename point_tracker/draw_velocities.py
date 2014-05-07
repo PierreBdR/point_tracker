@@ -106,10 +106,10 @@ def draw_velocities(color = None, head_size = None, factor = None):
     main_window = src_tracking.main_window
     dlg = main_window.current_dlg
     if not isinstance(dlg, PlottingDlg):
-        print "Error, the current opened dialog box is not the tissue drawing one"
+        print("Error, the current opened dialog box is not the tissue drawing one")
     result = dlg.thread.result
     if result is None:
-        print "Error, you haven't loaded anyu data"
+        print("Error, you haven't loaded anyu data")
     result_type = dlg.thread.result_type
     dv = DrawVelocities(result, result_type)
     if color is not None:

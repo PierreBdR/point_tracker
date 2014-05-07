@@ -8,29 +8,42 @@ Usage:
 
 from setuptools import setup
 import sys
+import os
+from fnmatch import fnmatch
 
-APP = ['tracking.py']
-DATA_FILES = []
-OPTIONS = {'argv_emulation': True, 'iconfile': 'src/icon.icns'}
-VERSION="0.6"
+setup(name='point-tracker',
+      description='Track points and cells on 2D tissues over time.',
+      long_description=open('README.md').read(),
+      author='Pierre Barbier de Reuille',
+      author_email='pierre.barbierdereuille@gmail.com',
+      packages=['point_tracker', 'point_tracker.tissue_plot'],
+      package_data={'point_tracker': ['*.ui', '*.qrc'],
+                    'point_tracker.tissue_plot': ['*.ui']},
+      version="0.7",
+      classifiers=['Development Status :: 5 - Production/Stable',
+                   'Environment :: X11 Applications :: Qt',
+                   'Intended Audience :: Science/Research',
+                   'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2)',
+                   'Natural Language :: English',
+                   'Operating System :: MacOS :: MacOS X',
+                   'Operating System :: Microsoft :: Windows',
+                   'Operating System :: POSIX :: Linux',
+                   'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python :: 3.3',
+                   'Programming Language :: Python :: 3.4',
+                   'Topic :: Scientific/Engineering :: Biology',
+                   'Topic :: Scientific/Engineering :: Visualization',
+                   ],
+      platforms=['Linux', 'Windows', 'MacOS'],
+      license='LICENSE',
+      install_requires=['numpy >=1.5.0',
+                        'scipy >=0.10.0',
+                        'matplotlib',
+                        ],
+      url=['https://github.com/PierreBdR/point_tracker'],
+      entry_points = {
+          'console_scripts': ['track_color = point_tracker.track_color:main'],
+          'gui_scripts': ['tracking = point_tracker.tracking:main']
+          }
+      )
 
-if sys.platform == 'darwin':
-    setup(
-        app=APP,
-        data_files=DATA_FILES,
-        options={'py2app': OPTIONS},
-        version=VERSION,
-        setup_requires=['py2app'],
-    )
-elif sys.platform == 'linux2':
-    setup(
-        name='tracking',
-        scripts=['tracking.py'],
-        packages=['src', 'src/tissue_plot'],
-        data_files=DATA_FILES,
-        version=VERSION
-    )
-elif sys.platform == "win32":
-    pass
-else:
-    raise RuntimeError("Platform '%s' is not supported by the install script" % sys.platform)
