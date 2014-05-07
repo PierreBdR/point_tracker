@@ -1,32 +1,34 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
-__version__ = "0.6.12"
-__revision__= "3373"
-from PyQt4.QtCore import ( QString, QRectF, QSignalMapper, QObject, SIGNAL, SLOT, pyqtSignature )
+
+from PyQt4.QtCore import (QRectF, QSignalMapper, QObject, SIGNAL, SLOT, pyqtSignature)
 from PyQt4.QtGui import (QGraphicsView, QAction, QDialog,
         QMainWindow, QMessageBox, QUndoStack, QKeySequence, QWidget, QActionGroup, QInputDialog,
         QMenu, QLabel, QFileDialog, QImageReader, QImageWriter, QPolygonF)
 from PyQt4.QtOpenGL import QGLWidget, QGLFormat, QGL
-from path import path
-from project import Project
-from tracking_data import TrackingDataException, RetryTrackingDataException
-from tracking_scene import TrackingScene, LinkedTrackingScene
-from tracking_undo import (ChangePointsId, ChangeTiming, CleanCells, ResetAlignment, AlignImages, SplitPointsId,
+from .path import path
+from .project import Project
+from .tracking_data import TrackingDataException, RetryTrackingDataException
+from .tracking_scene import TrackingScene, LinkedTrackingScene
+from .tracking_undo import (ChangePointsId, ChangeTiming, CleanCells, ResetAlignment, AlignImages, SplitPointsId,
                            MergeCells, SplitCells, ChangeScales)
 import sys
 if sys.platform == "darwin":
-    from ui_tracking_window_macos import Ui_TrackingWindow
+    from .ui_tracking_window_macos import Ui_TrackingWindow
 else:
-    from ui_tracking_window import Ui_TrackingWindow
-import algo
-import parameters
-from alignmentdlg import AlignmentDlg
-from timeeditdlg import TimeEditDlg
-from editresdlg import EditResDlg
-from growth_computation import GrowthComputationDlg
-from plottingdlg import PlottingDlg
-from sys_utils import createForm, showException, retryException
-from debug import print_debug
+    from .ui_tracking_window import Ui_TrackingWindow
+from . import algo
+from . import parameters
+from .alignmentdlg import AlignmentDlg
+from .timeeditdlg import TimeEditDlg
+from .editresdlg import EditResDlg
+from .growth_computation import GrowthComputationDlg
+from .plottingdlg import PlottingDlg
+from .sys_utils import createForm, showException, retryException
+from .debug import print_debug
+from .__init__ import __version__, __revision__
 
 class TrackingWindow(QMainWindow):
     """
@@ -311,7 +313,7 @@ class TrackingWindow(QMainWindow):
             self._currentScene.changeDataManager(self._data)
             self.initFromData()
             self.projectAct.setEnabled(True)
-        except TrackingDataException, ex:
+        except TrackingDataException as ex:
             showException(self, "Error while loaded data", ex)
 
     def dataFileChanged(self, new_file):
@@ -369,7 +371,7 @@ class TrackingWindow(QMainWindow):
         try:
             self._project.save(data_file)
             return True
-        except TrackingDataException, ex:
+        except TrackingDataException as ex:
             showException(self, "Error while saving data", ex)
             return False
 
@@ -384,10 +386,10 @@ class TrackingWindow(QMainWindow):
                 print_debug("Data file is clean.")
                 self.ui.action_Save.setEnabled(False)
             return True
-        except TrackingDataException, ex:
+        except TrackingDataException as ex:
             showException(self, "Error while loading data", ex)
             return False
-        except RetryTrackingDataException, ex:
+        except RetryTrackingDataException as ex:
             if retryException(self, "Problem while loading data", ex):
                 new_opts = dict(opts)
                 new_opts.update(ex.method_args)
@@ -468,7 +470,7 @@ class TrackingWindow(QMainWindow):
     @pyqtSignature("bool")
     def on_action_Parameters_toggled(self, value):
         if value:
-            from parametersdlg import ParametersDlg
+            from .parametersdlg import ParametersDlg
             self._previousScene.showTemplates()
             self._currentScene.showTemplates()
             #tracking_scene.saveParameters()
@@ -806,7 +808,7 @@ class TrackingWindow(QMainWindow):
                     self.undo_stack.push(MergeCells(self._data, self._previousScene.image_name, old_cell, new_cell))
                 else:
                     self.undo_stack.push(SplitCells(self._data, self._previousScene.image_name, old_cell, new_cell))                    
-            except AssertionError, error:
+            except AssertionError as error:
                 QMessageBox.critical(self, "Cannot merge the cells", str(error))
         else:
             old_pts = self._previousScene.getSelectedIds()
@@ -818,9 +820,9 @@ class TrackingWindow(QMainWindow):
                 if old_pts != new_pts:
                     self.undo_stack.push(ChangePointsId(self._data, self._previousScene.image_name, old_pts, new_pts))
                 else:
-                    print "Splitting point of id %d" % old_pts[0]
+                    print("Splitting point of id %d" % old_pts[0])
                     self.undo_stack.push(SplitPointsId(self._data, self._previousScene.image_name, old_pts))
-            except AssertionError, error:
+            except AssertionError as error:
                 QMessageBox.critical(self, "Cannot merge the points", str(error))
 
     @pyqtSignature("")
@@ -891,10 +893,10 @@ Copyright 2008
             fn = path(fn)
             try:
                 d.load(fn)
-            except TrackingDataException, ex:
+            except TrackingDataException as ex:
                 showException(self, "Error while loading data file", ex)
                 return
-            #points = [str(i) for i in xrange(d._last_pt_id+1)]
+            #points = [str(i) for i in range(d._last_pt_id+1)]
             #points.insert(0, "Barycenter")
             #ref, ok = QInputDialog.getItem(self, "Alignment data parameter", "Choose the reference point", points, 0, False)
             if d._last_pt_id > 0:
@@ -919,7 +921,7 @@ Copyright 2008
             try:
                 shifts, angles = algo.alignImages(self._data, d, ref, rotation)
                 self.undo_stack.push(AlignImages(self._data, shifts, angles))
-            except algo.AlgoException, ex:
+            except algo.AlgoException as ex:
                 showException(self, "Error while aligning images", ex)
 
     def sceneSizeChanged(self):
@@ -984,7 +986,7 @@ Copyright 2008
             poly = [ pid for pid in full_poly if pid in data[prev_pos] ]
             #print_debug("Cell %d on time %d: %s" % (cid, prev_pos, poly))
             if prev_pos < ls.start or prev_pos >= ls.end or not poly:
-                for i in xrange(*ls.slice().indices(len(data))):
+                for i in range(*ls.slice().indices(len(data))):
                     poly = [ pid for pid in full_poly if pid in data[i] ]
                     if poly:
                         print_debug("Found cell %d on image %d with polygon %s" % (cid, i, poly))

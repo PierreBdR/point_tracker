@@ -1,13 +1,14 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
-import parameters
+from . import parameters
 from PyQt4.QtGui import (QPainterPath, QColor, QGraphicsItem, QPen, QPolygonF, QCursor,
         QTransform, QPainterPathStroker)
-from PyQt4.QtCore import QPointF, QRectF, Qt, QString, QLineF
+from PyQt4.QtCore import QPointF, QRectF, Qt, QLineF
 from math import cos, pi
 from math import hypot as norm
-from geometry import dist, distToPolyLine,  inf
-from debug import print_debug
+from .geometry import dist, distToPolyLine,  inf
+from .debug import print_debug
 
 class OldPointItem(QGraphicsItem):
     def __init__(self, scale, pt_id, parent = None):
@@ -121,7 +122,7 @@ class PointItem(QGraphicsItem):
         self._show_template = False # Are we showing the template *now* ?
         self.hover_template = False
         self.hover = False
-        self.setToolTip(QString.number(pt_id))
+        self.setToolTip(unicode(pt_id))
         self.cells = tuple(cells)
         self.setGeometry()
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
@@ -243,7 +244,7 @@ class PointItem(QGraphicsItem):
             painter.save()
             fz = params.font_zoom
             painter.scale(fz, fz)
-            painter.drawText(self.text_rect, Qt.AlignCenter, QString.number(self.pt_id))
+            painter.drawText(self.text_rect, Qt.AlignCenter, unicode(self.pt_id))
             painter.restore()
         if saved:
             painter.restore()
@@ -523,7 +524,7 @@ class CellItem(QGraphicsItem):
         self.hover_side = None
         self.scale = scale
         self.glob_scale = glob_scale
-        self.setToolTip(QString.number(cell_id))
+        self.setToolTip(unicode(cell_id))
         self.polygon_id = polygon
         self.walls = walls
         self.sides = []
@@ -574,12 +575,12 @@ class CellItem(QGraphicsItem):
 # First, check if this is a "simple" cell
         walls = self.walls
         real_polygon = [ pid for pid in polygon_id if pid in points ]
-        #sides = [ walls[real_polygon[i], real_polygon[(i+1)%len(real_polygon)]] for i in xrange(len(real_polygon)) ]
+        #sides = [ walls[real_polygon[i], real_polygon[(i+1)%len(real_polygon)]] for i in range(len(real_polygon)) ]
         sides = [None] * len(polygon)
         self.sides = sides
         real_scale_x = self.scale[0]/self.glob_scale
         real_scale_y = self.scale[1]/self.glob_scale
-        for i in xrange(len(polygon)):
+        for i in range(len(polygon)):
             if polygon[i] is not None: # Find the next
                 j = (i+1) % len(polygon)
                 while polygon[j] is None:
@@ -588,7 +589,7 @@ class CellItem(QGraphicsItem):
                 sides[i] = [ polygon[i] ] + w + [ polygon[j] ]
         prev = real_polygon[-1]
         polygon_shape = []
-        for i in xrange(len(polygon)):
+        for i in range(len(polygon)):
             if polygon[i]:
                 polygon_shape.append(polygon[i])
                 polygon_shape.extend(sides[i])
@@ -596,7 +597,7 @@ class CellItem(QGraphicsItem):
         if non_none_cnt > 2:
             #print "List of points: [%s]" % ','.join("(%f,%f)"%(p.x(),p.y()) if p is not None else "None" for p in polygon)
             start = None
-            for i in xrange(len(polygon)):
+            for i in range(len(polygon)):
                 if polygon[i] is not None:
                     start = i
                     break
@@ -619,15 +620,15 @@ class CellItem(QGraphicsItem):
                     # First, find total length of wall
                     length = 0.0
                     side = sides[prev]
-                    for i in xrange(len(side)-1):
+                    for i in range(len(side)-1):
                         length += dist(side[i], side[i+1])
                     diff = length/(cnt+1) # Distance between two points
                     i = cur
                     p = side[0]
-                    for j in xrange(cnt):
+                    for j in range(cnt):
                         l = 0.0
                         found = False
-                        for k in xrange(len(side)-1):
+                        for k in range(len(side)-1):
                             dl = dist(side[k], side[k+1])
                             l += dl
                             if l > diff*(1+1e-5): # Account for accumulation of small errors
@@ -805,7 +806,7 @@ class CellItem(QGraphicsItem):
             #pos = pos + self.center
             sides = self.sides
             assert len(sides) == len(polygon)-1
-            for i in xrange(len(polygon)-1):
+            for i in range(len(polygon)-1):
                 side = sides[i]
                 d = distToPolyLine(pos,  side)
                 if d <min_dist:
@@ -903,7 +904,7 @@ class CellItem(QGraphicsItem):
 
     def mouseReleaseEvent(self, event):
         if self.dragging_line:
-            print "Adding point to cell"
+            print("Adding point to cell")
             self.setGeometry()
             drag_side = (self.drag_side+1) % (len(self.polygon)-1)
             self.scene().addPointToCell(self.cell_id, drag_side, self.mapToScene(event.pos()))

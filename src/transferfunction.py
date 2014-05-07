@@ -1,9 +1,13 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4 import QtCore
-from itertools import izip
 from colorsys import rgb_to_hsv, hsv_to_rgb
-from StringIO import StringIO
+import sys
+if sys.version_info.major < 3:
+    from StringIO import StringIO
+else:
+    from io import StringIO
 
 def rgba_to_hsva(r, g, b, a):
     return rgb_to_hsv(r, g, b) + (a,)
@@ -164,7 +168,7 @@ class TransferFunction(QtCore.QObject):
                     col1 = (col1[0]+1,) + col1[1:]
                 elif col1[0] - col2[0] > 0.5:
                     col2 = (col2[0]+1,) + col2[1:]
-        col = tuple(i1*dp1 + i2*dp2 for i1,i2 in izip(col1, col2))
+        col = tuple(i1*dp1 + i2*dp2 for i1,i2 in zip(col1, col2))
         if self._cyclic and (col[0] > 1 or col[0] < 0):
             col = (col[0]%1,) + col[1:]
         col = tuple(min(1.0, i) for i in col)

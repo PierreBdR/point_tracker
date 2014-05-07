@@ -1,23 +1,26 @@
+from __future__ import print_function, division, absolute_import
 # vim: set fileencoding=utf-8 :
 """
 This module defines the computation and selection methods for the growth computation.
 """
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
-from growth_algo import growthParams
-from geometry import polygonArea, dist
-from math import log, ceil
+from .growth_algo import growthParams
+from .geometry import polygonArea, dist
+from math import log, ceil, pi
 import csv
-from tracking_data import TrackingData, RetryTrackingDataException
+from .tracking_data import TrackingData, RetryTrackingDataException
 import re
-from path import path
-from cStringIO import StringIO
+from .path import path
+import sys
+if sys.version_info.major < 3:
+    from cStringIO import StringIO
+else:
+    from io import StringIO
 from numpy import isnan, isinf, sqrt, array
-from debug import print_debug
-from itertools import izip
-from project import Project
-from math import pi
+from .debug import print_debug
+from .project import Project
 
 class GrowthResultException(Exception):
     """
@@ -101,7 +104,7 @@ class Result(object):
             data.data_file = p
             try:
                 data.load()
-            except Exception, ex:
+            except Exception as ex:
                 raise GrowthResultException("Error while loading data file: %s" % str(ex), previous=ex)
         self.data = data
 
@@ -163,7 +166,7 @@ class Result(object):
         growth_num = Result.growth_num
         fdata = StringIO()
         invert_pts, invert_cells = self.data.save(f=fdata)
-        f = file(filename, 'wb')
+        f = open(filename, 'wb')
         w = csv.writer(f, delimiter=',')
         w.writerow(["TRKR_VERSION", Result.CURRENT_VERSION])
         w.writerow(["Growth computation parameters"])
@@ -173,7 +176,7 @@ class Result(object):
         w.writerow([])
         w.writerow(["Growth per image"])
         w.writerow(Result.fields)
-        for img_id in xrange(len(self.images)):
+        for img_id in range(len(self.images)):
             img = self.images[img_id]
             w.writerow([img])
             cells = self.cells[img_id]
@@ -193,7 +196,7 @@ class Result(object):
             w.writerows(rows)
         w.writerow(["Actual cell shapes"])
         w.writerow(["Image", "Cell", "Begin/End", "Shape [x y]"])
-        for img_id in xrange(len(self.images)):
+        for img_id in range(len(self.images)):
             img = self.images[img_id]
             w.writerow([img])
             cells_shapes = self.cells_shapes[img_id]
@@ -213,7 +216,7 @@ class Result(object):
 
     def load_version01(self, filename, **opts):
         fields_num = Result.fields_num
-        f = file(filename, "rb")
+        f = open(filename, "rb")
         r = csv.reader(f, delimiter=',')
         l = r.next()
         assert l[0] == "TRKR_VERSION" and l[1] == "0.1", "Wrong reader for version %s:%s" % (l[0], l[1])
@@ -258,7 +261,7 @@ class Result(object):
 
     def load_version03(self, filename, **opts):
         fields_num = Result.fields_num
-        f = file(filename, "rb")
+        f = open(filename, "rb")
         l1 = f.readline()
         if '\t' in l1: 
             delim = '\t'
@@ -267,7 +270,7 @@ class Result(object):
         else:
             raise GrowthResultException("Invalid file format, delimiter needs to be '\\t' or ','")
         f.close()
-        f = file(filename, "rb")
+        f = open(filename, "rb")
         r = csv.reader(f, delimiter=delim)
         l = r.next()
         if "force_load" not in opts or not opts['force_load']:
@@ -308,7 +311,7 @@ class Result(object):
 
     def load_version04(self, filename, **opts):
         fields_num = Result.fields_num
-        f = file(filename, "rb")
+        f = open(filename, "rb")
         l1 = f.readline()
         if '\t' in l1: 
             delim = '\t'
@@ -317,7 +320,7 @@ class Result(object):
         else:
             raise GrowthResultException("Invalid file format, delimiter needs to be '\\t' or ','")
         f.close()
-        f = file(filename, "rb")
+        f = open(filename, "rb")
         r = csv.reader(f, delimiter=delim)
         l = r.next()
         if "force_load" not in opts or not opts['force_load']:
@@ -398,7 +401,7 @@ class Result(object):
     def load(self, filename, **opts):
         self.current_filename = filename
         version = None
-        f = file(filename, 'rb')
+        f = open(filename, 'rb')
         first_line = f.readline()
         f.close()
         if "," in first_line:
@@ -477,7 +480,7 @@ class ForwardMethod(GrowthMethod):
         result = Result(data, list_img)
         thread = self.thread
         used_images = self.usedImages(list_img)
-        for i in xrange(len(used_images)):
+        for i in range(len(used_images)):
             img_name = used_images[i]
             used_imgs = self.computeFromImages(list_img, i)
             cells_pts = cells_selection(used_imgs, data)
@@ -499,7 +502,7 @@ class ForwardMethod(GrowthMethod):
                     lp = len(pts)
                     if lp < 3: # Cannot have growth of less than three points
                         continue
-                    for i in xrange(lp):
+                    for i in range(lp):
                         walls.add(wall(pts[i], pts[(i+1)%lp]))
                     ps = polygonToCoordinates(pts, img_data)
                     qs = polygonToCoordinates(pts, next_img_data)
@@ -557,13 +560,13 @@ class BackwardMethod(ForwardMethod):
 # Functions needes for the ForwardDenseMethod
 
 def length_polyline(w):
-    vects = [w[i+1] - w[i] for i in xrange(len(w)-1)]
+    vects = [w[i+1] - w[i] for i in range(len(w)-1)]
     return sum(sqrt(pos.x()*pos.x() + pos.y()*pos.y()) for pos in vects)
 
 def length_segment(s, data):
     total_length = 0
     lengths = [0]
-    for p1,p2 in izip(s[:-1],s[1:]):
+    for p1,p2 in zip(s[:-1],s[1:]):
         w = data.walls[p1,p2]
         w.insert(0,data[p1])
         w.append(data[p2])
@@ -598,7 +601,7 @@ def align_segments(s1, s2, data1, data2):
         cur = s[p1]
         next = None
         w = data.walls[s[p1],s[p2]]
-        for j,(r1,r2) in enumerate(izip(all_pos[:-1],all_pos[1:])):
+        for j,(r1,r2) in enumerate(zip(all_pos[:-1],all_pos[1:])):
             w1 = [pos]
             if r2 in ratios: # If the next point is in the current wall
                 w1.extend(w)
@@ -642,7 +645,7 @@ def discretize_segment(seg, n, l):
     vec_size = sqrt(vec.x()*vec.x() + vec.y()*vec.y())
     vec /= vec_size
     shift = 0
-    for j in xrange(n):
+    for j in range(n):
         result.append(pos)
         if j == n-1: break
         needed_dl = dl
@@ -707,7 +710,7 @@ def alignCells(c, pts, new_pts, img_data, next_img_data, nb_points):
     ps = [] # Resampled first cell
     qs = [] # Resampled second cell
     nb_seg = len(aligned_pts)
-    for i,((seg1,_),(seg2,_)) in enumerate(izip(aligned_pts, aligned_new_pts)):
+    for i,((seg1,_),(seg2,_)) in enumerate(zip(aligned_pts, aligned_new_pts)):
         seg1 = seg1 + aligned_pts[(i+1) % nb_seg][0][0:1]
         seg2 = seg2 + aligned_new_pts[(i+1) % nb_seg][0][0:1]
         l1 = length_polyline(seg1)
@@ -781,7 +784,7 @@ class ForwardDenseMethod(GrowthMethod):
         w2,_ = aligned_new_pts[0]
         shifted1 = aligned_pts[1:] + aligned_pts[0:1]
         shifted2 = aligned_new_pts[1:] + aligned_new_pts[0:1] 
-        for (seg1,p1),(seg2,p2) in izip(shifted1, shifted2):
+        for (seg1,p1),(seg2,p2) in zip(shifted1, shifted2):
             if p1 in ref_pts or p2 in ref_pts:
                 cur = p2 if p1 is None else p1
                 assert prev is not None and cur is not None
@@ -822,7 +825,7 @@ class ForwardDenseMethod(GrowthMethod):
         result = Result(data, list_img)
         thread = self.thread
         used_images = self.usedImages(list_img)
-        for i in xrange(len(used_images)):
+        for i in range(len(used_images)):
             img_name = used_images[i]
             used_imgs = self.computeFromImages(list_img, i)
             ref_img = self.baseImage(list_img, i)
@@ -925,15 +928,15 @@ class AddPointsSelection(object):
         cells_pts = dict([ (c,[ p for p in data.cells[c] if p in img_data ]) for c in cells ])
         for c in cells_pts.keys():
             if len(cells_pts[c]) < 3:
-                print "Deleting cell %s because it has less than three vertices" % c
+                print("Deleting cell %s because it has less than three vertices" % c)
                 del cells_pts[c]
-        print "Initial list of cells: %s" % (sorted(cells_pts.keys()),)
+        print("Initial list of cells: %s" % (sorted(cells_pts.keys()),))
         for img in list_img[1:]:
             new_img_data = data[img]
             for c,pts in cells_pts.items():
                 for p in pts:
                     if p not in new_img_data:
-                        print "Deleting cell %d because it is not in the other image" % c
+                        print("Deleting cell %d because it is not in the other image" % c)
                         del cells_pts[c]
                         break
                 else:
@@ -942,7 +945,7 @@ class AddPointsSelection(object):
                     a1 = polygonArea(p1)
                     a2 = polygonArea(p2)
                     if abs((a2-a1)/a1) > self.max_variation:
-                        print "Deleting cell %d because of big size variation" % c
+                        print("Deleting cell %d because of big size variation" % c)
                         del cells_pts[c]
         return cells_pts
 

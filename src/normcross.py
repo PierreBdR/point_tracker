@@ -1,4 +1,5 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 import scipy
 from scipy import rot90, zeros, cumsum, sqrt, maximum, std, absolute, array, real
@@ -7,7 +8,7 @@ try:
     from scipy.signal import fft2, ifft2
 except ImportError:
     from numpy.fft import fft2, ifft2
-from utils import centered, eps, padding
+from .utils import centered, eps, padding
 # Turns out fourrier is almost always faster ... no need to test!
 #import convolution_timing
 

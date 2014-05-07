@@ -1,3 +1,5 @@
+from __future__ import print_function, division, absolute_import
+
 from tracking_plot import (ColoringObject, ColorParameters, ColoringObjectType)
 
 class ConstantColor(ColoringObject):

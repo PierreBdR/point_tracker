@@ -1,14 +1,15 @@
+from __future__ import print_function, division, absolute_import
 """
 :newfield signal: Signal, Signals
 """
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QDialog
 from PyQt4.QtCore import pyqtSignature
-from sys_utils import setColor, getColor, changeColor
+from .sys_utils import setColor, getColor, changeColor
 
-from ui_plottingoptionsdlg import Ui_PlottingOptionsDlg
+from .ui_plottingoptionsdlg import Ui_PlottingOptionsDlg
 
 class PlottingOptionsDlg(QDialog):
     def __init__(self, parent):

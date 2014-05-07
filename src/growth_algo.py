@@ -1,4 +1,5 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from numpy import array, eye, argsort, cross, dot, asarray, asmatrix, diag, matrix, exp, log, cos, sin, pi, arctan2

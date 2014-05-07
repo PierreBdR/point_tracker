@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 """
 :newfield signal: Signal, Signals
 """
@@ -7,14 +8,13 @@ __docformat__ = "restructuredtext"
 from PyQt4.QtGui import (QDialog, QIcon, QPixmap, QMenu, QItemSelectionModel, QItemSelection,
         QFileDialog, QMessageBox, QProgressDialog, QDialogButtonBox)
 from PyQt4.QtCore import pyqtSignature, Qt, QSize, QThread, QEvent, SIGNAL, QMutex, QCoreApplication
-from ui_growth_computation import Ui_GrowthComputationDlg
-from timemodel import TimedImageModel
-from itertools import izip
-import image_cache
-from path import path
-import growth_computation_methods
-from sys_utils import retryException, showException
-from tracking_data import TrackingDataException, RetryTrackingDataException
+from .ui_growth_computation import Ui_GrowthComputationDlg
+from .timemodel import TimedImageModel
+from . import image_cache
+from .path import path
+from . import growth_computation_methods
+from .sys_utils import retryException, showException
+from .tracking_data import TrackingDataException, RetryTrackingDataException
 
 class GrowthComputationDlg(QDialog):
     def __init__(self, data, parent=None):
@@ -115,10 +115,10 @@ class GrowthComputationDlg(QDialog):
                     self.ui.daughterCells.setChecked(False)
                 # At last, set the current file as target
                 self.ui.savePath.setText(filename)
-            except TrackingDataException, ex:
+            except TrackingDataException as ex:
                 showException(self, "Error while loading data", ex)
                 return
-            except RetryTrackingDataException, ex:
+            except RetryTrackingDataException as ex:
                 if retryException(self, "Problem while loading data", ex):
                     new_opts = dict(opts)
                     new_opts.update(ex.method_args)

@@ -1,9 +1,10 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtGui import QImage
 import numpy
-from algo import filterImage
-from utils import bigendian
+from .algo import filterImage
+from .utils import bigendian
 
 def nbytes(obj):
     """

@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 __docformat__ = "restructuredtext"
 import scipy
 from scipy import nonzero, array, concatenate
@@ -5,7 +6,6 @@ from scipy import misc
 import sys
 from path import path
 from project import Project
-from itertools import izip
 import csv
 import os.path
 
@@ -65,7 +65,7 @@ class Data(object):
         Y,X = nonzero(img_diff.max(2) > 40)
         print "  Found %d points" % len(X)
 # Second, store their points
-        for x,y in izip(X,Y):
+        for x,y in zip(X,Y):
             c = img[y,x]
             pt = self.get_pts(c)
             pt[i] = (x,y)
@@ -81,7 +81,7 @@ class Data(object):
         w.writerow(shifts)
         an_shift = ["Angle Shift"] + (["0.0", ""] * len(self.list_imgs))
         w.writerow(an_shift)
-        for i in xrange(len(self.pts)):
+        for i in range(len(self.pts)):
             pt = [ "Point %d" % i ]
             for pos in self.pts[i]:
                 if pos:
@@ -117,7 +117,7 @@ def main():
             return
     proj.use()
     d = Data(proj)
-    for i in xrange(len(d.list_imgs)):
+    for i in range(len(d.list_imgs)):
         d.process(i)
     if not savefile:
         savefile = raw_input("Please enter the name of the file to save: [default:tracking.csv]")

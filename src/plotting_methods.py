@@ -1,15 +1,16 @@
+from __future__ import print_function, division, absolute_import
 """
 :newfield signal: Signal, Signals
 """
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QColor, QPen
 from PyQt4.QtCore import Qt, QPointF, QObject, SIGNAL, QSettings
-import parameters
-from geometry import gravityCenter
-from debug import print_debug
-import tissue_plot
+from . import parameters
+from .geometry import gravityCenter
+from .debug import print_debug
+from . import tissue_plot
 from math import pi
 
 #debug_object = object

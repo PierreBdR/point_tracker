@@ -1,10 +1,11 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
-from path import path
-from tracking_data import TrackingData, TrackingDataException
+from .path import path
+from .tracking_data import TrackingData, TrackingDataException
 from PyQt4.QtCore import QObject, QCoreApplication, SIGNAL
 from PyQt4.QtGui import QImageReader
-import parameters
+from . import parameters
 import re
 
 class Project(QObject):
@@ -25,7 +26,7 @@ class Project(QObject):
         self.images_dir = dir_/'Processed'
         self._valid_project = None
         self.data = None
-        
+
     def _get_dir(self):
         """
         Project main directory
@@ -82,7 +83,7 @@ class Project(QObject):
         if file_ is None:
             raise RuntimeError("None data file")
         file_ = path(file_)
-        print "Setting data file to %s" % (file_,)
+        print("Setting data file to %s" % (file_,))
         if file_ != self._data_file:
             self._data_file = path(file_)
             self.emit(SIGNAL("changedDataFile"), self._data_file)
@@ -100,7 +101,7 @@ class Project(QObject):
     Regular expression selecting files of supported format
      :type: re
     """
-    
+
     initialized = False
 
     @classmethod
@@ -182,7 +183,7 @@ class Project(QObject):
     def load(self, **opts):
         if self.data_file is None:
             raise TrackingDataException("No data file to be loaded.")
-        print "Loading %s" % self.data_file
+        print("Loading %s" % self.data_file)
         data = self.data
         if data is None or data.project_dir != self.main_dir:
             data = TrackingData(self.main_dir)

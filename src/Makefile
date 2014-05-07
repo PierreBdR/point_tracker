@@ -1,6 +1,4 @@
-UIFILES=tracking_window.ui parametersdlg.ui alignmentdlg.ui \
-	transferfunctiondlg.ui plottingdlg.ui timeeditdlg.ui growth_computation.ui \
-	plot_preview.ui editresdlg.ui
+UIFILES=$(wildcard *.ui)
 RCFILES=icons.qrc
 GENERATED=$(patsubst %.ui,ui_%.py,$(UIFILES)) $(patsubst %.qrc,%_rc.py,$(RCFILES)) ui_tracking_window_macos.py
 UI_IMPL=$(patsubst %.ui,%.py,$(patsubst tracking_window.ui,,$(UIFILES)))
@@ -17,6 +15,9 @@ all: $(GENERATED)
 PYUIC4 ?= pyuic4
 PYRCC4 ?= pyrcc4
 
+PYRCC_FLAGS = -py3 # Careful with python version!
+PYUIC_FLAGS = --from-imports
+
 gui:
 	designer $(UIFILES)&
 
@@ -30,10 +31,10 @@ tracking.py:
 	ln -s tracking.pyw tracking.py
 
 ui_%.py: %.ui
-	$(PYUIC4) $< -o $@
+	$(PYUIC4) $(PYUIC_FLAGS) $< -o $@
 
 %_rc.py: %.qrc
-	$(PYRCC4) -o $@ $<
+	$(PYRCC4) $(PYRCC_FLAGS) -o $@ $<
 
 shell: $(GENERATED)
 	ipython -q4thread -c "from tracking import *; mw = ipython()"

@@ -1,13 +1,13 @@
+from __future__ import print_function, division, absolute_import
 # -*- coding: utf8 -*-
 """
 :newfield signal: Signal, Signals
 """
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QItemDelegate, QLineEdit, QBrush, QColor, QPalette
 from PyQt4.QtCore import Qt, QVariant, QAbstractTableModel, QModelIndex, SIGNAL
-from itertools import izip
 from math import floor
 
 class ScaleModel(QAbstractTableModel):
@@ -19,7 +19,7 @@ class ScaleModel(QAbstractTableModel):
         self.names = names
         self.scales = [ [float(scales[img][0]), float(scales[img][1])] for img in names ]
         root = QModelIndex()
-        for idx in xrange(len(names)):
+        for idx in range(len(names)):
             self.createIndex(idx, 0, root)
             self.createIndex(idx, 1, root)
         self.root = root
@@ -142,7 +142,7 @@ class ScaleModel(QAbstractTableModel):
         return False
 
     def __iter__(self):
-        for n,s in izip(self.names, self.scales):
+        for n,s in zip(self.names, self.scales):
             yield n,(s[0]*self.factor, s[1]*self.factor)
 
     def __getitem__(self, idx):

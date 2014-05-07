@@ -1,12 +1,13 @@
 # coding=utf-8
+from __future__ import print_function, division, absolute_import
 """
 This module contains the bases classes needed for plotting.
 """
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 
 from PyQt4.QtGui import (QColor, QDialog, QFontDialog, QFont, QDoubleValidator, QPicture,
                          QPainter, QFileDialog)
-from PyQt4.QtCore import QObject, SIGNAL, QVariant, pyqtSignature, QString, QTimer
+from PyQt4.QtCore import QObject, SIGNAL, pyqtSignature, QTimer
 from ..transferfunction import TransferFunction
 from ..transferfunctiondlg import TransferFunctionDlg
 from ..scale_bar import ScaleBar as ScaleBarDrawer
@@ -385,7 +386,7 @@ class ScaleBar(QObject):
         setColor(config_params.textColor, self.scale_text)
         setColor(config_params.lineColor, self.scale_line)
         config_params.outsideImage.setChecked(self.scale_bar_outside_image)
-        for i in xrange(config_params.selectPosition.count()):
+        for i in range(config_params.selectPosition.count()):
             txt = config_params.selectPosition.itemText(i)
             if txt == self.scale_position:
                 config_params.selectPosition.setCurrentIndex(i)
@@ -908,7 +909,7 @@ class DirectionGrowthParameters(ScaleBar):
             else:
 # First, prepare the data by getting the images and computing how big they 
 # should be
-                f = file(self.data_file)
+                f = open(self.data_file)
                 first_line = f.readline()
                 f.close()
                 if first_line.startswith("TRKR_VERSION"):
@@ -926,15 +927,15 @@ class DirectionGrowthParameters(ScaleBar):
                 config.point1.clear()
                 config.point2.clear()
                 for i in self.points:
-                    print "i = %s" % i
+                    print("i = %s" % i)
                     config.point1.addItem(str(i))
                     config.point2.addItem(str(i))
                 config.point1.setCurrentIndex(0)
                 config.point2.setCurrentIndex(1)
-        except RetryTrackingDataException, ex:
+        except RetryTrackingDataException as ex:
             loading_arguments.update(ex.method_args)
             self.load_data(**loading_arguments)
-   
+
     def direction(self, img_data):
         i1, i2 = self.data_points
         p1 = img_data[i1]
@@ -949,7 +950,7 @@ class DirectionGrowthParameters(ScaleBar):
             value = int(value)
             if value != self.data_points[0]:
                 self.data_points = (value, self.data_points[1])
-        except ValueError, err:
+        except ValueError as err:
             print_debug("Error while changing point1 = %s" % str(err))
 
     @pyqtSignature("const QString&")
@@ -958,7 +959,7 @@ class DirectionGrowthParameters(ScaleBar):
             value = int(value)
             if value != self.data_points[1]:
                 self.data_points = (self.data_points[0], value)
-        except ValueError, err:
+        except ValueError as err:
             print_debug("Error while changing point1 = %s" % str(err))
 
     def _get_data_points(self):

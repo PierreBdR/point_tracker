@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 __author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtGui import (QDialog, QPushButton, QGraphicsView, QTransform, QMessageBox, QIcon,
@@ -5,9 +6,9 @@ from PyQt4.QtGui import (QDialog, QPushButton, QGraphicsView, QTransform, QMessa
 from PyQt4.QtCore import SIGNAL, QObject, pyqtSignature, QRectF, Qt, QTimer
 from PyQt4.QtOpenGL import QGLWidget, QGLFormat, QGL
 
-from ui_plot_preview import Ui_PlotPreview
-import parameters
-from debug import print_debug
+from .ui_plot_preview import Ui_PlotPreview
+from . import parameters
+from .debug import print_debug
 
 class PlotPreview(QDialog):
     def __init__(self, thread, parent):

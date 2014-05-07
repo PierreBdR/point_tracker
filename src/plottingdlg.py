@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 """
 :newfield signal: Signal, Signals
 """
@@ -9,22 +10,21 @@ from PyQt4.QtGui import (QDialog, QImageWriter, QMessageBox, QFileDialog,
         QColor, QDialogButtonBox, QProgressDialog, QPainter, QImage, QPolygonF, QWidget,
         QPushButton, QPen, QTransform, QBrush)
 from PyQt4.QtCore import (pyqtSignature, SIGNAL, QObject, QThread, QEvent, QMutex, QCoreApplication, QRectF,
-        QPoint, Qt, QRect, QSettings, QVariant, QString)
-from ui_plottingdlg import Ui_PlottingDlg
-from path import path
-from growth_computation_methods import Result
-import parameters
-import image_cache
-from plotting_methods import (createWallColoring, createCellColoring, createPointColoring,
+        QPoint, Qt, QRect, QSettings)
+from .ui_plottingdlg import Ui_PlottingDlg
+from .path import path
+from .growth_computation_methods import Result
+from . import parameters
+from . import image_cache
+from .plotting_methods import (createWallColoring, createCellColoring, createPointColoring,
                                EllipsisDraw, saveWallParamClasses, saveCellParamClasses,
                                savePointParamClasses)
-import plotting_methods
-from sys_utils import setColor, getColor, changeColor
-from plot_preview import PlotPreview
-from debug import print_debug
-from tracking_data import TrackingData, RetryTrackingDataException
-from itertools import izip
-from plottingoptionsdlg import PlottingOptionsDlg
+from . import plotting_methods
+from .sys_utils import setColor, getColor, changeColor
+from .plot_preview import PlotPreview
+from .debug import print_debug
+from .tracking_data import TrackingData, RetryTrackingDataException
+from .plottingoptionsdlg import PlottingOptionsDlg
 
 def createColoring(ctype):
     if ctype == 'cell':
@@ -1013,7 +1013,7 @@ class PlottingThread(QThread):
             if pts:
                 pts.append(pts[0])
                 ppts = []
-                for p1,p2 in izip(pts[:-1], pts[1:]):
+                for p1,p2 in zip(pts[:-1], pts[1:]):
                     ppts.append(img_data[p1])
                     ppts.extend(img_data.walls[p1,p2])
                 ppts.append(ppts[0])
@@ -1052,7 +1052,7 @@ class PlottingThread(QThread):
                 if pts:
                     pts.append(pts[0])
                     ppts = []
-                    for p1,p2 in izip(pts[:-1], pts[1:]):
+                    for p1,p2 in zip(pts[:-1], pts[1:]):
                         ppts.append(img_data[p1])
                         ppts.extend(img_data.walls[p1,p2])
                     ppts.append(ppts[0])
@@ -1204,12 +1204,12 @@ class PlottingThread(QThread):
             self._crop = QRect(QPoint(0,0), size)
             self.finished()
             self._loading_arguments = {} # All done, we don't need that anymore
-        except RetryTrackingDataException, ex:
+        except RetryTrackingDataException as ex:
             ex.filename = filename
             self.retryObject = ex
             self.finished()
             return
-        except Exception, ex:
+        except Exception as ex:
             _, _, exceptionTraceback = sys.exc_info()
             self.abort(ex, traceback=exceptionTraceback)
             raise
@@ -1253,7 +1253,7 @@ class PlottingThread(QThread):
                     self.saveExtra(pic_c, cell_file_pattern % (i+1), file_format)
                 self.nextImage()
             self.finished()
-        except Exception, ex:
+        except Exception as ex:
             if painter is not None:
                 painter.end()
             _, _, exceptionTraceback = sys.exc_info()

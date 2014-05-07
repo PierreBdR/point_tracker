@@ -1,9 +1,9 @@
-from ui_editmarkersdlg import Ui_EditMarkersDlg
-from transfer_markers import TransferMarkerModel, MarkerColorDelegate
+from __future__ import print_function, division, absolute_import
+from .ui_editmarkersdlg import Ui_EditMarkersDlg
+from .transfer_markers import TransferMarkerModel, MarkerColorDelegate
 
 from PyQt4.QtCore import pyqtSignature
 from PyQt4 import QtGui
-from itertools import izip
 
 class EditMarkersDlg(QtGui.QDialog):
     def __init__(self, fct, parent):
@@ -25,8 +25,8 @@ class EditMarkersDlg(QtGui.QDialog):
         self.ui.markersView.resizeColumnsToContents()
 
     def _get_point_list(self):
-        return [ (m, (col.redF(), col.greenF(), col.blueF(), col.alphaF())) for (m,col) in izip(self.markers, self.colors)]
-    
+        return [ (m, (col.redF(), col.greenF(), col.blueF(), col.alphaF())) for (m,col) in zip(self.markers, self.colors)]
+
     point_list = property(_get_point_list)
 
     @pyqtSignature("")

@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 """
 :newfield signal: Signal, Signals
 """
@@ -8,16 +9,15 @@ from PyQt4.QtGui import (QDialog, QPixmap, QIcon, QMessageBox, QTreeWidgetItem,
                          QDoubleValidator, QItemEditorFactory, QDoubleSpinBox,
                          QItemDelegate)
 from PyQt4.QtCore import QSize, Qt, QVariant, pyqtSignature
-from ui_editresdlg import Ui_EditResDlg
-from itertools import izip
-import image_cache
+from .ui_editresdlg import Ui_EditResDlg
+from . import image_cache
 from numpy import inf
-from scalemodel import ScaleModel
+from .scalemodel import ScaleModel
 
 class ScaleEditorFactory(QItemEditorFactory):
     def __init__(self):
         QItemEditorFactory.__init__(self)
-        
+
     def createEditor(self, type, parent):
         if type != QVariant.Double:
             raise ValueError("This factory only creates editor for doubles")

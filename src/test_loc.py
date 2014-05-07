@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 __docformat__ = "restructuredtext"
 import sys
 from PyQt4.QtCore import QCoreApplication, QLibraryInfo

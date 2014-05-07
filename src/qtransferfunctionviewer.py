@@ -1,10 +1,11 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4 import QtGui, QtCore
 #from transferfunction import TransferFunction
 from math import log
 from itertools import chain
-from editmarkersdlg import EditMarkersDlg
+from .editmarkersdlg import EditMarkersDlg
 
 
 def invalid(r,g,b,a):
@@ -142,7 +143,7 @@ class QTransferFunctionViewer(QtGui.QWidget):
         brush_color = QtGui.QColor()
         gr = QtGui.QLinearGradient(QtCore.QPointF(0, 0), QtCore.QPointF(1, 0))
         n = float(self.nb_values-1)
-        for i in xrange(self.nb_values):
+        for i in range(self.nb_values):
             brush_color.setRgbF(*transfer_fct.rgba(i/n))
             gr.setColorAt(i/n, brush_color)
         self.gradient = gr
@@ -205,7 +206,7 @@ class QTransferFunctionViewer(QtGui.QWidget):
         log_max = log(max_value)
         log_min = log(min_value)-1
         log_delta = log_max - log_min
-        for i in xrange(0, nb_values):
+        for i in range(0, nb_values):
             value = float(histogram[i])
             if value > 0:
                 value = (log(value) - log_min) / log_delta

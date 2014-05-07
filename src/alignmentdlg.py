@@ -1,8 +1,8 @@
+from __future__ import print_function, division, absolute_import
 __author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtGui import QDialog
-from PyQt4.QtCore import QString
-from ui_alignmentdlg import Ui_AlignmentDlg
+from .ui_alignmentdlg import Ui_AlignmentDlg
 
 class AlignmentDlg(QDialog):
     def __init__(self, nb_pts, *args):

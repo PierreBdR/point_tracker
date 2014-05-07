@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 from tracking_plot import ColoringClass, TransferFunctionParameters
 from PyQt4.QtGui import QColor
 from PyQt4.QtCore import QString
@@ -48,7 +49,7 @@ class WallGrowth(ColoringClass('wall')):
     def value_range(self):
         result = self.result
         caps = [inf,-inf]
-        for i in xrange(len(result)):
+        for i in range(len(result)):
             if result.walls[i]:
                 caps[0] = min(caps[0], min(result.walls[i].values()))
                 caps[1] = max(caps[1], max(result.walls[i].values()))

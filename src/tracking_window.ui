@@ -206,7 +206,7 @@
      <x>0</x>
      <y>0</y>
      <width>846</width>
-     <height>30</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -948,7 +948,7 @@
   <customwidget>
    <class>TrackingView</class>
    <extends>QGraphicsView</extends>
-   <header>trackingview.h</header>
+   <header>src/trackingview.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

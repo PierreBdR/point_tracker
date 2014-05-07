@@ -1,21 +1,21 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import (QGraphicsScene, QPixmap, QKeySequence, QPainterPath, QDialog,
         QColor, QProgressDialog, QCursor, QGraphicsView, QTransform, QMenu, QBrush)
-from PyQt4.QtCore import QPointF, QObject, SIGNAL, QRectF, Qt, QStringList, pyqtSignature
-from algo import findTemplate
-import image_cache
-from tracking_undo import (AddPoints, RemovePoints, MovePoints, RemovePointsInAllImages, RemovePointsFromImage,
+from PyQt4.QtCore import QPointF, QObject, SIGNAL, QRectF, Qt, pyqtSignature
+from .algo import findTemplate
+from . import image_cache
+from .tracking_undo import (AddPoints, RemovePoints, MovePoints, RemovePointsInAllImages, RemovePointsFromImage,
         RemovePointsToImage, AddCellCommand, RemoveCellsCommand, ChangeCellCommand, DivideCellCommand,
         InsertPointInWallCommand)
-import parameters
-from tracking_items import PointItem, OldPointItem, ArrowItem, TemplateItem, CellItem
-from geometry import makeStarShaped
-from debug import print_debug
-from itertools import izip
-from sys_utils import createForm
-from tracking_data import EndOfTime
+from . import parameters
+from .tracking_items import PointItem, OldPointItem, ArrowItem, TemplateItem, CellItem
+from .geometry import makeStarShaped
+from .debug import print_debug
+from .sys_utils import createForm
+from .tracking_data import EndOfTime
 
 current_id = -1
 
@@ -360,7 +360,7 @@ class TrackingScene(QGraphicsScene):
                 new_ls.end = EndOfTime()
             else:
                 new_ls.end = dlg.end_index + dlg.start_index
-            print "Change lifespan of cell %d to %s" % (cid, new_ls)
+            print("Change lifespan of cell %d to %s" % (cid, new_ls))
             self.planChangeCell(cid, self.data_manager.cells[cid], new_ls)
 
     @pyqtSignature("int")
@@ -628,7 +628,7 @@ class TrackingScene(QGraphicsScene):
         if image_list is not None:
             used_ids = []
             used_il = []
-            for cid, il in izip(cell_ids, image_list):
+            for cid, il in zip(cell_ids, image_list):
                 if il is None or self.image_name in il:
                     used_ids.append(cid)
                     used_il = il
@@ -672,7 +672,7 @@ class TrackingScene(QGraphicsScene):
         if image_list is not None:
             used_ids = []
             used_il = []
-            for cid, il in izip(cell_ids, image_list):
+            for cid, il in zip(cell_ids, image_list):
                 if il is None or self.image_name in il:
                     used_ids.append(cid)
                     used_il = il

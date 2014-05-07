@@ -1,11 +1,12 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtGui import (QGraphicsView, QApplication, QStyleOptionRubberBand, QRubberBand,
         QStyleHintReturnMask, QStyle, QRegion, QPen)
 from PyQt4.QtCore import Qt, QRect, QPoint, QLine
-from tracking_scene import TrackingScene
-from tracking_items import PointItem
-import parameters
+from .tracking_scene import TrackingScene
+from .tracking_items import PointItem
+from . import parameters
 
 class TrackingView(QGraphicsView):
     def __init__(self, *args):

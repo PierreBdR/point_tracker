@@ -1,13 +1,14 @@
+from __future__ import print_function, division, absolute_import
 __author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
 __docformat__ = "restructuredtext"
-from ui_parametersdlg import Ui_ParametersDlg
+from .ui_parametersdlg import Ui_ParametersDlg
 from PyQt4.QtGui import QDialog, QPalette, QColor, QColorDialog, QMessageBox
 from PyQt4.QtCore import QObject, SIGNAL, SLOT
 from PyQt4 import QtCore
 from math import ceil
-import image_cache
-import parameters
-from sys_utils import changeColor, setColor, getColor
+from . import image_cache
+from . import parameters
+from .sys_utils import changeColor, setColor, getColor
 
 class ParametersDlg(QDialog):
     def __init__(self, max_size, *args):

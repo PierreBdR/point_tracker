@@ -1,4 +1,5 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtCore import QPointF, QRectF
 from math import atan2, sqrt
@@ -47,12 +48,12 @@ def gravityCenter(polygon):
         return (polygon[0]+polygon[1])/2
     else:
         #poly = polygon + [polygon[0]]
-        #a = sum(poly[i].x()*poly[i+1].y() - poly[i+1].x()*poly[i].y() for i in xrange(len(polygon)))/2.0
-        #cx = sum((poly[i].x()+poly[i+1].x())*(poly[i].x()*poly[i+1].y()-poly[i+1].x()*poly[i].y()) for i in xrange(len(polygon)))
-        #cy = sum((poly[i].y()+poly[i+1].y())*(poly[i].x()*poly[i+1].y()-poly[i+1].x()*poly[i].y()) for i in xrange(len(polygon)))
+        #a = sum(poly[i].x()*poly[i+1].y() - poly[i+1].x()*poly[i].y() for i in range(len(polygon)))/2.0
+        #cx = sum((poly[i].x()+poly[i+1].x())*(poly[i].x()*poly[i+1].y()-poly[i+1].x()*poly[i].y()) for i in range(len(polygon)))
+        #cy = sum((poly[i].y()+poly[i+1].y())*(poly[i].x()*poly[i+1].y()-poly[i+1].x()*poly[i].y()) for i in range(len(polygon)))
         a = 0
         cx = cy = 0
-        for i in xrange(len(polygon)):
+        for i in range(len(polygon)):
             prev = polygon[i-1]
             cur = polygon[i]
             cross = prev.x()*cur.y()-prev.y()*cur.x()
@@ -72,7 +73,7 @@ def polygonArea(polygon):
     L = len(polygon)
     if L < 3:
         return 0
-    for i in xrange(L):
+    for i in range(L):
         a += cross(polygon[i-1], polygon[i])
     return abs(a/2)
 
@@ -119,7 +120,7 @@ def distToPolyLine(pt,  line):
     if len(line) == 1:
         return dist(pt,  line[0])
     d = inf
-    for i in xrange(len(line)-1):
+    for i in range(len(line)-1):
         p1 = line[i]
         p2 = line[i+1]
         d1 = distToLine(pt,  p1,  p2)

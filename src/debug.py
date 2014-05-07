@@ -1,4 +1,5 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 import traceback
 import sys
@@ -17,7 +18,7 @@ def init():
     if hasattr(__main__, "__file__") and not "IPython" in type(__main__).__module__ and "epydoc" not in __main__.__file__: # if not interactive session and not doc
         global stored_out, stored_err, restore_io
         pth = os.path.dirname(__main__.__file__)
-        output = file(os.path.join(pth, "point_tracking_output.txt"), "wt")
+        output = open(os.path.join(pth, "point_tracking_output.txt"), "wt")
 
         stored_out = os.dup(1)
         stored_err = os.dup(2)
@@ -32,7 +33,7 @@ def init():
         def restore_io():
             pass
 
-    log = file(os.path.join(pth, "point_tracking.log"), "wt")
+    log = open(os.path.join(pth, "point_tracking.log"), "wt")
 
 #log = sys.stderr
 
@@ -84,7 +85,7 @@ def print_debug_simple(msg):
     Simply print the message in the log file.
     """
     global log
-    print >> log, msg
+    print(msg, file=log)
 
 def print_debug_calling_class(msg):
     """
@@ -93,9 +94,9 @@ def print_debug_calling_class(msg):
     global log
     cls = calling_class()
     if cls:
-        print >> log, "[%s.%s] %s" % (cls.__module__, cls.__name__, msg)
+        print("[%s.%s] %s" % (cls.__module__, cls.__name__, msg), file=log)
     else:
-        print >> log, "[GLOBAL] %s" % (msg,)
+        print("[GLOBAL] %s" % (msg,), file=log)
     log.flush()
 
 print_debug = print_debug_calling_class

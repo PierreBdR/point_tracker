@@ -1,11 +1,11 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 import scipy
 from scipy import signal, sqrt, cos, sin, c_, newaxis, s_
-from normcross import normcross2d
+from .normcross import normcross2d
 from PyQt4.QtCore import QThread, QEvent, QCoreApplication, QPointF, QRectF
-from tracking_undo import AddPoints, MovePoints
-from itertools import izip
+from .tracking_undo import AddPoints, MovePoints
 import math
 
 class NextImage(QEvent):
@@ -158,7 +158,7 @@ def copyFromImage(data_manager, start, items, undo_stack):
         new_items_pos = []
         moved_items = []
         moved_items_pos = []
-        for pt_id, pos in izip(items, poss):
+        for pt_id, pos in zip(items, poss):
             if pt_id in data:
                 moved_items.append(pt_id)
                 moved_items_pos.append(pos)

@@ -1,11 +1,11 @@
+from __future__ import print_function, division, absolute_import
 # coding=utf-8
 __docformat__ = "restructuredtext"
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 from PyQt4.QtGui import QFont, QLinearGradient, QColor, QFontMetricsF, QPen
-from PyQt4.QtCore import QRectF, Qt, QPointF, QString
+from PyQt4.QtCore import QRectF, Qt, QPointF
 from numpy import log10, floor, arange, ceil, round, abs
-from itertools import izip
-from debug import print_debug
+from .debug import print_debug
 
 def limit_rect(rect, size, lim_width, lim_height):
     if rect.left() < lim_width:
@@ -122,7 +122,7 @@ class ScaleBar(object):
         pos = dl*(ticks - b)
         cur_pos = -length
         ticks_str, _ = self._tick2str(ticks)
-        for t,p in izip(ticks_str, pos):
+        for t,p in zip(ticks_str, pos):
             r = font_metric.boundingRect(t)
             if is_vertical:
                 w = r.height()/2
@@ -210,7 +210,7 @@ class ScaleBar(object):
         gr = QLinearGradient()
         nb_values = ceil(w/5.0)
         brush_color = QColor()
-        for i in xrange(int(nb_values)):
+        for i in range(int(nb_values)):
             brush_color.setRgbF(*transfer_function.rgba(i/nb_values))
             gr.setColorAt(i/nb_values, brush_color)
 # Second, find its position
@@ -300,7 +300,7 @@ class ScaleBar(object):
         bounding_rect |= scale_rect
         painter.setFont(font)
         painter.setPen(text_color)
-        for ts,t in izip(ticks_str, ticks):
+        for ts,t in zip(ticks_str, ticks):
             r = metric.boundingRect(ts)
             pos = start_pos+shift_pos*(t-value_range[0])
             if shift_left is None:
@@ -321,7 +321,7 @@ class ScaleBar(object):
             r = exp_r = unit_r = QRectF()
             exp_font = None
             if ticks_extra is not None:
-                exp_txt = QString.fromUtf8("×10")
+                exp_txt = u"×10"
                 r = metric.boundingRect(exp_txt)
                 exp_font = QFont(font)
                 exp_size = self.exp_size

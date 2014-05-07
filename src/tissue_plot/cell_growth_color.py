@@ -1,3 +1,5 @@
+from __future__ import print_function, division, absolute_import
+
 from tracking_plot import (ColoringClass, TransferFunctionParameters, fixRangeParameters, make_cap_symetric, DirectionGrowthParameters)
 from PyQt4.QtGui import QColor, QPen
 from PyQt4.QtCore import QString, Qt
@@ -40,7 +42,7 @@ class CellAreaGrowth(ColoringClass('cell')):
     def value_range(self):
         result = self.result
         caps = [inf,-inf]
-        for i in xrange(len(result)):
+        for i in range(len(result)):
             if result.cells_area[i]:
                 caps[0] = min(caps[0], min(result.cells_area[i].values()))
                 caps[1] = max(caps[1], max(result.cells_area[i].values()))
@@ -130,7 +132,7 @@ class CellGrowthAlongDirection(ColoringClass('cell')):
     def value_range(self):
         result = self.result
         caps = [inf,-inf]
-        for i in xrange(len(result)):
+        for i in range(len(result)):
             if result.cells[i]:
                 caps[0] = min(caps[0], min(min(v[0:2]) for v in result.cells[i].itervalues()))
                 caps[1] = max(caps[1], max(max(v[0:2]) for v in result.cells[i].itervalues()))
@@ -229,7 +231,7 @@ class CellGrowth(ColoringClass('cell')):
         result = self.result
         caps = [inf,-inf]
         ratio = self.ratio
-        for i in xrange(len(result)):
+        for i in range(len(result)):
             if result.cells[i]:
                 caps[0] = min(caps[0], min(ratio*v[info_pos] for v in result.cells[i].itervalues()))
                 caps[1] = max(caps[1], max(ratio*v[info_pos] for v in result.cells[i].itervalues()))

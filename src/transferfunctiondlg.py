@@ -1,10 +1,11 @@
+from __future__ import print_function, division, absolute_import
 __author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
 __docformat__ = "restructuredtext"
 from PyQt4 import QtCore, QtGui
-from ui_transferfunctiondlg import Ui_TransferFunctionDlg
-from transferfunction import TransferFunction
+from .ui_transferfunctiondlg import Ui_TransferFunctionDlg
+from .transferfunction import TransferFunction
 from pickle import load, dump
-from path import path
+from .path import path
 
 class TransferFunctionDlg( QtGui.QDialog ):
     immutable_fct = ["Hue scale", "Grey scale"]
@@ -277,7 +278,7 @@ class TransferFunctionDlg( QtGui.QDialog ):
         settings.endGroup()
 
     def loadSettings(self, name):
-        print "Loading settings"
+        print("Loading settings")
         settings = QtCore.QSettings()
         section = "%sTransferFct" % name
         settings.beginGroup(section)
@@ -299,7 +300,7 @@ class TransferFunctionDlg( QtGui.QDialog ):
         current_fct = str(settings.value("TransferFct", QtCore.QVariant("Hue scale")).toString())
         settings.beginGroup("TransferFctList")
         keys = settings.allKeys()
-        print "Keys of transfer function: %s" % ",".join(str(s) for s in keys)
+        print("Keys of transfer function: %s" % ",".join(str(s) for s in keys))
         if "Grey scale" not in keys:
             fct = TransferFunction()
             fct.add_rgba_point(0, 0, 0, 0, 0)

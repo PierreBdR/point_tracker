@@ -1,9 +1,10 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
-from PyQt4.QtCore import (QCoreApplication, QObject,  QSettings,  QVariant,  QRectF,
-        SIGNAL,  Qt)
+from PyQt4.QtCore import (QCoreApplication, QObject, QSettings, QRectF,
+        SIGNAL, Qt)
 from PyQt4.QtGui import QColor, QFontMetricsF, QFont
-from path import path
+from .path import path
 from math import floor, ceil
 
 class Parameters(QObject):
@@ -31,13 +32,15 @@ class Parameters(QObject):
         settings.beginGroup("GraphicParameters")
 # First, parameters for normal points
         self._point_size = None
-        _point_size, success = settings.value("PointSize").toDouble()
-        if not success:
+        try:
+            _point_size = float(settings.value("PointSize"))
+        except (ValueError, TypeError):
             _point_size = 5.0
         self.point_size = _point_size
         self._point_thickness = None
-        _point_thickness, success = settings.value("PointThickness").toInt()
-        if not success:
+        try:
+            _point_thickness = int(settings.value("PointThickness"))
+        except (ValueError, TypeError):
             _point_thickness = 0
         self.point_thickness = _point_thickness
         self._point_color = None
@@ -57,13 +60,15 @@ class Parameters(QObject):
 
 # Parameter for cells
         self._cell_size = None
-        _cell_size, success = settings.value("CellSize").toDouble()
-        if not success:
+        try:
+            _cell_size = float(settings.value("CellSize"))
+        except (ValueError, TypeError):
             _cell_size = 5.0
         self.cell_size = _cell_size
         self._cell_thickness = None
-        _cell_thickness, success = settings.value("CellThickness").toInt()
-        if not success:
+        try:
+            _cell_thickness = int(settings.value("CellThickness"))
+        except (ValueError, TypeError):
             _cell_thickness = 1
         self.cell_thickness = _cell_thickness
         self._cell_color = None
@@ -88,12 +93,14 @@ class Parameters(QObject):
         self.division_wall_color = _division_wall_color
 
 # Then, parameters for old points
-        self._old_point_size, success = settings.value("OldPointSize").toDouble()
-        if not success:
+        try:
+            self._old_point_size = float(settings.value("OldPointSize"))
+        except (ValueError, TypeError):
             self._old_point_size = 5.0
-        self._old_point_thickness, success = settings.value("OldPointThickness").toInt()
-        if not success:
-                self._old_point_thickness = 0
+        try:
+            self._old_point_thickness = int(settings.value("OldPointThickness"))
+        except (ValueError, TypeError):
+            self._old_point_thickness = 0
         self._old_point_color = None
         self._old_point_color = QColor(settings.value("OldPointColor"))
         if not self._old_point_color.isValid():
@@ -101,19 +108,21 @@ class Parameters(QObject):
         self._old_point_matching_color = QColor(settings.value("OldPointMatchingColor"))
         if not self._old_point_matching_color.isValid():
             self._old_point_matching_color = QColor(Qt.darkYellow)
-        self._show_id = settings.value("ShowId", QVariant(False)).toBool()
+        self._show_id = bool(settings.value("ShowId", False))
 # Parameters for arrow
-        self._arrow_line_size, success = settings.value("ArrowLineSize").toDouble()
-        if not success:
+        try:
+            self._arrow_line_size = float(settings.value("ArrowLineSize"))
+        except (ValueError, TypeError):
             self._arrow_line_size = 2
-        self._arrow_head_size, success = settings.value("ArrowHeadSize").toDouble()
-        if not success:
+        try:
+            self._arrow_head_size = float(settings.value("ArrowHeadSize"))
+        except (ValueError, TypeError):
             self._arrow_head_size = .1
         self._arrow_color = QColor(settings.value("ArrowColor"))
         if not self._arrow_color.isValid():
             self._arrow_color = QColor(Qt.lightGray)
-        self._draw_arrow = settings.value("DrawArrow", QVariant(True)).toBool()
-        self._show_template = settings.value("ShowTemplate", QVariant(False)).toBool()
+        self._draw_arrow = bool(settings.value("DrawArrow", True))
+        self._show_template = bool(settings.value("ShowTemplate", False))
         self._template_color = QColor(settings.value("TemplateColor"))
         if not self._template_color.isValid():
             self._template_color = QColor(255,0,0,100)
@@ -124,43 +133,49 @@ class Parameters(QObject):
 
 # The search parameters
         settings.beginGroup("SearchParameters")
-        self._template_size, success = settings.value("TemplateSize").toInt()
-        if not success:
+        try:
+            self._template_size = int(settings.value("TemplateSize"))
+        except (ValueError, TypeError):
             self._template_size = 10
         s = self._template_size
         self.template_rect = QRectF(-s, -s, 2*s, 2*s)
-        self._search_size, success = settings.value("SearchSize").toInt()
-        if not success:
+        try:
+            self._search_size = int(settings.value("SearchSize"))
+        except (ValueError, TypeError):
             self._search_size = 50
         s = self._search_size
         self.search_rect = QRectF(-s, -s, 2*s, 2*s)
-        self._estimate = settings.value("Estimate", QVariant(True)).toBool()
-        self._filter_size_ratio, success = settings.value("FilterSizeRatio").toDouble()
-        if not success:
+        self._estimate = bool(settings.value("Estimate", True))
+        try:
+            self._filter_size_ratio = float(settings.value("FilterSizeRatio"))
+        except (ValueError, TypeError):
             self._filter_size_ratio = .5
         settings.endGroup()
 
         settings.beginGroup("GUI")
-        self._show_vectors = settings.value("ShowVectors", QVariant(True)).toBool()
-        self._link_views = settings.value("LinkViews", QVariant(True)).toBool()
-        cache_size, success = settings.value("CacheSize").toInt()
-        if not success:
+        self._show_vectors = bool(settings.value("ShowVectors", True))
+        self._link_views = bool(settings.value("LinkViews", True))
+        try:
+          cache_size = int(settings.value("CacheSize"))
+        except (ValueError, TypeError):
             cache_size = 200
         self.cache_size = cache_size
-        self._last_dir = path(settings.value("LastsDir", QVariant(".")).toString())
-        self._use_OpenGL = settings.value("UseOpenGL", QVariant(True)).toBool()
+        self._last_dir = path(settings.value("LastsDir", "."))
+        self._use_OpenGL = bool(settings.value("UseOpenGL", True))
         settings.beginGroup("RecentProjects")
-        numproj, success = settings.value("NumberOfProjects").toInt()
-        if not success:
+        try:
+          numproj = int(settings.value("NumberOfProjects"))
+        except (ValueError, TypeError):
             numproj = 0
         self._recent_projects = []
         if numproj > 0:
-            for i in xrange(numproj):
+            for i in range(numproj):
                 name = "Project%d" % i
-                value = path(settings.value(name).toString())
+                value = path(settings.value(name))
                 self._recent_projects.append(value)
-        self._max_number_of_projects, success = settings.value("MaxNumberOfProjects").toInt()
-        if not success:
+        try:
+          self._max_number_of_projects = int(settings.value("MaxNumberOfProjects"))
+        except (ValueError, TypeError):
             self._max_number_of_projects = 5
         settings.endGroup()
         settings.endGroup()
@@ -168,17 +183,20 @@ class Parameters(QObject):
 # The plotting parameters
         settings.beginGroup("PlottingParameters")
         settings.beginGroup("Ellipsis")
-        self._ellipsis_scaling, success = settings.value("Scaling", QVariant(1.0)).toDouble()
-        if not success:
+        try:
+          self._ellipsis_scaling = float(settings.value("Scaling", 1.0))
+        except (ValueError, TypeError):
             self._ellipsis_scaling = 1.0
         self._ellipsis_color = QColor(settings.value("Color"))
         if not self._ellipsis_color.isValid():
             self._ellipsis_color = QColor(0,0,0)
-        self._ellipsis_thickness, success = settings.value("Thickness", QVariant(0)).toInt()
-        if not success:
+        try:
+          self._ellipsis_thickness = int(settings.value("Thickness", 0))
+        except (ValueError, TypeError):
             self._ellipsis_thickness = 0
-        self._ellipsis_min_anisotropy, success = settings.value("MinAnisotropy", QVariant(1e-3)).toDouble()
-        if not success:
+        try:
+          self._ellipsis_min_anisotropy = float(settings.value("MinAnisotropy", 1e-3))
+        except (ValueError, TypeError):
             self._ellipsis_min_anisotropy = 1e-3
         self._ellipsis_positive_color = QColor(settings.value("PositiveColor"))
         if not self._ellipsis_positive_color.isValid():
@@ -186,8 +204,8 @@ class Parameters(QObject):
         self._ellipsis_negative_color = QColor(settings.value("NegativeColor"))
         if not self._ellipsis_negative_color.isValid():
             self._ellipsis_negative_color = QColor(255,0,0)
-        self._ellipsis_plot = settings.value("Plot").toBool()
-        self._ellipsis_scale_axis = settings.value("ScaleAxis").toBool()
+        self._ellipsis_plot = bool(settings.value("Plot"))
+        self._ellipsis_scale_axis = bool(settings.value("ScaleAxis"))
         settings.endGroup()
         settings.endGroup()
         self._point_editable = True
@@ -197,62 +215,62 @@ class Parameters(QObject):
     def save(self):
         settings = QSettings()
         settings.beginGroup("GraphicParameters")
-        settings.setValue("PointSize", QVariant(self._point_size))
-        settings.setValue("PointColor", QVariant(self._point_color))
-        settings.setValue("PointThickness", QVariant(self._point_thickness))
-        settings.setValue("SelectedPointColor", QVariant(self._selected_point_color))
-        settings.setValue("NewPointColor", QVariant(self._new_point_color))
-        settings.setValue("CellSize", QVariant(self._cell_size))
-        settings.setValue("CellColor", QVariant(self._cell_color))
-        settings.setValue("CellThickness", QVariant(self._cell_thickness))
-        settings.setValue("SelectedCellColor", QVariant(self._selected_cell_color))
-        settings.setValue("DivisionWallColor", QVariant(self._division_wall_color))
-        settings.setValue("OldPointSize", QVariant(self._old_point_size))
-        settings.setValue("OldPointColor", QVariant(self._old_point_color))
-        settings.setValue("OldPointMatchingColor", QVariant(self._old_point_matching_color))
-        settings.setValue("ShowId", QVariant(self._show_id))
-        settings.setValue("ArrowLineSize", QVariant(self._arrow_line_size))
-        settings.setValue("ArrowHeadSize", QVariant(self._arrow_head_size))
-        settings.setValue("ArrowColor", QVariant(self._arrow_color))
-        settings.setValue("DrawArrow", QVariant(self._draw_arrow))
-        settings.setValue("ShowTemplate", QVariant(self._show_template))
-        settings.setValue("TemplateColor", QVariant(self._template_color))
-        settings.setValue("SearchColor", QVariant(self._search_color))
+        settings.setValue("PointSize", self._point_size)
+        settings.setValue("PointColor", self._point_color)
+        settings.setValue("PointThickness", self._point_thickness)
+        settings.setValue("SelectedPointColor", self._selected_point_color)
+        settings.setValue("NewPointColor", self._new_point_color)
+        settings.setValue("CellSize", self._cell_size)
+        settings.setValue("CellColor", self._cell_color)
+        settings.setValue("CellThickness", self._cell_thickness)
+        settings.setValue("SelectedCellColor", self._selected_cell_color)
+        settings.setValue("DivisionWallColor", self._division_wall_color)
+        settings.setValue("OldPointSize", self._old_point_size)
+        settings.setValue("OldPointColor", self._old_point_color)
+        settings.setValue("OldPointMatchingColor", self._old_point_matching_color)
+        settings.setValue("ShowId", self._show_id)
+        settings.setValue("ArrowLineSize", self._arrow_line_size)
+        settings.setValue("ArrowHeadSize", self._arrow_head_size)
+        settings.setValue("ArrowColor", self._arrow_color)
+        settings.setValue("DrawArrow", self._draw_arrow)
+        settings.setValue("ShowTemplate", self._show_template)
+        settings.setValue("TemplateColor", self._template_color)
+        settings.setValue("SearchColor", self._search_color)
         settings.endGroup()
 
         settings.beginGroup("SearchParameters")
-        settings.setValue("TemplateSize", QVariant(self._template_size))
-        settings.setValue("SearchSize", QVariant(self._search_size))
-        settings.setValue("Estimate", QVariant(self._estimate))
-        settings.setValue("FilterSizeRatio", QVariant(self._filter_size_ratio))
+        settings.setValue("TemplateSize", self._template_size)
+        settings.setValue("SearchSize", self._search_size)
+        settings.setValue("Estimate", self._estimate)
+        settings.setValue("FilterSizeRatio", self._filter_size_ratio)
         settings.endGroup()
 
         settings.beginGroup("GUI")
-        settings.setValue("UseOpenGL", QVariant(self._use_OpenGL))
-        settings.setValue("ShowVectors", QVariant(self._show_vectors))
-        settings.setValue("LinkViews", QVariant(self._link_views))
-        settings.setValue("CacheSize", QVariant(self._cache_size))
-        settings.setValue("LastsDir", QVariant(str(self._last_dir)))
+        settings.setValue("UseOpenGL", self._use_OpenGL)
+        settings.setValue("ShowVectors", self._show_vectors)
+        settings.setValue("LinkViews", self._link_views)
+        settings.setValue("CacheSize", self._cache_size)
+        settings.setValue("LastsDir", unicode(self._last_dir))
 
         settings.beginGroup("RecentProjects")
-        settings.setValue("MaxNumberOfProjects", QVariant(self._max_number_of_projects))
-        settings.setValue("NumberOfProjects", QVariant(len(self._recent_projects)))
+        settings.setValue("MaxNumberOfProjects", self._max_number_of_projects)
+        settings.setValue("NumberOfProjects", len(self._recent_projects))
         for i,p in enumerate(self._recent_projects):
             name = "Project%d" % i
-            settings.setValue(name, QVariant(str(p)))
+            settings.setValue(name, unicode(p))
         settings.endGroup()
         settings.endGroup()
 # The plotting parameters
         settings.beginGroup("PlottingParameters")
         settings.beginGroup("Ellipsis")
-        settings.setValue("Scaling", QVariant(self._ellipsis_scaling))
-        settings.setValue("Color", QVariant(self._ellipsis_color))
-        settings.setValue("Thickness", QVariant(self._ellipsis_thickness))
-        settings.setValue("MinAnisotropy", QVariant(self._ellipsis_min_anisotropy))
-        settings.setValue("PositiveColor", QVariant(self._ellipsis_positive_color))
-        settings.setValue("NegativeColor", QVariant(self._ellipsis_negative_color))
-        settings.setValue("Plot", QVariant(self._ellipsis_plot))
-        settings.setValue("ScaleAxis", QVariant(self._ellipsis_scale_axis))
+        settings.setValue("Scaling", self._ellipsis_scaling)
+        settings.setValue("Color", self._ellipsis_color)
+        settings.setValue("Thickness", self._ellipsis_thickness)
+        settings.setValue("MinAnisotropy", self._ellipsis_min_anisotropy)
+        settings.setValue("PositiveColor", self._ellipsis_positive_color)
+        settings.setValue("NegativeColor", self._ellipsis_negative_color)
+        settings.setValue("Plot", self._ellipsis_plot)
+        settings.setValue("ScaleAxis", self._ellipsis_scale_axis)
         settings.endGroup()
         settings.endGroup()
 
@@ -741,7 +759,7 @@ class Parameters(QObject):
 
     def _set_cache_size(self, value):
         self._cache_size = value
-        import image_cache
+        from . import image_cache
         image_cache.cache.max_size = value
 
     cache_size = property(_get_cache_size, _set_cache_size, doc=_get_cache_size.__doc__)
@@ -826,7 +844,7 @@ class Parameters(QObject):
         return self._walls_coloring
 
     def _set_walls_coloring(self, value):
-        value = str(value)
+        value = unicode(value)
         if value != self._walls_coloring:
             self._walls_coloring = value
             self.emit(SIGNAL("plottingParameterChange"))
@@ -905,7 +923,7 @@ class Parameters(QObject):
         return self._cells_coloring
 
     def _set_cells_coloring(self, value):
-        value = str(value)
+        value = unicode(value)
         if value != self._cells_coloring:
             self._cells_coloring = value
             self.emit(SIGNAL("plottingParameterChange"))

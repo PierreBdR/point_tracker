@@ -1,9 +1,10 @@
+from __future__ import print_function, division, absolute_import
 __docformat__ = "restructuredtext"
 import scipy
 from scipy import log
 from scipy.signal.signaltools import correlate2d, fftconvolve
 from scipy.signal import fft, fft2
-from itertools import izip
+
 import time
 
 def domain_time(shape_t, shape_i):
@@ -22,7 +23,7 @@ def domain_time_compute():
 
         k = 0
         t1 = time.clock()
-        for i in xrange(100):
+        for i in range(100):
             c = correlate2d(a,b,mode='same')
         t2 = time.clock()
         t_total = (t2-t1)/100
@@ -58,7 +59,7 @@ def fourrier_time_compute():
         R = 10000
         vec = scipy.array([1+1j]*R)
         t1 = time.clock()
-        for i in xrange(100):
+        for i in range(100):
             c = fft(vec)
         t2 = time.clock()
         t_total = (t2-t1)/100

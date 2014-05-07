@@ -1,11 +1,12 @@
+from __future__ import print_function, division, absolute_import
 # coding=utf-8
 __docformat__ = "restructuredtext"
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 from PyQt4.QtGui import QPalette, QColorDialog, QMessageBox
-from path import path
+from .path import path
 import sys
 from PyQt4 import uic
-from debug import caller
+from .debug import caller
 
 def changeColor(widget):
     """
@@ -44,7 +45,7 @@ def module_dir(module_name):
 
 def createForm(uifile, parent):
     p = path(caller()[0]).dirname()/uifile
-    widget = uic.loadUi(p)
+    widget = uic.loadUi(p, from_imports=True)
     widget.setParent(parent)
     return widget
 

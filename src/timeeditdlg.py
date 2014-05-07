@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 """
 :newfield signal: Signal, Signals
 """
@@ -6,10 +7,9 @@ __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QDialog, QPixmap, QIcon, QMessageBox
 from PyQt4.QtCore import QSize, Qt, QVariant, pyqtSignature
-from ui_timeeditdlg import Ui_TimeEditDlg
-from itertools import izip
-import image_cache
-from timemodel import time2hours, TimeDelegate, TimedImageModel
+from .ui_timeeditdlg import Ui_TimeEditDlg
+from . import image_cache
+from .timemodel import time2hours, TimeDelegate, TimedImageModel
 
 class TimeEditDlg(QDialog):
     def __init__(self, images, times, images_path, *args):

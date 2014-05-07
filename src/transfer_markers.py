@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 '''
 Module defining the model behind the markers of the transfer function
 '''
@@ -43,7 +44,7 @@ class TransferMarkerModel(QAbstractTableModel):
         self.markers = markers
         self.colors = colors
         root = QModelIndex()
-        for idx in xrange(len(markers)):
+        for idx in range(len(markers)):
             self.createIndex(idx, 0, root)
             self.createIndex(idx, 1, root)
         self.root = root
@@ -224,7 +225,7 @@ class TransferMarkerModel(QAbstractTableModel):
         max_marker = markers[max_row]
         delta = (max_marker - min_marker) / (max_row - min_row)
         value = min_marker
-        for i in xrange(min_row+1, max_row):
+        for i in range(min_row+1, max_row):
             value += delta
             markers[i] = value
         self.dataChanged.emit(self.index(min_row+1, 0), self.index(max_row-1, 1))

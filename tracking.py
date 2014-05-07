@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function, division, absolute_import
 import sys
 import os.path
 import os
@@ -21,7 +22,7 @@ def run():
 
 if __name__ == "__main__":
     if "interactive" in sys.argv:
-        print "Starting interactive session"
+        print("Starting interactive session")
         app, main_win = tracking.ipython()
     else:
         tracking.run()

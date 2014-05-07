@@ -1,8 +1,10 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 import scipy
 from scipy import zeros, concatenate, asarray, array, dtype
-from itertools import izip
+import sys
 
 def padding(A, pad):
     """
@@ -34,7 +36,7 @@ eps.values = {}
 
 def find_eps(vtype):
     v = vtype(2)
-    for i in xrange(v.nbytes*8):
+    for i in range(v.nbytes*8):
         diff = (v*vtype(1+v**(-i))-v)
         if diff == 0:
             return v**(-i+1)
@@ -59,7 +61,7 @@ def bigendian():
 def compare_versions(v1, v2):
     n1 = [ int(i) for i in v1.split('.') ]
     n2 = [ int(i) for i in v2.split('.') ]
-    for i1,i2 in izip(n1, n2):
+    for i1,i2 in zip(n1, n2):
         if i1 < i2:
             return -1
         elif i1 > i2:

@@ -1,18 +1,18 @@
+from __future__ import print_function, division, absolute_import
 """
 :newfield signal: Signal, Signals
 """
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtCore import QPointF, QObject, SIGNAL
 from PyQt4.QtGui import QTransform
-from itertools import izip
 from path import path
 import csv
 import numpy
-from utils import compare_versions
-from debug import print_debug
-from geometry import cross
+from .utils import compare_versions
+from .debug import print_debug
+from .geometry import cross
 
 class TrackingDataException(Exception):
     """
@@ -123,7 +123,8 @@ class LifeSpan(object):
         """
         return self._daughters
 
-    def _set_daughters(self, (d1, d2)):
+    def _set_daughters(self, ds):
+        (d1, d2) = ds
         self._daughters = (d1, d2)
 
     def _del_daughters(self):
@@ -139,7 +140,8 @@ class LifeSpan(object):
         """
         return self._division
 
-    def _set_division(self, (p1, p2)):
+    def _set_division(self, ps):
+        (p1, p2) = ps
         self._division = (p1, p2)
 
     def _del_division(self):
@@ -239,10 +241,12 @@ class TimedWallShapes(object):
     def __init__(self, ws, time):
         self._data = ws[time]
 
-    def __contains__(self, (p1, p2)):
+    def __contains__(self, ps):
+        (p1, p2) = ps
         return (p1,p2) in self._data
 
-    def __getitem__(self, (p1, p2)):
+    def __getitem__(self, ps):
+        (p1, p2) = ps
         try:
             if p1 < p2:
                 return self._data[p1,p2][:]
@@ -251,19 +255,21 @@ class TimedWallShapes(object):
         except KeyError:
             return []
 
-    def __setitem__(self, (p1, p2), values):
+    def __setitem__(self, ps, values):
+        (p1, p2) = ps
         if p1 < p2:
             self._data[p1,p2] = values[:]
         else:
             self._data[p2,p1] = values[::-1]
 
-    def __delitem__(self, (t,p1,p2)):
+    def __delitem__(self, ps):
+        (t, p1, p2) = ps
         if (p1,p2) in self._data:
             del self._data[p1,p2]
-            
+
     def __iter__(self):
         return iter(self._data)
-    
+
     def __len__(self):
         return len(self._data)
 
@@ -297,12 +303,14 @@ class WallShapes(object):
         if t not in self._walls:
             self._walls[t] = {}
 
-    def __delitem__(self, (t,p1,p2)):
+    def __delitem__(self, ps):
+        (t,p1,p2) = ps
         if t in self._walls:
             if (p1,p2) in self._walls[t]:
                 del self._walls[t][p1,p2]
 
-    def __contains__(self, (t,p1,p2)):
+    def __contains__(self, ps):
+        (t,p1,p2) = ps
         return t in self._walls and (p1,p2) in self._walls[t]
 
     def __getitem__(self, i):
@@ -323,7 +331,8 @@ class WallShapes(object):
                 self._walls[i] = {}
             return self._walls[i]
 
-    def __setitem__(self, (time, p1, p2), pts):
+    def __setitem__(self, ps, pts):
+        (time, p1, p2) = ps
         if p1 > p2:
             p1,p2 = p2,p1
             pts = pts[::-1]
@@ -459,7 +468,7 @@ class TrackingData(QObject):
         self.cells_lifespan = {}
         self.cell_points = {}
         self.walls = WallShapes()
-        for t in xrange(len(self.images_name)):
+        for t in range(len(self.images_name)):
             self.walls.add_time(t)
 
     def reset(self):
@@ -503,7 +512,7 @@ class TrackingData(QObject):
         for i,l in enumerate(r):
             if len(l) != num_columns:
                 raise TrackingDataException("Incorrect number of columns in line %d: %d instead of %d expected" % (i+1, len(l), num_columns))
-            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in izip(images,l[::2],l[1::2]) if x != '' or y != '' ]
+            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in zip(images,l[::2],l[1::2]) if x != '' or y != '' ]
             for img,p in pos:
                 data[img][i] = p
             self._last_pt_id = i
@@ -552,7 +561,7 @@ class TrackingData(QObject):
                 cells_lifespan[c] = LifeSpan()
             self.cells_lifespan = cells_lifespan
         if wall_shapes is None:
-            print "Init empty walls"
+            print("Init empty walls")
             wall_shapes = WallShapes()
             for image_data in self:
                 t = image_data.index
@@ -602,25 +611,25 @@ class TrackingData(QObject):
             shifts[img] = [QPointF(0,0), 0]
             scales[img] = (1,1)
 # First, read the shifts for each image
-        for i in xrange(2):
+        for i in range(2):
             shift = r.next()
             if shift[0] == "XY Shift":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of XY shifting values. There should be two shifting value per image")
                 xshift = shift[1::2]
                 yshift = shift[2::2]
-                for img,x,y in izip(images, xshift, yshift):
+                for img,x,y in zip(images, xshift, yshift):
                     shifts[img][0] = QPointF(float(x), float(y))
             elif shift[0] == "Angle Shift":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of angle shifting values. There should be one shifting value per image")
                 ashift = shift[1::2]
-                for img,a in izip(images, ashift):
+                for img,a in zip(images, ashift):
                     shifts[img][1] = float(a)
         for i,l in enumerate(r):
             if len(l) != num_columns+1:
                 raise TrackingDataException("Incorrect number of columns in line %d: %d instead of %d expected" % (i+1, len(l), num_columns+1))
-            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in izip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
+            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in zip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
             for img,p in pos:
                 data[img][i] = p
             self._last_pt_id = i
@@ -649,20 +658,20 @@ class TrackingData(QObject):
             shifts[img] = [QPointF(0,0), 0]
             scales[img] = (1,1)
 # First, read the shifts for each image
-        for i in xrange(2):
+        for i in range(2):
             shift = r.next()
             if shift[0] == "XY Shift":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of XY shifting values. There should be two shifting value per image")
                 xshift = shift[1::2]
                 yshift = shift[2::2]
-                for img,x,y in izip(images, xshift, yshift):
+                for img,x,y in zip(images, xshift, yshift):
                     shifts[img][0] = QPointF(float(x), float(y))
             elif shift[0] == "Angle Shift":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of angle shifting values. There should be one shifting value per image")
                 ashift = shift[1::2]
-                for img,a in izip(images, ashift):
+                for img,a in zip(images, ashift):
                     shifts[img][1] = float(a)
         cell_list = False
         cells = {}
@@ -672,7 +681,7 @@ class TrackingData(QObject):
                 break
             if len(l) != num_columns+1:
                 raise TrackingDataException("Incorrect number of columns in line %d: %d instead of %d expected" % (i+1, len(l), num_columns+1))
-            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in izip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
+            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in zip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
             for img,p in pos:
                 data[img][i] = p
             self._last_pt_id = i
@@ -706,20 +715,20 @@ class TrackingData(QObject):
             shifts[img] = [QPointF(0,0), 0]
             scales[img] = (1,1)
 # First, read the shifts for each image
-        for i in xrange(2):
+        for i in range(2):
             shift = r.next()
             if shift[0] == "XY Shift":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of XY shifting values. There should be two shifting value per image")
                 xshift = shift[1::2]
                 yshift = shift[2::2]
-                for img,x,y in izip(images, xshift, yshift):
+                for img,x,y in zip(images, xshift, yshift):
                     shifts[img][0] = QPointF(float(x), float(y))
             elif shift[0] == "Angle Shift":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of angle shifting values. There should be one shifting value per image")
                 ashift = shift[1::2]
-                for img,a in izip(images, ashift):
+                for img,a in zip(images, ashift):
                     shifts[img][1] = float(a)
         cell_list = False
         cells = {}
@@ -730,7 +739,7 @@ class TrackingData(QObject):
                 break
             if len(l) != num_columns+1:
                 raise TrackingDataException("Incorrect number of columns in line %d: %d instead of %d expected" % (i+1, len(l), num_columns+1))
-            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in izip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
+            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in zip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
             for img,p in pos:
                 data[img][i] = p
             self._last_pt_id = i
@@ -760,9 +769,9 @@ class TrackingData(QObject):
                 ls2 = cells_lifespan[daughters[1]]
                 ls2.start = div_time
                 ls2.parent = cell
-#                print "Cell %s divided at time %s" % (repr(cell), repr(div_time))
-#            for i in xrange(len(cells)):
-#                print "%d: %s" % (i, cells_lifespan[i])
+#                print("Cell %s divided at time %s" % (repr(cell), repr(div_time)))
+#            for i in range(len(cells)):
+#                print("%d: %s" % (i, cells_lifespan[i]))
             for cid,ls in cells_lifespan.iteritems():
                 if ls.daughters:
                     cells_lifespan[ls.daughters[0]].parent = cid
@@ -793,20 +802,20 @@ class TrackingData(QObject):
             scales[img] = (1,1)
 # First, read the shifts for each image
         times = range(len(images))
-        for i in xrange(2):
+        for i in range(2):
             shift = r.next()
             if shift[0] == "XY Shift":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of XY shifting values. There should be two shifting value per image")
                 xshift = shift[1::2]
                 yshift = shift[2::2]
-                for img,x,y in izip(images, xshift, yshift):
+                for img,x,y in zip(images, xshift, yshift):
                     shifts[img][0] = QPointF(float(x), float(y))
             elif shift[0] == "Angle Shift-Time":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of angle shifting values. There should be one shifting value per image")
                 ashift = shift[1::2]
-                for img,a in izip(images, ashift):
+                for img,a in zip(images, ashift):
                     shifts[img][1] = float(a)
                 times = [float(t) for t in shift[2::2]]
         cell_list = False
@@ -818,7 +827,7 @@ class TrackingData(QObject):
                 break
             if len(l) != num_columns+1:
                 raise TrackingDataException("Incorrect number of columns in line %d: %d instead of %d expected" % (i+1, len(l), num_columns+1))
-            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in izip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
+            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in zip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
             for img,p in pos:
                 data[img][i] = p
             self._last_pt_id = i
@@ -848,9 +857,9 @@ class TrackingData(QObject):
                 ls2 = cells_lifespan[daughters[1]]
                 ls2.start = div_time
                 ls2.parent = cell
-#                print "Cell %s divided at time %s" % (repr(cell), repr(div_time))
-#            for i in xrange(len(cells)):
-#                print "%d: %s" % (i, cells_lifespan[i])
+#                print("Cell %s divided at time %s" % (repr(cell), repr(div_time)))
+#            for i in range(len(cells)):
+#                print("%d: %s" % (i, cells_lifespan[i]))
             for cid,ls in cells_lifespan.iteritems():
                 if ls.daughters:
                     cells_lifespan[ls.daughters[0]].parent = cid
@@ -881,20 +890,20 @@ class TrackingData(QObject):
             scales[img] = (1,1)
 # First, read the shifts for each image
         times = range(len(images))
-        for i in xrange(3):
+        for i in range(3):
             shift = r.next()
             if shift[0] == "XY Shift":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of XY shifting values. There should be two shifting value per image")
                 xshift = shift[1::2]
                 yshift = shift[2::2]
-                for img,x,y in izip(images, xshift, yshift):
+                for img,x,y in zip(images, xshift, yshift):
                     shifts[img][0] = QPointF(float(x), float(y))
             elif shift[0] == "Angle Shift-Time":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of angle shifting values. There should be one shifting value per image")
                 ashift = shift[1::2]
-                for img,a in izip(images, ashift):
+                for img,a in zip(images, ashift):
                     shifts[img][1] = float(a)
                 times = [float(t) for t in shift[2::2]]
             elif shift[0] == "Scaling" and not opts.get('IgnoreScaling', False):
@@ -902,7 +911,7 @@ class TrackingData(QObject):
                     raise TrackingDataException("Incorrect number of scaling values. There should be two scaling values per image (x and y)")
                 xscale = shift[1::2]
                 yscale = shift[2::2]
-                for img,x,y in izip(images, xscale, yscale):
+                for img,x,y in zip(images, xscale, yscale):
                     print_debug('scale[%s] = (%s,%s)' % (repr(img), repr(x), repr(y)))
                     x = float(x)
                     y = float(y)
@@ -918,7 +927,7 @@ class TrackingData(QObject):
                 break
             if len(l) != num_columns+1:
                 raise TrackingDataException("Incorrect number of columns in line %d: %d instead of %d expected" % (i+1, len(l), num_columns+1))
-            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in izip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
+            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in zip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
             for img,p in pos:
                 data[img][i] = p
             self._last_pt_id = i
@@ -951,7 +960,7 @@ class TrackingData(QObject):
                 ls2.start = div_time
                 ls2.parent = cell
 #                print "Cell %s divided at time %s" % (repr(cell), repr(div_time))
-#            for i in xrange(len(cells)):
+#            for i in range(len(cells)):
 #                print "%d: %s" % (i, cells_lifespan[i])
             for cid,ls in cells_lifespan.iteritems():
                 if ls.daughters:
@@ -983,20 +992,20 @@ class TrackingData(QObject):
             scales[img] = (1,1)
 # First, read the shifts for each image
         times = range(len(images))
-        for i in xrange(3):
+        for i in range(3):
             shift = r.next()
             if shift[0] == "XY Shift":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of XY shifting values. There should be two shifting value per image")
                 xshift = shift[1::2]
                 yshift = shift[2::2]
-                for img,x,y in izip(images, xshift, yshift):
+                for img,x,y in zip(images, xshift, yshift):
                     shifts[img][0] = QPointF(float(x), float(y))
             elif shift[0] == "Angle Shift-Time":
                 if len(shift) != num_columns+1:
                     raise TrackingDataException("Incorrect number of angle shifting values. There should be one shifting value per image")
                 ashift = shift[1::2]
-                for img,a in izip(images, ashift):
+                for img,a in zip(images, ashift):
                     shifts[img][1] = float(a)
                 times = [float(t) for t in shift[2::2]]
             elif shift[0] == "Scaling" and not opts.get('IgnoreScaling', False):
@@ -1004,7 +1013,7 @@ class TrackingData(QObject):
                     raise TrackingDataException("Incorrect number of scaling values. There should be two scaling values per image (x and y)")
                 xscale = shift[1::2]
                 yscale = shift[2::2]
-                for img,x,y in izip(images, xscale, yscale):
+                for img,x,y in zip(images, xscale, yscale):
                     print_debug('scale[%s] = (%s,%s)' % (repr(img), repr(x), repr(y)))
                     x = float(x)
                     y = float(y)
@@ -1029,7 +1038,7 @@ class TrackingData(QObject):
             elif len(l) != num_columns+1:
                 raise TrackingDataException("Incorrect number of columns in line %d: %d instead of %d expected" % (i+1, len(l), num_columns+1))
             pid = i - delta
-            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in izip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
+            pos = [ (img,QPointF(float(x),float(y))) for img,x,y in zip(images,l[1::2],l[2::2]) if x != '' or y != '' ]
             for img,p in pos:
                 data[img][pid] = p
             self._last_pt_id = pid
@@ -1079,7 +1088,7 @@ class TrackingData(QObject):
                 ls2.start = div_time
                 ls2.parent = cell
 #                print "Cell %s divided at time %s" % (repr(cell), repr(div_time))
-#            for i in xrange(len(cells)):
+#            for i in range(len(cells)):
 #                print "%d: %s" % (i, cells_lifespan[i])
             for cid,ls in cells_lifespan.iteritems():
                 if ls.daughters:
@@ -1116,7 +1125,7 @@ class TrackingData(QObject):
                 p2 = int(l[3])
                 pos = [ float(f) for f in l[4:] if f]
                 assert len(pos) % 2 == 0
-                pos = [ QPointF(pos[i],pos[i+1]) for i in xrange(0,len(pos),2) ]
+                pos = [ QPointF(pos[i],pos[i+1]) for i in range(0,len(pos),2) ]
                 wall_shapes[time, p1, p2] = pos
                 print_debug("wall shape from %d to %d at time %d =\n%s" % (p1, p2, time, ", ".join("%f,%f" % (p.x(), p.y()) for p in pos)))
         else:
@@ -1157,7 +1166,7 @@ class TrackingData(QObject):
         if f is None:
             if data_file is None:
                 raise TrackingDataException("You need to provide either a data file path or an opened file object")
-            f = file(data_file, "rb")
+            f = open(data_file, "rb")
             # if there is no project specified, try to find it
             if not self.project_dir:
                 p = path(data_file).dirname()
@@ -1174,7 +1183,7 @@ class TrackingData(QObject):
         else:
             version = "0"
             self.clear()
-            return self.load_version(version, file(data_file, "rb"), True, **opts)
+            return self.load_version(version, open(data_file, "rb"), True, **opts)
 
     def load_version(self, version, f, has_version=True, **opts):
         if version in TrackingData.versions_loader:
@@ -1231,7 +1240,7 @@ class TrackingData(QObject):
                     invert_cells[ls[4]], invert_pts[ls[5]], invert_pts[ls[6]] ])
             life_spans.append([cell_name, ls[0], ls[1] ])
         invert_cells = dict( (c,i) for i,c in enumerate(cells_ids) )
-        array[:,0] = ["Point %d" % i for i in xrange(num_pts)]
+        array[:,0] = ["Point %d" % i for i in range(num_pts)]
         # Now, prepare walls
         walls = self.walls
         wall_list = []
@@ -1256,7 +1265,7 @@ class TrackingData(QObject):
 #                        p1 = p2
 
         if f is None:
-            f = file(data_file, "wb")
+            f = open(data_file, "wb")
         w = csv.writer(f, delimiter=",")
         w.writerow(["TRK_VERSION", "0.6"])
         title = ['']*num_columns
@@ -1341,9 +1350,9 @@ class TrackingData(QObject):
                 life_spans.append([ cell_name, ls[0], ls[1] ])
         invert_cells = dict( (c,i) for i,c in enumerate(cells_ids) )
 
-        array[:,0] = ["Point %d" % i for i in xrange(num_pts)]
+        array[:,0] = ["Point %d" % i for i in range(num_pts)]
         if f is None:
-            f = file(data_file, "wb")
+            f = open(data_file, "wb")
         w = csv.writer(f, delimiter=",")
         w.writerow(["TRK_VERSION", "0.5"])
         title = ['']*num_columns
@@ -1399,7 +1408,7 @@ class TrackingData(QObject):
         scales = self.images_scale
         cells = self.cells
         self.walls = WallShapes()
-        for t in xrange(len(self.images_name)):
+        for t in range(len(self.images_name)):
             self.walls.add_time(t)
         for img, pts in data.iteritems():
             self.emit(SIGNAL("pointsDeleted"), img, pts.keys())
@@ -1744,7 +1753,7 @@ class TrackingData(QObject):
         cells_deleted = {}
         if lifespans is None:
             lifespans = [ cells_lifespan.get(cid, LifeSpan()) for cid in cell_ids ]
-        for cell, pt_ids, ls in izip(cell_ids, pt_ids_list, lifespans):
+        for cell, pt_ids, ls in zip(cell_ids, pt_ids_list, lifespans):
             if cell in cells:
                 for p in cells[cell]:
                     cell_points[p].remove(cell)
@@ -1793,7 +1802,7 @@ class TrackingData(QObject):
           - lifespans, iter of LifeSpan: list of new lifespans
         """
         cells_lifespan = self.cells_lifespan
-        for cid, ls in izip(cells, lifespans):
+        for cid, ls in zip(cells, lifespans):
             cur_ls = cells_lifespan[cid]
             cur_lst = set(self.images_name[cur_ls.slice()])
             new_lst = set(self.images_name[ls.slice()])
@@ -1968,9 +1977,9 @@ class TrackingData(QObject):
                 pts = self.cellAtTime(cid, img)
                 if len(pts) < 3:
                     continue
-                geometry = sum([walls[pts[i-1], pts[i]] + [imgdata[pts[i]]] for i in xrange(len(pts))],[])
+                geometry = sum([walls[pts[i-1], pts[i]] + [imgdata[pts[i]]] for i in range(len(pts))],[])
                 area = 0
-                for i in xrange(len(geometry)):
+                for i in range(len(geometry)):
                     p1 = geometry[i-1]
                     p2 = geometry[i]
                     area += cross(p1, p2)
@@ -2130,7 +2139,7 @@ class ImageData(QObject):
         data = self._current_data
         moved = []
         added = []
-        for i, val in izip(pt_id, value):
+        for i, val in zip(pt_id, value):
             if i in data:
                 moved.append(i)
             else:

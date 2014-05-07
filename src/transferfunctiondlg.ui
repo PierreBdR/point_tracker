@@ -563,7 +563,7 @@
   <customwidget>
    <class>QTransferFunctionViewer</class>
    <extends>QWidget</extends>
-   <header>qtransferfunctionviewer.h</header>
+   <header>src/qtransferfunctionviewer.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

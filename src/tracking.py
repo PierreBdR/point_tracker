@@ -1,12 +1,15 @@
+from __future__ import print_function, division, absolute_import
 #! /usr/bin/env python
+from __future__ import print_function, division, absolute_import
 __docformat__ = "restructuredtext"
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
+from . import python2
 from PyQt4 import QtGui, QtCore
 import sys
-import image_cache
-import parameters
-import debug
-from sys_utils import compileForm
+from . import image_cache
+from . import parameters
+from . import debug
+from .sys_utils import compileForm
 from path import path
 
 def setAppConfig():
@@ -37,8 +40,8 @@ def createWindow():
 # recognised images (determied when the module is loaded) is incomplete
     image_cache.createCache()
     parameters.createParameters()
-    from tracking_window import TrackingWindow
-    from project import Project
+    from .tracking_window import TrackingWindow
+    from .project import Project
     Project.initClass()
     main_win = TrackingWindow()
     main_win.show()

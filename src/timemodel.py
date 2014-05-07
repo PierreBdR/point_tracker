@@ -1,12 +1,12 @@
+from __future__ import print_function, division, absolute_import
 """
 :newfield signal: Signal, Signals
 """
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QItemDelegate, QLineEdit, QBrush, QColor, QPalette
 from PyQt4.QtCore import Qt, QVariant, QAbstractTableModel, QModelIndex, SIGNAL
-from itertools import izip
 from math import floor
 
 def time2hours(time_str):
@@ -58,9 +58,9 @@ class TimedImageModel(QAbstractTableModel):
         self.icons = icons
         self.names = names
         self.times = [ float(t) for t in times ]
-        self._valid = [ times[i] > times[i-1] if i > 0 else True for i in xrange(len(times)) ]
+        self._valid = [ times[i] > times[i-1] if i > 0 else True for i in range(len(times)) ]
         root = QModelIndex()
-        for idx in xrange(len(names)):
+        for idx in range(len(names)):
             self.createIndex(idx, 0, root)
             self.createIndex(idx, 1, root)
         self.root = root
@@ -138,7 +138,7 @@ class TimedImageModel(QAbstractTableModel):
         return False
 
     def __iter__(self):
-        for n,t in izip(self.names, self.times):
+        for n,t in zip(self.names, self.times):
             yield (n,t)
 
     def __getitem__(self, idx):
@@ -194,7 +194,7 @@ class TimedImageModel(QAbstractTableModel):
 
     def _updateValids(self):
         times = self.times
-        self._valid = [ times[i] > max(times[:i]) if i > 0 else times[i] >= 0 for i in xrange(len(times)) ]
+        self._valid = [ times[i] > max(times[:i]) if i > 0 else times[i] >= 0 for i in range(len(times)) ]
 
     def name(self, idx):
         return self.names[idx.row()]

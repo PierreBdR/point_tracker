@@ -9,7 +9,8 @@ cells, and compute the growth rates for each cells over time.
 Installation
 ------------
 
-Clone the repository, you can use it without compilation
+Clone the repository, you can use it without compilation, launch 
+``tracking.py`` or ``tracking.sh``.
 
 To make the documentation, do in the ``doc`` folder and use ``make`` or 
 ``make.bat``.

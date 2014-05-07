@@ -1,4 +1,3 @@
-
 data= main_win._data
 data.cells[2]
 data.images_name 
@@ -64,10 +63,10 @@ l = [PyQt4.QtCore.QPointF(913.79642723539303, 2214.5778902924535),
     PyQt4.QtCore.QPointF(893.39400000000001, 2207.0500000000002),
     PyQt4.QtCore.QPointF(895.79700000000003, 2217.0799999999999), PyQt4.QtCore.QPointF(896.2045041633786, 2217.7449649527935)]
 diff = l[1:] - l[:-1]
-diff = [ p-q for p,q in izip(l[1:],l[:-1])]
-from itertool import izip
-from itertools import izip
-diff = [ p-q for p,q in izip(l[1:],l[:-1])]
+diff = [ p-q for p,q in zip(l[1:],l[:-1])]
+from itertool import zip
+from itertools import zip
+diff = [ p-q for p,q in zip(l[1:],l[:-1])]
 print(sum(sqrt(p.x()*p.x() + p.y()*p.y()) for p in diff))
 from math import sqrt
 print(sum(sqrt(p.x()*p.x() + p.y()*p.y()) for p in diff))
@@ -124,16 +123,16 @@ gcm.discretize_segment(aligned_pts[1][0], 10, gcm.length_polyline(aligned_pts[1]
 res = gcm.discretize_segment(aligned_pts[1][0], 10, gcm.length_polyline(aligned_pts[1][0]))
 len(res)
 diffs = res[1:] - res[:-1]
-diffs = [ p - q for p,q in izip(res[1:],res[:-1])]
+diffs = [ p - q for p,q in zip(res[1:],res[:-1])]
 [sqrt(p.x()*p.x() + p.y()*p.y()) for p in diffs]
 reload(src.growth_computation_methods)
 res = gcm.discretize_segment(aligned_pts[1][0], 10, gcm.length_polyline(aligned_pts[1][0]))
-diffs = [ p - q for p,q in izip(res[1:],res[:-1])]
+diffs = [ p - q for p,q in zip(res[1:],res[:-1])]
 [sqrt(p.x()*p.x() + p.y()*p.y()) for p in diffs]
 res = pdb.runcall(gcm.discretize_segment,aligned_pts[1][0], 10, gcm.length_polyline(aligned_pts[1][0]))
 reload(src.growth_computation_methods)
 res = gcm.discretize_segment(aligned_pts[1][0], 10, gcm.length_polyline(aligned_pts[1][0]))
-diffs = [ p - q for p,q in izip(res[1:],res[:-1])]
+diffs = [ p - q for p,q in zip(res[1:],res[:-1])]
 [sqrt(p.x()*p.x() + p.y()*p.y()) for p in diffs]
 sum([sqrt(p.x()*p.x() + p.y()*p.y()) for p in diffs])
 3.3511328858834157*9

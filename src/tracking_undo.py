@@ -1,10 +1,11 @@
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+from __future__ import print_function, division, absolute_import
+
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtGui import QUndoCommand, QMessageBox
 from PyQt4.QtCore import QPointF
-from itertools import izip
-from tracking_data import LifeSpan
-from debug import print_debug
+from .tracking_data import LifeSpan
+from .debug import print_debug
 
 class TrackingCommand(QUndoCommand):
     def __init__(self, text, cmd_id, parent):
@@ -26,9 +27,9 @@ class MovePoints(PointsCommand):
         PointsCommand.__init__(self, "Move point(s) in image %s" % image_name, data_manager, image_name, cmd_id, parent)
         if starts is None:
             data = self.current_data
-            self.move = dict((pt_id,(data[pt_id],end)) for pt_id,end in izip(pts_id, ends))
+            self.move = dict((pt_id,(data[pt_id],end)) for pt_id,end in zip(pts_id, ends))
         else:
-            self.move = dict((pt_id,(start,end)) for pt_id,start,end in izip(pts_id, starts, ends))
+            self.move = dict((pt_id,(start,end)) for pt_id,start,end in zip(pts_id, starts, ends))
 
     def undo(self):
         data = self.current_data
@@ -122,15 +123,15 @@ class RemovePointsInImages(PointsCommand):
         PointsCommand.__init__(self, title, data_manager, image_name, cmd_id, parent)
         self.pts_id = pts_id
         self.images = [ [im for im in image_list if pt in data_manager[im]] for pt in pts_id ]
-        self.pos = [ [ data_manager[im][pt] for im in img] for img,pt in izip(self.images, pts_id) ]
+        self.pos = [ [ data_manager[im][pt] for im in img] for img,pt in zip(self.images, pts_id) ]
         self.watching_cells = cellsToWatch(data_manager, pts_id)
         #self.watching_walls = wallsToWatch(data_manager, pts_id)
         self.first_run = True
 
     def undo(self):
         data = self.data_manager
-        for img,pt,poss in izip(self.images,self.pts_id,self.pos):
-            for image,pos in izip(img,poss):
+        for img,pt,poss in zip(self.images,self.pts_id,self.pos):
+            for image,pos in zip(img,poss):
                 data[image][pt] = pos
         if self.modified_cells:
             data.setCells(*self.modified_cells)
@@ -138,7 +139,7 @@ class RemovePointsInImages(PointsCommand):
     def redo(self):
         data = self.data_manager
         self.presence = {}
-        for imgs,pt in izip(self.images,self.pts_id):
+        for imgs,pt in zip(self.images,self.pts_id):
             for image in imgs:
                 del data[image][pt]
         if self.first_run:
@@ -172,7 +173,7 @@ class AddPoints(PointsCommand):
                 dpos[data.createNewPoint()] = p
             self.pos = dpos
         else:
-            self.pos = dict(izip(ids,pos))
+            self.pos = dict(zip(ids,pos))
 
     def undo(self):
         data = self.current_data
@@ -339,7 +340,7 @@ class SplitPointsId(PointsCommand):
                 walls.add((t,p1,p2))
         self.walls = walls
         self.tid = tid
-        print "Split point of id %d.\nCreating point %d on images %s" % (pt_id, self.new_pt_id, str(self.images))
+        print("Split point of id %d.\nCreating point %d on images %s" % (pt_id, self.new_pt_id, str(self.images)))
 
     def undo(self):
         dm = self.data_manager
@@ -382,7 +383,7 @@ class SplitPointsId(PointsCommand):
         lifespans = []
         # First, change cells
         for cid in self.cells:
-            print "Inserting point %d in cell %d" % (new_pt_id, cid)
+            print("Inserting point %d in cell %d" % (new_pt_id, cid))
             ls = dm.lifespan(cid)
             lifespans.append(ls)
             cell_shape = list(dm.cells[cid])
@@ -529,7 +530,7 @@ class AddCellCommand(TrackingCommand):
         self.data_manager.checkCells()
 
     def redo(self):
-        print "Actually adding the cell %s" % (self.cell_id,)
+        print("Actually adding the cell %s" % (self.cell_id,))
         self.data_manager.setCells([self.cell_id], [self.pts_ids])
         self.data_manager.checkCells()
 
@@ -747,7 +748,7 @@ class CleanCells(QUndoCommand):
             msg = "Nothing to do. Cells are clean."
             if saved_cells:
                 actions = []
-                for cid, old_pt_ids in izip(changed_cells, saved_cells):
+                for cid, old_pt_ids in zip(changed_cells, saved_cells):
                     left_pts = list(old_pt_ids)
                     saved_pts = []
                     new_pts = self.data_manager.cells[cid]
