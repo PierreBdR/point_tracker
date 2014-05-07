@@ -14,9 +14,9 @@ from .path import path
 
 def setAppConfig():
     QtCore.QCoreApplication.setOrganizationName("PBdR")
-    QtCore.QCoreApplication.setApplicationName("VelocityTracking")
+    QtCore.QCoreApplication.setApplicationName("PointTracker")
     QtCore.QCoreApplication.setOrganizationDomain("barbierdereuille.net")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    #QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
 
 def compileUis():
     """

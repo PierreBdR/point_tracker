@@ -5,9 +5,9 @@ from PyQt4.QtGui import *
 from src.path import path
 
 QCoreApplication.setOrganizationName("PBdR")
-QCoreApplication.setApplicationName("VelocityTracking")
-QCoreApplication.setOrganizationDomain("jic.bbsrc.ac.uk")
-QSettings.setDefaultFormat(QSettings.IniFormat)
+QCoreApplication.setApplicationName("PointTracker")
+QCoreApplication.setOrganizationDomain("barbierdereuille.net")
+#QSettings.setDefaultFormat(QSettings.IniFormat)
 
 import sys
 app = QApplication(sys.argv)
