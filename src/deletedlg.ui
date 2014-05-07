@@ -1,0 +1,110 @@
+<ui version="4.0" >
+ <class>DeleteDlg</class>
+ <widget class="QDialog" name="DeleteDlg" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>532</width>
+    <height>79</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Delete selecting point</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <item>
+    <widget class="QLabel" name="label" >
+     <property name="text" >
+      <string>Deleting selected points</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" >
+     <item>
+      <widget class="QPushButton" name="inAllImages" >
+       <property name="text" >
+        <string>In all images</string>
+       </property>
+       <property name="checkable" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="toImage" >
+       <property name="text" >
+        <string>Up to image</string>
+       </property>
+       <property name="checkable" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="fromImage" >
+       <property name="text" >
+        <string>Starting from image</string>
+       </property>
+       <property name="checkable" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>inAllImages</sender>
+   <signal>clicked()</signal>
+   <receiver>DeleteDlg</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>147</x>
+     <y>56</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>149</x>
+     <y>75</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toImage</sender>
+   <signal>clicked()</signal>
+   <receiver>DeleteDlg</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>270</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>280</x>
+     <y>71</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>fromImage</sender>
+   <signal>clicked()</signal>
+   <receiver>DeleteDlg</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>441</x>
+     <y>57</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>444</x>
+     <y>77</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
