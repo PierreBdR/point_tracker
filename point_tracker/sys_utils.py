@@ -76,9 +76,10 @@ def compileForm(uipath):
         uipath = path(caller()[0]).dirname()/uipath
     modulename = "ui_%s" % (uipath.stripext().basename(),)
     compiled_ui = uipath.dirname() / ("%s.py" % (modulename,))
-    if not compiled_ui.exists() or compiled_ui.getmtime() < uipath.getmtime():
+    if not compiled_ui.exists():# or compiled_ui.getmtime() < uipath.getmtime():
         with compiled_ui.open("wt") as f:
-            uic.compileUi(uipath, f)
+            print("Compiling form '{0}'".format(uipath))
+            uic.compileUi(uipath, f, from_imports=True)
     return compiled_ui
 
 def showException(parent, title, ex):

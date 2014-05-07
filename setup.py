@@ -7,9 +7,74 @@ Usage:
 """
 
 from setuptools import setup
+from setuptools.command.build_py import build_py
+
 import sys
 import os
 from fnmatch import fnmatch
+from distutils import log
+
+class build_pyqt4(build_py):
+    user_options = build_py.user_options + [
+                   ('rcc=', 'r', 'Program used to compile Qt resource files into python module'),
+                   ('uic=', 'u', 'Program used to compile Qt UI files into python module')
+                   ]
+
+    def initialize_options(self):
+        build_py.initialize_options(self)
+        self.rcc = None
+        self.uic = None
+
+    def finalize_options(self):
+        build_py.finalize_options(self)
+        self.ensure_filename('rcc')
+        self.ensure_filename('uic')
+
+        if self.rcc is None:
+            self.rcc = 'pyrcc4'
+        if self.uic is None:
+            self.uic = 'pyuic4'
+
+    def run(self):
+        build_py.run(self)
+        if not self.dry_run:
+            print("files = {}".format(self.data_files))
+            for package, src_dir, build_dir, files in self.data_files:
+                new_files = []
+                for f in files:
+                    nf = self.make_module(src_dir, build_dir, f)
+                    if nf is not None:
+                        new_files.append(nf)
+                files.extend(new_files)
+
+    def make_module(self, src, pth, name):
+        if name.endswith(".ui"):
+            return self.make_ui(src, pth, name)
+        elif name.endswith(".qrc"):
+            return self.make_rc(src, pth, name)
+
+    def make_ui(self, src, pth, name):
+        src_file = os.path.join(src, name)
+        new_name = "ui_{0}.py".format(name[:-3])
+        dst_file = os.path.join(pth, new_name)
+        cmd = [ self.uic, '--from-imports', '-o', dst_file, src_file ]
+        log.info('Compile UI file "{0}" into "{1}"'.format(name, dst_file))
+        self.spawn(cmd)
+        return new_name
+
+    def make_rc(self, src, pth, name):
+        src_file = os.path.join(src, name)
+        new_name = "{0}_rc.py".format(name[:-4])
+        dst_file = os.path.join(pth, new_name)
+        if sys.version_info.major == 2:
+            ver = '-py2'
+        else:
+            ver = '-py3'
+        cmd = [ self.rcc, ver, '-o', dst_file, src_file ]
+        log.info('Compile RC file "{0}" into "{1}"'.format(name, dst_file))
+        self.spawn(cmd)
+        return new_name
+
 
 setup(name='point-tracker',
       description='Track points and cells on 2D tissues over time.',
@@ -38,12 +103,15 @@ setup(name='point-tracker',
       license='LICENSE',
       install_requires=['numpy >=1.5.0',
                         'scipy >=0.10.0',
-                        'matplotlib',
+                        'matplotlib'
                         ],
       url=['https://github.com/PierreBdR/point_tracker'],
       entry_points = {
           'console_scripts': ['track_color = point_tracker.track_color:main'],
-          'gui_scripts': ['tracking = point_tracker.tracking:main']
-          }
+          'gui_scripts': ['point_tracker = point_tracker.tracking:main']
+          },
+      test_suite="nose.collector",
+      tests_require="nose",
+      cmdclass = { 'build_py': build_pyqt4 },
       )
 

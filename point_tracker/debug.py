@@ -14,6 +14,7 @@ def init():
     Open the log files and redirect outputs if necessary.
     """
     global log
+    return
 #if not "IPython" in type(__main__).__module__: # i.e. if ipython is not launched
     if hasattr(__main__, "__file__") and not "IPython" in type(__main__).__module__ and "epydoc" not in __main__.__file__: # if not interactive session and not doc
         global stored_out, stored_err, restore_io
