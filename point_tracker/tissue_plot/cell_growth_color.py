@@ -2,16 +2,16 @@ from __future__ import print_function, division, absolute_import
 
 from tracking_plot import (ColoringClass, TransferFunctionParameters, fixRangeParameters, make_cap_symetric, DirectionGrowthParameters)
 from PyQt4.QtGui import QColor, QPen
-from PyQt4.QtCore import QString, Qt
+from PyQt4.QtCore import Qt
 from numpy import inf, log, pi, dot
 from ..growth_algo import params2Tensor
 from ..debug import print_debug
 
 class CellAreaGrowth(ColoringClass('cell')):
-    coloring_name = "Area growth rate"
-    settings_name = "CellAreaGrowthRate"
+    coloring_name = u"Area growth rate"
+    settings_name = u"CellAreaGrowthRate"
     parameter_class = TransferFunctionParameters
-    unit = QString.fromUtf8("1/h")
+    unit = u"1/h"
 
     def __init__(self, result, doubling_time = False):
         self.doubling_time = doubling_time
@@ -31,7 +31,7 @@ class CellAreaGrowth(ColoringClass('cell')):
         caps = self.caps
         if self.doubling_time:
             caps = (caps[0]/log(2), caps[1]/log(2))
-        return self.parameters.drawScaleBar(painter, caps, QString.fromUtf8("1/h"), size)
+        return self.parameters.drawScaleBar(painter, caps, u"1/h", size)
 
     def _update_parameters(self):
         caps = self.value_range()
@@ -62,11 +62,11 @@ class CellAreaGrowth(ColoringClass('cell')):
         return result_type == "Growth"
 
 class CellGrowthAlongDirection(ColoringClass('cell')):
-    coloring_name = "Growth along a direction"
-    settings_name = "GrowthDirection"
+    coloring_name = u"Growth along a direction"
+    settings_name = u"GrowthDirection"
     parameter_class = DirectionGrowthParameters
-    unit = QString.fromUtf8("1/h")
-    
+    unit = u"1/h"
+
     def __init__(self, result):
         ColoringClass('cell').__init__(self, result)
 
@@ -81,9 +81,9 @@ class CellGrowthAlongDirection(ColoringClass('cell')):
         self.dc = 1/(caps[1]-caps[0])
         self.shiftc = caps[0]
         if self.parameters.orthogonal:
-            self.unit = QString.fromUtf8("Orthogonal (1/h)")
+            self.unit = u"Orthogonal (1/h)"
         else:
-            self.unit = QString.fromUtf8("Parallel (1/h)")
+            self.unit = u"Parallel (1/h)"
 
     def startImage(self, painter, imageid):
         params = self.parameters
@@ -158,16 +158,16 @@ class CellGrowthAlongDirection(ColoringClass('cell')):
 #class CellAreaDoublingTime(CellAreaGrowth):
 #    coloring_name = "Area binary growth rate"
 #    settings_name = "CellAreaDoublingTime"
-#    unit = QString.fromUtf8("h")
+#    unit = u"h"
 
 #    def __init__(self, result):
 #        CellAreaGrowth.__init__(self, result, True)
 
 class CellGrowthAnisotropy(ColoringClass('cell')):
-    coloring_name = "Growth anisotropy"
-    settings_name = "GrowthAnisotropy"
+    coloring_name = u"Growth anisotropy"
+    settings_name = u"GrowthAnisotropy"
     parameter_class = fixRangeParameters(0,1)
-    unit = QString.fromUtf8("")
+    unit = u""
     
     def __init__(self, result):
         ColoringClass('cell').__init__(self, result)
@@ -252,9 +252,9 @@ class CellGrowth(ColoringClass('cell')):
         return result_type == "Growth"
 
 class CellKMaj(CellGrowth):
-    coloring_name = "Major growth rate"
-    settings_name = "CellMajorGrowthRate"
-    unit = QString.fromUtf8("1/h")
+    coloring_name = u"Major growth rate"
+    settings_name = u"CellMajorGrowthRate"
+    unit = u"1/h"
 
     def __init__(self, result):
         CellGrowth.__init__(self, result, 0)
@@ -262,15 +262,15 @@ class CellKMaj(CellGrowth):
 #class CellKMajDoublingTime(CellGrowth):
 #    coloring_name = "Major binary growth rate"
 #    settings_name = "CellMajorDoublingTime"
-#    unit = QString.fromUtf8("1/h")
+#    unit = u"1/h"
 #
 #    def __init__(self, result):
 #        CellGrowth.__init__(self, result, 0, True)
 
 class CellKMin(CellGrowth):
-    coloring_name = "Minor growth rate"
-    settings_name = "CellMinorGrowthRate"
-    unit = QString.fromUtf8("1/h")
+    coloring_name = u"Minor growth rate"
+    settings_name = u"CellMinorGrowthRate"
+    unit = u"1/h"
 
     def __init__(self, result):
         CellGrowth.__init__(self, result, 1)
@@ -278,16 +278,16 @@ class CellKMin(CellGrowth):
 #class CellKMinDoublingTime(CellGrowth):
 #    coloring_name = "Minor binary growth rate"
 #    settings_name = "CellMinorDoublingTime"
-#    unit = QString.fromUtf8("1/h")
+#    unit = u"1/h"
 #
 #    def __init__(self, result):
 #        CellGrowth.__init__(self, result, 1, True)
 
 class CellTheta(CellGrowth):
-    coloring_name = "Major axis orientation"
-    settings_name = "CellTheta"
+    coloring_name = u"Major axis orientation"
+    settings_name = u"CellTheta"
     parameter_class = fixRangeParameters(-90, 90)
-    unit = QString.fromUtf8("")
+    unit = u""
 
     def __init__(self, result):
         CellGrowth.__init__(self, result, 2, ratio=180/pi)
@@ -295,9 +295,9 @@ class CellTheta(CellGrowth):
         self.parameters.value_capping = None
 
 class CellPhi(CellGrowth):
-    coloring_name = "Vorticity"
-    settings_name = "CellPhi"
-    unit = QString.fromUtf8("1/h")
+    coloring_name = u"Vorticity"
+    settings_name = u"CellPhi"
+    unit = u"1/h"
 
     def __init__(self, result):
         CellGrowth.__init__(self, result, 3)

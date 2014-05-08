@@ -3,30 +3,29 @@ from __future__ import print_function, division, absolute_import
 
 from tracking_plot import (ColoringClass, TransferFunctionParameters, make_cap_symetric)
 from PyQt4.QtGui import QColor
-from PyQt4.QtCore import QString
 from numpy import inf
 from math import log10, pow, floor
 from ..geometry import polygonArea
 from ..debug import print_debug
 
 units = [
-  "y", # yocto - 10^-24
-  "z", # zepto - 10^-21
-  "a", # atto  - 10^-18
-  "f", # femto - 10^-15
-  "p", # pico  - 10^-12
-  "n", # nano  - 10^-9
-  QString(u"\xb5"), # micro - 10^-6
-  "m", # milli - 10^-3
-  "" , # unit  - 10^0
-  "k", # kilo  - 10^3
-  "M", # mega  - 10^6
-  "G", # giga  - 10^9
-  "T", # tera  - 10^12
-  "P", # peta  - 10^15
-  "E", # exa   - 10^18
-  "Z", # zetta - 10^21
-  "Y"  # yota  - 10^24
+  u"y", # yocto - 10^-24
+  u"z", # zepto - 10^-21
+  u"a", # atto  - 10^-18
+  u"f", # femto - 10^-15
+  u"p", # pico  - 10^-12
+  u"n", # nano  - 10^-9
+  u"µ", # micro - 10^-6
+  u"m", # milli - 10^-3
+  u"" , # unit  - 10^0
+  u"k", # kilo  - 10^3
+  u"M", # mega  - 10^6
+  u"G", # giga  - 10^9
+  u"T", # tera  - 10^12
+  u"P", # peta  - 10^15
+  u"E", # exa   - 10^18
+  u"Z", # zetta - 10^21
+  u"Y"  # yota  - 10^24
   ]
 
 def unit(ref_exp):
@@ -126,10 +125,10 @@ class CellGeometry(ColoringClass('cell')):
         return self.parameters.drawScaleBar(painter, caps, unit, size)
 
 class CellArea(CellGeometry):
-    coloring_name = "Cell area"
-    settings_name = "CellArea"
-    unit = QString.fromUtf8("m²")
-    
+    coloring_name = u"Cell area"
+    settings_name = u"CellArea"
+    unit = u"m²"
+
     bestUnit = CellGeometry.bestUnitSquare
 
     def value(self, imageid, cid):

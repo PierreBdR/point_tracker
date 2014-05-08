@@ -11,7 +11,7 @@ class AlignmentDlg(QDialog):
         ui.setupUi(self)
         self.ui = ui
         for i in xrange(nb_pts):
-            s = QString.number(i)
+            s = unicode(i)
             ui.referencePoint.addItem(s)
             ui.rotationPt1.addItem(s)
             ui.rotationPt2.addItem(s)

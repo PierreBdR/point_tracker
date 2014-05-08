@@ -597,15 +597,15 @@ class PlottingDlg(QDialog):
     def on_selectFilePrefix_clicked(self):
         params = parameters.instance
         startdir = params.last_dir
-        filter = QString()
-        filename = QFileDialog.getSaveFileName(self, "Choose a file prefix for saving images", startdir, "Image Files (*.%s)" % self.ui.fileFormat.currentText(), filter, QFileDialog.DontConfirmOverwrite | QFileDialog.DontResolveSymlinks)
+        filters = ""
+        filename = QFileDialog.getSaveFileName(self, "Choose a file prefix for saving images", startdir, "Image Files (*.%s)" % self.ui.fileFormat.currentText(), filters, QFileDialog.DontConfirmOverwrite | QFileDialog.DontResolveSymlinks)
         if not filename.isEmpty():
             fn = path(filename).dirname()
             params.last_dir = fn
             if '.' in filename:
                 ext_pos = filename.indexOf('.')
                 ext = filename[ext_pos:]
-                if ext in filter:
+                if ext in filters:
                     filename = filename[:ext_pos]
             self.ui.filePrefix.setText(filename)
 

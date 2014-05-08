@@ -374,7 +374,7 @@ class ScaleBar(QObject):
         config.scaleBar.toggled.connect(self._set_scale_show)
         config_params.selectTextColor.clicked.connect(self._changeScaleTextColor)
         config_params.selectLineColor.clicked.connect(self._changeScaleLineColor)
-        config_params.selectPosition.highlighted[QString].connect(self._set_scale_position)
+        config_params.selectPosition.highlighted['QString'].connect(self._set_scale_position)
         config_params.selectFont.clicked.connect(self._changeFont)
         config_params.lineThickness.valueChanged[int].connect(self._changeScaleLineThickness)
         config_params.outsideImage.toggled.connect(self._set_scaleBarOutsideImage)
@@ -777,13 +777,13 @@ class TransferFunctionParameters(ScaleBar):
         QObject.connect(config.maxCap, SIGNAL("textChanged(const QString&)"), self._maxCapStringChanged)
         value = self.minmax_values
         self.resetMinMax(value)
-        config.minCap.setText(QString.number(value[0]))
-        config.maxCap.setText(QString.number(value[1]))
+        config.minCap.setText(unicode(value[0]))
+        config.maxCap.setText(unicode(value[1]))
         config.symetricColoring.setChecked(self._symetric_coloring)
         if self._value_capping is not None:
             config.capping.setChecked(True)
-            config.minCap.setText(QString.number(self._value_capping[0]))
-            config.maxCap.setText(QString.number(self._value_capping[1]))
+            config.minCap.setText(unicode(self._value_capping[0]))
+            config.maxCap.setText(unicode(self._value_capping[1]))
         self.addScaleBarWidget(config)
         return self._config
 
@@ -854,7 +854,7 @@ class TransferFunctionParameters(ScaleBar):
     @staticmethod
     def save(params, settings):
         ScaleBar.save(params, settings)
-        tf = QString(params.transfer_function.dumps())
+        tf = unicode(params.transfer_function.dumps())
         settings.setValue("TransferFunction", QVariant(tf))
         settings.setValue("SymetricColoring", QVariant(params.symetric_coloring))
         if params.value_capping is not None:
@@ -1120,10 +1120,10 @@ class DirectionGrowthParameters(ScaleBar):
         config.capping.toggled[bool].connect(self._cappingChanged)
         config.minCap.setValidator(QDoubleValidator(config.minCap))
         config.maxCap.setValidator(QDoubleValidator(config.minCap))
-        config.minCap.textChanged[QString].connect(self._minCapStringChanged)
-        config.maxCap.textChanged[QString].connect(self._maxCapStringChanged)
-        config.point1.currentIndexChanged[QString].connect(self._changePoint1)
-        config.point2.currentIndexChanged[QString].connect(self._changePoint2)
+        config.minCap.textChanged['QString'].connect(self._minCapStringChanged)
+        config.maxCap.textChanged['QString'].connect(self._maxCapStringChanged)
+        config.point1.currentIndexChanged['QString'].connect(self._changePoint1)
+        config.point2.currentIndexChanged['QString'].connect(self._changePoint2)
         config.drawLine.toggled.connect(self._set_draw_line)
         config.lineWidth.valueChanged.connect(self._set_line_width)
         config.selectLineColor.clicked.connect(self._changeLineColor)
@@ -1131,8 +1131,8 @@ class DirectionGrowthParameters(ScaleBar):
         config.dataFile.setText(self.data_file)
         value = self.minmax_values
         self.resetMinMax(value)
-        config.minCap.setText(QString.number(value[0]))
-        config.maxCap.setText(QString.number(value[1]))
+        config.minCap.setText(unicode(value[0]))
+        config.maxCap.setText(unicode(value[1]))
         config.orthogonal.setChecked(self.orthogonal)
         config.symetricColoring.setChecked(self._symetric_coloring)
         config.drawLine.setChecked(self.draw_line)
@@ -1140,8 +1140,8 @@ class DirectionGrowthParameters(ScaleBar):
         setColor(config.lineColor, self.line_color)
         if self._value_capping is not None:
             config.capping.setChecked(True)
-            config.minCap.setText(QString.number(self._value_capping[0]))
-            config.maxCap.setText(QString.number(self._value_capping[1]))
+            config.minCap.setText(unicode(self._value_capping[0]))
+            config.maxCap.setText(unicode(self._value_capping[1]))
         if self.data is not None:
             config = self._config
             config.point1.clear()
@@ -1272,7 +1272,7 @@ class DirectionGrowthParameters(ScaleBar):
         settings.setValue("DrawLine", QVariant(params.draw_line))
         settings.setValue("LineWidth", QVariant(params.line_width))
         settings.setValue("LineColor", QVariant(params.line_color))
-        tf = QString(params.transfer_function.dumps())
+        tf = unicode(params.transfer_function.dumps())
         settings.setValue("TransferFunction", QVariant(tf))
         settings.setValue("SymetricColoring", QVariant(params.symetric_coloring))
         if params.value_capping is not None:

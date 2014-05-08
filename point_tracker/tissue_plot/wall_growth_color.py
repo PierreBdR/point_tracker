@@ -1,7 +1,6 @@
 from __future__ import print_function, division, absolute_import
 from tracking_plot import ColoringClass, TransferFunctionParameters
 from PyQt4.QtGui import QColor
-from PyQt4.QtCore import QString
 from numpy import inf, log
 
 def make_cap_symetric(caps):
@@ -16,8 +15,8 @@ def make_cap_symetric(caps):
     return tuple(caps)
 
 class WallGrowth(ColoringClass('wall')):
-    coloring_name = "Wall growth rate"
-    settings_name = "WallGrowthRate"
+    coloring_name = u"Wall growth rate"
+    settings_name = u"WallGrowthRate"
     parameter_class = TransferFunctionParameters
 
     def __init__(self, result, doubling_time = False):
@@ -38,7 +37,7 @@ class WallGrowth(ColoringClass('wall')):
         caps = self.caps
         if self.doubling_time:
             caps = (caps[0]/log(2), caps[1]/log(2))
-        self.parameters.drawScaleBar(painter, caps, QString.fromUtf8("1/h"), size)
+        self.parameters.drawScaleBar(painter, caps, u"1/h", size)
 
     def _update_parameters(self):
         caps = self.value_range()
@@ -69,8 +68,8 @@ class WallGrowth(ColoringClass('wall')):
         return result_type == "Growth"
 
 class WallDoublingTime(WallGrowth):
-    coloring_name = "Wall binary growth rate"
-    settings_name = "WallDoublingTime"
+    coloring_name = u"Wall binary growth rate"
+    settings_name = u"WallDoublingTime"
 
     def __init__(self, result):
         WallGrowth.__init__(self, result, True)
