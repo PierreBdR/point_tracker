@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 Module defining the model behind the markers of the transfer function
 '''
 
-from PyQt4.QtCore import QAbstractTableModel, Qt, QModelIndex, QVariant
+from PyQt4.QtCore import QAbstractTableModel, Qt, QModelIndex
 from PyQt4.QtGui import QLineEdit, QDoubleValidator, QItemDelegate, QPalette, QBrush, QColor
 
 class MarkerColorDelegate(QItemDelegate):
@@ -20,11 +20,13 @@ class MarkerColorDelegate(QItemDelegate):
 
     def setEditorData(self, editor, index):
         if index.column() == 0:
-            value, ok = index.model().data(index, Qt.EditRole).toDouble()
-            if ok:
-                editor.setText("%.6f" % (value,))
+            try:
+                value = float(index.model().data(index, Qt.EditRole))
+            except (ValueError, TypeError):
+                return
+            editor.setText("%.6f" % (value,))
         else:
-            txt = index.model().data(index, Qt.EditRole).toString()
+            txt = index.model().data(index, Qt.EditRole)
             editor.setText(txt)
 
     def setModelData(self, editor, model, index):
@@ -32,7 +34,7 @@ class MarkerColorDelegate(QItemDelegate):
             value = float(editor.text())
         else:
             value = str(editor.text())
-        model.setData(index, QVariant(value), Qt.EditRole)
+        model.setData(index, value, Qt.EditRole)
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
@@ -96,27 +98,26 @@ class TransferMarkerModel(QAbstractTableModel):
     
     def data(self, index, role):
         if not index.isValid():
-            return QVariant()
+            return None
 
         row = index.row()
         column = index.column()
 
         if row >= len(self.markers) or column > 1:
-            return QVariant()
+            return None
 
         if column >= 2:
-            return QVariant()
+            return None
 
         if column == 0:
             if role == Qt.DisplayRole or role == Qt.EditRole:
-                return QVariant(float(self.markers[row]))
+                return float(self.markers[row])
         else:
             if role == Qt.DisplayRole or role == Qt.EditRole:
-                return QVariant(self.colorText(row))
+                return self.colorText(row)
             elif role == Qt.DecorationRole:
-                return QVariant(self.colors[row])
-
-        return QVariant()
+                return self.colors[row]
+        return None
     
     def setData(self, index, value, role):
         if not index.isValid():
@@ -130,28 +131,31 @@ class TransferMarkerModel(QAbstractTableModel):
         if column == 0:
             if row == 0 or row == len(self.markers)-1:
                 return False
-            val, ok = value.toDouble()
-            if not ok or val <= self.markers[row-1] or val >= self.markers[row+1]:
+            try:
+                val = float(value)
+            except (TypeError, ValueError):
+                return False
+            if val <= self.markers[row-1] or val >= self.markers[row+1]:
                 return False
             self.markers[row] = val
             self.dataChanged.emit(index, index)
             return True
         else:
-            if self.setColorText(row, str(value.toString())):
+            if self.setColorText(row, str(value)):
                 self.dataChanged.emit(index, index)
                 return True
         return False
     
     def headerData(self, section, orientation, role = Qt.DisplayRole):
         if role != Qt.DisplayRole:
-            return QVariant()
+            return None
 
         if orientation == Qt.Horizontal:
             if section == 0:
-                return QVariant("Position")
+                return "Position"
             elif section == 1:
-                return QVariant("Color")
-        return QVariant()
+                return "Color"
+        return None
     
     def addMarker(self, selection):
         rows = [m.row() for m in selection.indexes()]

@@ -18,6 +18,7 @@ from ..path import path
 from ..tracking_data import RetryTrackingDataException, TrackingData
 from ..growth_computation_methods import Result
 import sys
+from ..sys_utils import toBool
 
 def make_cap_symetric(caps):
     caps = list(caps)
@@ -572,7 +573,6 @@ class ScaleBar(QObject):
                 pic.setBoundingRect(pic.boundingRect() | bounding_rect.toRect())
                 print_debug("Returning picture %s" % (pic,))
                 return pic
-                
 
     @staticmethod
     def load(params, settings):
@@ -584,24 +584,25 @@ class ScaleBar(QObject):
         if not col.isValid():
             col = QColor(0,0,0)
         params.scale_line = col
-        params.scale_line_thickness, ok = settings.value("ScaleLineThickness").toInt()
-        if not ok:
+        try:
+            params.scale_line_thickness = int(settings.value("ScaleLineThickness"))
+        except (ValueError, TypeError):
             params.scale_line_thickness = 0
-        params.scale_position = settings.value("ScalePosition", QVariant("Top")).toString()
-        fnt = QFont(settings.value("ScaleFont", QVariant(QFont())))
+        params.scale_position = settings.value("ScalePosition", "Top")
+        fnt = QFont(settings.value("ScaleFont", QFont()))
         params.scale_font = fnt
-        params.scale_show = settings.value("ScaleShow", QVariant(True)).toBool()
-        params.scale_bar_outside_image = settings.value("ScaleBarOutsideImage", QVariant(False)).toBool()
+        params.scale_show = toBool(settings.value("ScaleShow", "True"))
+        params.scale_bar_outside_image = toBool(settings.value("ScaleBarOutsideImage", "False"))
 
     @staticmethod
     def save(params, settings):
-        settings.setValue("ScaleText", QVariant(params.scale_text))
-        settings.setValue("ScaleLine", QVariant(params.scale_line))
-        settings.setValue("ScaleLineThickness", QVariant(params.scale_line_thickness))
-        settings.setValue("ScalePosition", QVariant(params.scale_position))
-        settings.setValue("ScaleFont", QVariant(params.scale_font))
-        settings.setValue("ScaleShow", QVariant(params.scale_show))
-        settings.setValue("ScaleBarOutsideImage", QVariant(params.scale_bar_outside_image))
+        settings.setValue("ScaleText", params.scale_text)
+        settings.setValue("ScaleLine", params.scale_line)
+        settings.setValue("ScaleLineThickness", params.scale_line_thickness)
+        settings.setValue("ScalePosition", params.scale_position)
+        settings.setValue("ScaleFont", params.scale_font)
+        settings.setValue("ScaleShow", params.scale_show)
+        settings.setValue("ScaleBarOutsideImage", params.scale_bar_outside_image)
 
 def fixRangeParameters(m,M):
     range = (m,M)
@@ -666,8 +667,8 @@ def fixRangeParameters(m,M):
         @staticmethod
         def load(params, settings):
             ScaleBar.load(params, settings)
-            tr = settings.value("TransferFunction").toString()
-            if not tr.isEmpty():
+            tr = settings.value("TransferFunction", "")
+            if tr:
                 params.transfer_function = TransferFunction.loads(tr)
             else:
                 params.transfer_function = TransferFunction.hue_scale()
@@ -675,7 +676,7 @@ def fixRangeParameters(m,M):
         @staticmethod
         def save(params, settings):
             ScaleBar.save(params, settings)
-            settings.setValue("TransferFunction", QVariant(params.transfer_function.dumps()))
+            settings.setValue("TransferFunction", params.transfer_function.dumps())
     return FixRangeParameters
 
 class TransferFunctionParameters(ScaleBar):
@@ -832,20 +833,22 @@ class TransferFunctionParameters(ScaleBar):
     @staticmethod
     def load(params, settings):
         ScaleBar.load(params, settings)
-        tr = settings.value("TransferFunction").toString()
-        if not tr.isEmpty():
+        tr = settings.value("TransferFunction", "")
+        if tr:
             params.transfer_function = TransferFunction.loads(str(tr))
         else:
             params.transfer_function = TransferFunction.hue_scale()
-        params.symetric_coloring = settings.value("SymetricColoring", QVariant(False)).toBool()
-        isc = settings.value("IsCapping").toBool()
+        params.symetric_coloring = toBool(settings.value("SymetricColoring", "False"))
+        isc = toBool(settings.value("IsCapping", "False"))
         if isc:
             vc = [0,0]
-            vc[0], ok = settings.value("ValueCappingMin").toDouble()
-            if not ok:
+            try:
+                vc[0] = float(settings.value("ValueCappingMin"))
+            except (ValueError, TypeError):
               vc[0] = 0
-            vc[1], ok = settings.value("ValueCappingMax").toDouble()
-            if not ok:
+            try:
+                vc[1] = float(settings.value("ValueCappingMax"))
+            except (ValueError, TypeError):
               vc[1] = 1
             params.value_capping = vc
         else:
@@ -855,14 +858,14 @@ class TransferFunctionParameters(ScaleBar):
     def save(params, settings):
         ScaleBar.save(params, settings)
         tf = unicode(params.transfer_function.dumps())
-        settings.setValue("TransferFunction", QVariant(tf))
-        settings.setValue("SymetricColoring", QVariant(params.symetric_coloring))
+        settings.setValue("TransferFunction", tf)
+        settings.setValue("SymetricColoring", params.symetric_coloring)
         if params.value_capping is not None:
-            settings.setValue("IsCapping", QVariant(True))
-            settings.setValue("ValueCappingMin", QVariant(params.value_capping[0]))
-            settings.setValue("ValueCappingMax", QVariant(params.value_capping[1]))
+            settings.setValue("IsCapping", True)
+            settings.setValue("ValueCappingMin", params.value_capping[0])
+            settings.setValue("ValueCappingMax", params.value_capping[1])
         else:
-            settings.setValue("IsCapping", QVariant(False))
+            settings.setValue("IsCapping", False)
 
 class DirectionGrowthParameters(ScaleBar):
     """
@@ -1158,9 +1161,9 @@ class DirectionGrowthParameters(ScaleBar):
     def _selectDataFile(self):
         fn = QFileDialog.getOpenFileName(self._config, "Select the data file defining your line", self.data_file,
                                          "All data files (*.csv *.xls);;CSV Files (*.csv);;XLS files (*.xls);;All files (*.*)")
-        if not fn.isEmpty():
+        if fn:
             self._config.dataFile.setText(fn)
-            
+
     @pyqtSignature("const QString&")
     def _checkAndLoad(self, txt):
         pth = path(txt)
@@ -1221,42 +1224,47 @@ class DirectionGrowthParameters(ScaleBar):
     @staticmethod
     def load(params, settings):
         ScaleBar.load(params, settings)
-        df = settings.value("DataFile").toString()
-        if not df.isEmpty():
+        df = settings.value("DataFile", "")
+        if df:
             params.data_file = path(df)
         else:
             params.data_file = None
-        p0, ok = settings.value("DataPoint0").toInt()
-        if not ok:
+        try:
+            p0 = int(settings.value("DataPoint0"))
+        except (ValueError, TypeError):
             p0 = 0
-        p1, ok = settings.value("DataPoint1").toInt()
-        if not ok:
+        try:
+            p1 = int(settings.value("DataPoint1"))
+        except (ValueError, TypeError):
             p1 = 1
         params.data_points = (p0, p1)
-        tr = settings.value("TransferFunction").toString()
-        if not tr.isEmpty():
+        tr = settings.value("TransferFunction", "")
+        if tr:
             params.transfer_function = TransferFunction.loads(str(tr))
         else:
             params.transfer_function = TransferFunction.hue_scale()
-        params.orthogonal = settings.value("Orthogonal").toBool()
-        params.symetric_coloring = settings.value("SymetricColoring", QVariant(False)).toBool()
-        params.draw_line = settings.value("DrawLine", QVariant(False)).toBool()
+        params.orthogonal = toBool(settings.value("Orthogonal"))
+        params.symetric_coloring = toBool(settings.value("SymetricColoring", False))
+        params.draw_line = toBool(settings.value("DrawLine", False))
         col = QColor(settings.value("LineColor"))
         if not col.isValid():
             col = QColor(0,0,0)
         params.line_color = col
-        lw, ok = settings.value("LineWidth", QVariant(0)).toInt()
-        if not ok:
+        try:
+            lw = int(settings.value("LineWidth", 0))
+        except (ValueError, TypeError):
             lw = 0
         params.line_width = lw
-        isc = settings.value("IsCapping").toBool()
+        isc = toBool(settings.value("IsCapping"))
         if isc:
             vc = [0,0]
-            vc[0], ok = settings.value("ValueCappingMin").toDouble()
-            if not ok:
+            try:
+              vc[0] = float(settings.value("ValueCappingMin"))
+            except (ValueError, TypeError):
               vc[0] = 0
-            vc[1], ok = settings.value("ValueCappingMax").toDouble()
-            if not ok:
+            try:
+              vc[1] = float(settings.value("ValueCappingMax"))
+            except (ValueError, TypeError):
               vc[1] = 1
             params.value_capping = vc
         else:
@@ -1265,22 +1273,22 @@ class DirectionGrowthParameters(ScaleBar):
     @staticmethod
     def save(params, settings):
         ScaleBar.save(params, settings)
-        settings.setValue("DataFile", QVariant(params.data_file))
-        settings.setValue("DataPoint0", QVariant(params.data_points[0]))
-        settings.setValue("DataPoint1", QVariant(params.data_points[1]))
-        settings.setValue("Orthogonal", QVariant(params.orthogonal))
-        settings.setValue("DrawLine", QVariant(params.draw_line))
-        settings.setValue("LineWidth", QVariant(params.line_width))
-        settings.setValue("LineColor", QVariant(params.line_color))
+        settings.setValue("DataFile", params.data_file)
+        settings.setValue("DataPoint0", params.data_points[0])
+        settings.setValue("DataPoint1", params.data_points[1])
+        settings.setValue("Orthogonal", params.orthogonal)
+        settings.setValue("DrawLine", params.draw_line)
+        settings.setValue("LineWidth", params.line_width)
+        settings.setValue("LineColor", params.line_color)
         tf = unicode(params.transfer_function.dumps())
-        settings.setValue("TransferFunction", QVariant(tf))
-        settings.setValue("SymetricColoring", QVariant(params.symetric_coloring))
+        settings.setValue("TransferFunction", tf)
+        settings.setValue("SymetricColoring", params.symetric_coloring)
         if params.value_capping is not None:
-            settings.setValue("IsCapping", QVariant(True))
-            settings.setValue("ValueCappingMin", QVariant(params.value_capping[0]))
-            settings.setValue("ValueCappingMax", QVariant(params.value_capping[1]))
+            settings.setValue("IsCapping", True)
+            settings.setValue("ValueCappingMin", params.value_capping[0])
+            settings.setValue("ValueCappingMax", params.value_capping[1])
         else:
-            settings.setValue("IsCapping", QVariant(False))
+            settings.setValue("IsCapping", False)
 
 
 class ColorParameters(QObject):
@@ -1330,5 +1338,5 @@ class ColorParameters(QObject):
 
     @staticmethod
     def save(params, settings):
-        settings.setValue("Color", QVariant(params.color))
+        settings.setValue("Color", params.color)
 

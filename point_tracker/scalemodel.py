@@ -7,7 +7,7 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QItemDelegate, QLineEdit, QBrush, QColor, QPalette
-from PyQt4.QtCore import Qt, QVariant, QAbstractTableModel, QModelIndex, SIGNAL
+from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, SIGNAL
 from math import floor
 
 class ScaleModel(QAbstractTableModel):
@@ -75,50 +75,50 @@ class ScaleModel(QAbstractTableModel):
 
     def data(self, index, role):
         if not index.isValid():
-            return QVariant()
+            return None
 
         row = index.row()
         column = index.column()
 
         if row >= len(self.names):
-            return QVariant()
+            return None
 
         if column >= 3:
-            return QVariant()
+            return None
 
         if column == 0:
             if role == Qt.DisplayRole:
-                return QVariant(self.names[row])
+                return self.names[row]
             elif role == Qt.DecorationRole:
-                return QVariant(self.icons[row])
+                return self.icons[row]
         elif column == 1:
             if role == Qt.DisplayRole:
-                return QVariant("%g %s" % (self.scales[row][0], self.unit))
+                return "%g %s" % (self.scales[row][0], self.unit)
             elif role == Qt.EditRole:
-                return QVariant(self.scales[row][0])
+                return self.scales[row][0]
         else:
             if role == Qt.DisplayRole:
-                return QVariant("%g %s" % (self.scales[row][1], self.unit))
+                return "%g %s" % (self.scales[row][1], self.unit)
             elif role == Qt.EditRole:
-                return QVariant(self.scales[row][1])
+                return self.scales[row][1]
 
         if role == Qt.BackgroundRole:
-            return QVariant(QBrush(Qt.white))
+            return QBrush(Qt.white)
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role = Qt.DisplayRole):
         if role != Qt.DisplayRole:
-            return QVariant()
+            return None
 
         if orientation == Qt.Horizontal:
             if section == 0:
-                return QVariant("Image")
+                return "Image"
             elif section == 1:
-                return QVariant("Pixel width")
+                return "Pixel width"
             elif section == 2:
-                return QVariant("Pixel height")
-        return QVariant()
+                return "Pixel height"
+        return None
 
     def flags(self, index):
         if not index.isValid():
@@ -133,12 +133,14 @@ class ScaleModel(QAbstractTableModel):
         column = index.column()
         if index.isValid() and column > 0 and role == Qt.EditRole:
             row = index.row()
-            value, ok = value.toDouble()
-            if ok:
-                next_row_changed = False
-                self.scales[row][column-1] = value
-                self.emit(SIGNAL("dataChanged(const QModelIndex&,const QModelIndex&)"), index, index)
-                return True
+            try:
+                value = float(value)
+            except (ValueError, TypeError):
+                return False
+            next_row_changed = False
+            self.scales[row][column-1] = value
+            self.emit(SIGNAL("dataChanged(const QModelIndex&,const QModelIndex&)"), index, index)
+            return True
         return False
 
     def __iter__(self):

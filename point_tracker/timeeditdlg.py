@@ -6,7 +6,7 @@ __author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QDialog, QPixmap, QIcon, QMessageBox
-from PyQt4.QtCore import QSize, Qt, QVariant, pyqtSignature
+from PyQt4.QtCore import QSize, Qt, pyqtSignature
 from .ui_timeeditdlg import Ui_TimeEditDlg
 from . import image_cache
 from .timemodel import time2hours, TimeDelegate, TimedImageModel
@@ -46,12 +46,12 @@ class TimeEditDlg(QDialog):
 
         if len(rows) < 2:
             model = self.model
-            rows = [ (r, model.index(r,1)) for r in xrange(model.rowCount(model.root)) ]
+            rows = [ (r, model.index(r,1)) for r in range(model.rowCount(model.root)) ]
         rows.sort()
 
         start = self.model.times[rows[0][0]]
         dt = time2hours(self.ui.deltaTime.text())
-        for (r,idx),t in izip(rows, (start+n*dt for n in xrange(len(rows)))):
-            self.model.setData(idx, QVariant(t), Qt.EditRole)
+        for (r,idx),t in zip(rows, (start+n*dt for n in range(len(rows)))):
+            self.model.setData(idx, t, Qt.EditRole)
         self.ui.imagesTiming.viewport().update()
 

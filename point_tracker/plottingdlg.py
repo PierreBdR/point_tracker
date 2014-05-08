@@ -113,23 +113,27 @@ class PlottingDlg(QDialog):
     def load_preferences(self):
         settings = QSettings()
         settings.beginGroup("Plotting")
-        os, ok = settings.value("OverSampling").toInt()
-        if not ok:
+        try:
+            os = int(settings.value("OverSampling"))
+        except (ValueError, TypeError):
             os = 1
         self._over_sampling = os
         self.ui.overSampling.setValue(os)
-        wt, ok = settings.value("WallThickness").toDouble()
-        if not ok:
+        try:
+            wt = float(settings.value("WallThickness"))
+        except (ValueError, TypeError):
             wt = 0
         self._wall_thickness = wt
         self.ui.wallThickness.setValue(wt)
-        ps, ok = settings.value("PointSize").toDouble()
-        if not ok:
+        try:
+            ps = float(settings.value("PointSize"))
+        except (ValueError, TypeError):
             ps = 0
         self._point_size = ps
         self.ui.pointSize.setValue(ps)
-        plt, ok = settings.value("PointLineThickness").toDouble()
-        if not ok:
+        try:
+            plt = (settings.value("PointLineThickness"))
+        except (ValueError, TypeError):
             plt = 0
         self._point_line_thickness = plt
         plc = QColor(settings.value("PointLineColor"))
@@ -141,7 +145,7 @@ class PlottingDlg(QDialog):
             bg = QColor(0,0,0)
         self._bg_color = bg
         #setColor(self.ui.bgColor, bg)
-        ff = str(settings.value("FileFormat").toString())
+        ff = str(settings.value("FileFormat"))
         uiff = self.ui.fileFormat
         img_formats = self.img_formats
         if ff in img_formats:
@@ -161,13 +165,13 @@ class PlottingDlg(QDialog):
     def save_preferences(self):
         settings = QSettings()
         settings.beginGroup("Plotting")
-        settings.setValue("OverSampling", QVariant(self.over_sampling))
-        settings.setValue("WallThickness", QVariant(self.wall_thickness))
-        settings.setValue("PointSize", QVariant(self.point_size))
-        settings.setValue("PointLineThickness", QVariant(self.point_line_thickness))
-        settings.setValue("PointLineColor", QVariant(self.point_line_color))
-        settings.setValue("BackgroundColor", QVariant(self.bg_color))
-        settings.setValue("FileFormat", QVariant(self.file_format))
+        settings.setValue("OverSampling", self.over_sampling)
+        settings.setValue("WallThickness", self.wall_thickness)
+        settings.setValue("PointSize", self.point_size)
+        settings.setValue("PointLineThickness", self.point_line_thickness)
+        settings.setValue("PointLineColor", self.point_line_color)
+        settings.setValue("BackgroundColor", self.bg_color)
+        settings.setValue("FileFormat", self.file_format)
         settings.endGroup()
 
     def _get_file_format(self):
@@ -586,7 +590,7 @@ class PlottingDlg(QDialog):
         else:
             startdir = params.last_dir
         filename = QFileDialog.getOpenFileName(self, "Choose a file containing growth data", startdir, "All Data Files (*.xls *.csv);;XLS Files (*.xls);;CSV Files (*.csv);;All Files (*)")
-        if not filename.isEmpty():
+        if filename:
             fn = path(filename).dirname()
             params.last_dir = fn
             if '.' not in filename:
@@ -599,7 +603,7 @@ class PlottingDlg(QDialog):
         startdir = params.last_dir
         filters = ""
         filename = QFileDialog.getSaveFileName(self, "Choose a file prefix for saving images", startdir, "Image Files (*.%s)" % self.ui.fileFormat.currentText(), filters, QFileDialog.DontConfirmOverwrite | QFileDialog.DontResolveSymlinks)
-        if not filename.isEmpty():
+        if filename:
             fn = path(filename).dirname()
             params.last_dir = fn
             if '.' in filename:
@@ -1002,7 +1006,7 @@ class PlottingThread(QThread):
             for cid in img_data.cells:
                 pts = [ pt for pt in data.cells[cid] if pt in img_data ]
                 if len(pts) > 1:
-                    for i in xrange(len(pts)):
+                    for i in range(len(pts)):
                         walls.add(data.wallId(pts[i-1], pts[i]))
         # Now, draw the cells and the ellipsis
         for cid in cells:
@@ -1172,7 +1176,7 @@ class PlottingThread(QThread):
             self.update_nb_images(len(result))
             bbox = QRectF()
             ms = data.minScale()
-            for i in xrange(len(result)):
+            for i in range(len(result)):
                 img_name = images[i]
                 img_data = data[img_name]
                 img = cache.image(data.image_path(img_name))
@@ -1241,7 +1245,7 @@ class PlottingThread(QThread):
             wallColoring.init()
             pointColoring.init()
             self.nextImage()
-            for i in xrange(len(result)):
+            for i in range(len(result)):
                 if self.stopped():
                     self.abort("User interruption")
                     return

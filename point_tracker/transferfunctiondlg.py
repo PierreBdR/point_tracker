@@ -267,14 +267,14 @@ class TransferFunctionDlg( QtGui.QDialog ):
         settings = QtCore.QSettings()
         section = "%sTransferFct" % name
         settings.beginGroup(section)
-        settings.setValue("TickWidth", QtCore.QVariant(self.fctViewer.marker_size))
-        settings.setValue("SelectionColor", QtCore.QVariant(self.fctViewer.activ_pos_color))
-        settings.setValue("CheckSize", QtCore.QVariant(self.fctViewer.bg_size))
+        settings.setValue("TickWidth", self.fctViewer.marker_size)
+        settings.setValue("SelectionColor", self.fctViewer.activ_pos_color)
+        settings.setValue("CheckSize", self.fctViewer.bg_size)
         settings.beginGroup("TransferFctList")
         for i in (self._fctlist):
-            settings.setValue("%s" % i, QtCore.QVariant(self._fctlist[i].dumps()))
+            settings.setValue("%s" % i, self._fctlist[i].dumps())
         settings.endGroup()
-        settings.setValue("TransferFct", QtCore.QVariant(self.current_fct))
+        settings.setValue("TransferFct", self.current_fct)
         settings.endGroup()
 
     def loadSettings(self, name):
@@ -282,8 +282,9 @@ class TransferFunctionDlg( QtGui.QDialog ):
         settings = QtCore.QSettings()
         section = "%sTransferFct" % name
         settings.beginGroup(section)
-        ms, success = settings.value("TickWidth").toInt()
-        if not success:
+        try:
+            ms = int(settings.value("TickWidth"))
+        except (ValueError, TypeError):
             ms = 5
         self.fctViewer.marker_size = ms
         self.ui.tickWidth.setValue(self.fctViewer.marker_size)
@@ -292,12 +293,13 @@ class TransferFunctionDlg( QtGui.QDialog ):
             sc = QtGui.QColor(200, 200, 200, 200)
         self.fctViewer.activ_pos_color = sc
         self.setSelectionColor(sc)
-        cs, success = settings.value("CheckSize").toInt()
-        if not success:
+        try:
+            cs = int(settings.value("CheckSize"))
+        except (ValueError, TypeError):
             cs = 20
         self.fctViewer.bg_size = cs
         self.ui.checkSize.setValue(self.fctViewer.bg_size)
-        current_fct = str(settings.value("TransferFct", QtCore.QVariant("Hue scale")).toString())
+        current_fct = str(settings.value("TransferFct", "Hue scale"))
         settings.beginGroup("TransferFctList")
         keys = settings.allKeys()
         print("Keys of transfer function: %s" % ",".join(str(s) for s in keys))
@@ -326,7 +328,7 @@ class TransferFunctionDlg( QtGui.QDialog ):
             self.setFunction("Jet", fct)
         if keys:
             for key in keys:
-                fct = TransferFunction.loads(settings.value(key).toString())
+                fct = TransferFunction.loads(settings.value(key))
                 self.setFunction(key, fct)
         else:
             current_fct = "Hue scale"

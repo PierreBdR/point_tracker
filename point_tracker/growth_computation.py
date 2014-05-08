@@ -29,7 +29,7 @@ class GrowthComputationDlg(QDialog):
         self.data = data
 
         icons = []
-        for img,pth in izip(images, images_path):
+        for img,pth in zip(images, images_path):
             ico = QIcon(QPixmap.fromImage(cache.image(pth).scaled(QSize(64,64), Qt.KeepAspectRatio)))
             icons.append(ico)
 
@@ -68,7 +68,7 @@ class GrowthComputationDlg(QDialog):
             filename = QFileDialog.getOpenFileName(self, "Open a growth file", startdir, "XLS Files (*.xls);;All files (*.*)")
         else:
             filename = opts['filename']
-        if filename and not filename.isEmpty():
+        if filename:
             try:
                 res = growth_computation_methods.Result(None)
                 res.load(path(filename), force_load=True, no_data = True) # make sure there is no problem
@@ -77,9 +77,9 @@ class GrowthComputationDlg(QDialog):
                 allimages_model = self.allimages_model
                 selectedimages_model = self.selectedimages_model
                 selectedimages_model.clear()
-                for name, time, icon in izip(allimages_model.names,
-                                             allimages_model.times,
-                                             allimages_model.icons):
+                for name, time, icon in zip(allimages_model.names,
+                                            allimages_model.times,
+                                            allimages_model.icons):
                     if name in imgs:
                         selectedimages_model.addImage(icon, name, time)
                 if selectedimages_model:
@@ -169,7 +169,7 @@ class GrowthComputationDlg(QDialog):
         model = widget.model()
         selection = widget.selectionModel()
         sel = QItemSelection()
-        for i in  xrange(1,len(model),2):
+        for i in  range(1,len(model),2):
             sel.select(model.index(i,0), model.index(i,1))
         selection.select(sel, QItemSelectionModel.ClearAndSelect)
         widget.viewport().update()
@@ -180,7 +180,7 @@ class GrowthComputationDlg(QDialog):
         model = widget.model()
         selection = widget.selectionModel()
         sel = QItemSelection()
-        for i in  xrange(0,len(model),2):
+        for i in  range(0,len(model),2):
             sel.select(model.index(i,0), model.index(i,1))
         selection.select(sel, QItemSelectionModel.ClearAndSelect)
         widget.viewport().update()
@@ -211,7 +211,7 @@ class GrowthComputationDlg(QDialog):
     def on_chooseFile_clicked(self):
         startdir = self.data.project_dir
         filename = QFileDialog.getSaveFileName(self, "Choose a file to save data", startdir, "XLS Files (*.xls)")
-        if not filename.isEmpty():
+        if filename:
             if '.' not in filename:
                 filename += ".xls"
             self.ui.savePath.setText(filename)

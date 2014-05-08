@@ -8,6 +8,12 @@ import sys
 from PyQt4 import uic
 from .debug import caller
 
+def toBool(s):
+    try:
+        return s.lower() in ('yes', 'true', 't', '1', 'y')
+    except:
+        return bool(s)
+
 def changeColor(widget):
     """
     Launch the color dialog box in RGBA mode and update the window color of the widget.

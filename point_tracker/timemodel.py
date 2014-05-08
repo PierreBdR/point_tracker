@@ -6,7 +6,7 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QItemDelegate, QLineEdit, QBrush, QColor, QPalette
-from PyQt4.QtCore import Qt, QVariant, QAbstractTableModel, QModelIndex, SIGNAL
+from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, SIGNAL
 from math import floor
 
 def time2hours(time_str):
@@ -34,13 +34,15 @@ class TimeDelegate(QItemDelegate):
         return editor
 
     def setEditorData(self, editor, index):
-        value, ok = index.model().data(index, Qt.EditRole).toDouble()
-        if ok:
+        try:
+            value = float(index.model().data(index, Qt.EditRole))
             editor.setText(hours2time(value).rjust(editor.maxLength()))
+        finally:
+            pass
 
     def setModelData(self, editor, model, index):
         value = time2hours(editor.text())
-        model.setData(index, QVariant(value), Qt.EditRole)
+        model.setData(index, value, Qt.EditRole)
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
@@ -75,46 +77,46 @@ class TimedImageModel(QAbstractTableModel):
 
     def data(self, index, role):
         if not index.isValid():
-            return QVariant()
+            return
 
         row = index.row()
         column = index.column()
 
         if row >= len(self.names):
-            return QVariant()
+            return
 
         if column >= 2:
-            return QVariant()
+            return
 
         if column == 0:
             if role == Qt.DisplayRole:
-                return QVariant(self.names[row])
+                return self.names[row]
             elif role == Qt.DecorationRole:
-                return QVariant(self.icons[row])
+                return self.icons[row]
         else:
             if role == Qt.DisplayRole:
-                return QVariant(hours2time(self.times[row]))
+                return hours2time(self.times[row])
             elif role == Qt.EditRole:
-                return QVariant(self.times[row])
+                return self.times[row]
 
         if role == Qt.BackgroundRole:
                 if self._valid[row]:
-                    return QVariant(QBrush(Qt.white))
+                    return QBrush(Qt.white)
                 else:
-                    return QVariant(QBrush(QColor(Qt.red).lighter()))
+                    return QBrush(QColor(Qt.red).lighter())
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role = Qt.DisplayRole):
         if role != Qt.DisplayRole:
-            return QVariant()
+            return None
 
         if orientation == Qt.Horizontal:
             if section == 0:
-                return QVariant("Image")
+                return "Image"
             elif section == 1:
-                return QVariant("Time")
-        return QVariant()
+                return "Time"
+        return None
 
     def flags(self, index):
         if not index.isValid():
@@ -128,13 +130,15 @@ class TimedImageModel(QAbstractTableModel):
     def setData(self, index, value, role):
         if index.isValid() and index.column() == 1 and role == Qt.EditRole:
             row = index.row()
-            time, ok = value.toDouble()
-            if ok:
-                next_row_changed = False
-                self.times[row] = time
-                self._updateValids()
-                self.emit(SIGNAL("dataChanged(const QModelIndex&,const QModelIndex&)"), index, index)
-                return True
+            try:
+                time = float(value)
+            except (ValueError, TypeError):
+                return False
+            next_row_changed = False
+            self.times[row] = time
+            self._updateValids()
+            self.emit(SIGNAL("dataChanged(const QModelIndex&,const QModelIndex&)"), index, index)
+            return True
         return False
 
     def __iter__(self):

@@ -6,9 +6,7 @@ from PyQt4.QtCore import (QCoreApplication, QObject, QSettings, QRectF,
 from PyQt4.QtGui import QColor, QFontMetricsF, QFont
 from .path import path
 from math import floor, ceil
-
-def str2bool(s):
-    return s.lower() in ('yes', 'true', 't', '1', 'y')
+from .sys_utils import toBool
 
 class Parameters(QObject):
     """
@@ -111,7 +109,7 @@ class Parameters(QObject):
         self._old_point_matching_color = QColor(settings.value("OldPointMatchingColor"))
         if not self._old_point_matching_color.isValid():
             self._old_point_matching_color = QColor(Qt.darkYellow)
-        self._show_id = str2bool(settings.value("ShowId", 'false'))
+        self._show_id = toBool(settings.value("ShowId", 'false'))
 # Parameters for arrow
         try:
             self._arrow_line_size = float(settings.value("ArrowLineSize"))
@@ -124,8 +122,8 @@ class Parameters(QObject):
         self._arrow_color = QColor(settings.value("ArrowColor"))
         if not self._arrow_color.isValid():
             self._arrow_color = QColor(Qt.lightGray)
-        self._draw_arrow = str2bool(settings.value("DrawArrow", 'true'))
-        self._show_template = str2bool(settings.value("ShowTemplate", 'false'))
+        self._draw_arrow = toBool(settings.value("DrawArrow", 'true'))
+        self._show_template = toBool(settings.value("ShowTemplate", 'false'))
         self._template_color = QColor(settings.value("TemplateColor"))
         if not self._template_color.isValid():
             self._template_color = QColor(255,0,0,100)
@@ -148,7 +146,7 @@ class Parameters(QObject):
             self._search_size = 50
         s = self._search_size
         self.search_rect = QRectF(-s, -s, 2*s, 2*s)
-        self._estimate = str2bool(settings.value("Estimate", 'false'))
+        self._estimate = toBool(settings.value("Estimate", 'false'))
         try:
             self._filter_size_ratio = float(settings.value("FilterSizeRatio"))
         except (ValueError, TypeError):
@@ -156,15 +154,15 @@ class Parameters(QObject):
         settings.endGroup()
 
         settings.beginGroup("GUI")
-        self._show_vectors = str2bool(settings.value("ShowVectors", 'true'))
-        self._link_views = str2bool(settings.value("LinkViews", 'true'))
+        self._show_vectors = toBool(settings.value("ShowVectors", 'true'))
+        self._link_views = toBool(settings.value("LinkViews", 'true'))
         try:
           cache_size = int(settings.value("CacheSize"))
         except (ValueError, TypeError):
             cache_size = 200
         self.cache_size = cache_size
         self._last_dir = path(settings.value("LastsDir", "."))
-        self._use_OpenGL = str2bool(settings.value("UseOpenGL", 'false'))
+        self._use_OpenGL = toBool(settings.value("UseOpenGL", 'false'))
         settings.beginGroup("RecentProjects")
         try:
           numproj = int(settings.value("NumberOfProjects"))
@@ -207,8 +205,8 @@ class Parameters(QObject):
         self._ellipsis_negative_color = QColor(settings.value("NegativeColor"))
         if not self._ellipsis_negative_color.isValid():
             self._ellipsis_negative_color = QColor(255,0,0)
-        self._ellipsis_plot = str2bool(settings.value("Plot", 'false'))
-        self._ellipsis_scale_axis = str2bool(settings.value("ScaleAxis", 'false'))
+        self._ellipsis_plot = toBool(settings.value("Plot", 'false'))
+        self._ellipsis_scale_axis = toBool(settings.value("ScaleAxis", 'false'))
         settings.endGroup()
         settings.endGroup()
         self._point_editable = True
