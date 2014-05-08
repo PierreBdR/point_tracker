@@ -1,3 +1,6 @@
+.. role:: bash(code)
+   :language: bash
+
 Point Tracker
 =============
 
@@ -10,9 +13,15 @@ Installation
 ------------
 
 Clone the repository, you can use it without compilation, launch 
-``tracking.py`` or ``tracking.sh``.
+:bash:`tracking.py` or :bash:`tracking.sh`. It is recommended to install it with:
 
-To make the documentation, do in the ``doc`` folder and use ``make`` or 
+.. code:: bash
+
+    $ python setup.py install
+
+And then launch it with the :bash:`point_tracker` command.
+
+To make the documentation, go in the ``doc`` folder and use ``make`` or 
 ``make.bat``.
 
 Acknowledgements
