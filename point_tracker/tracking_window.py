@@ -282,7 +282,7 @@ class TrackingWindow(QMainWindow):
     def on_action_Open_project_triggered(self):
         if self.ensure_save_data("Leaving unsaved data", "The last modifications you made were not saved. Are you sure you want to change project?"):
             dir_ = QFileDialog.getExistingDirectory(self, "Select a project directory", parameters.instance._last_dir)
-            if not dir_.isEmpty():
+            if dir_:
                 self.loadProject(dir_)
 
     def loadProject(self, dir_):
@@ -329,8 +329,8 @@ class TrackingWindow(QMainWindow):
         self.ui.previousState.clear()
         self.ui.currentState.clear()
         for name in self._data.images_name:
-            self.ui.previousState.addItem(QString(name))
-            self.ui.currentState.addItem(QString(name))
+            self.ui.previousState.addItem(name)
+            self.ui.currentState.addItem(name)
         self.ui.previousState.setCurrentIndex(0)
         self.ui.currentState.setCurrentIndex(1)
         self._previousScene.changeImage(self._data.image_path(self._data.images_name[0]))
@@ -362,7 +362,7 @@ class TrackingWindow(QMainWindow):
     def on_actionSave_as_triggered(self):
         fn = QFileDialog.getSaveFileName(self, "Select a data file to save in", self._project.data_dir,
                                                "CSV Files (*.csv);;All files (*.*)")
-        if not fn.isEmpty():
+        if fn:
             self.save_data(path(fn))
 
     def save_data(self, data_file = None):
@@ -411,7 +411,7 @@ class TrackingWindow(QMainWindow):
         if self.ensure_save_data("Leaving unsaved data", "The last modifications you made were not saved. Are you sure you want to change the current data file?"):
             fn = QFileDialog.getOpenFileName(self, "Select a data file to load", self._project.data_dir,
                                                    "CSV Files (*.csv);;All files (*.*)")
-            if not fn.isEmpty():
+            if fn:
                 self._project.data_file = str(fn)
                 if self.load_data():
                     self._previousScene.resetNewPoints()
@@ -840,7 +840,7 @@ class TrackingWindow(QMainWindow):
         if self.ensure_save_data("Leaving unsaved data", "The last modifications you made were not saved. Are you sure you want to change the current data file?"):
             fn = QFileDialog.getSaveFileName(self, "Select a new data file to create", self._project.data_dir,
                                                    "CSV Files (*.csv);;All files (*.*)")
-            if not fn.isEmpty():
+            if fn:
                 fn = path(fn)
                 if fn.exists():
                     button = QMessageBox.question(self, "Erasing existing file", "Are you sure yo want to empty the file '%s' ?" % fn, QMessageBox.Yes, QMessageBox.No)
@@ -888,7 +888,7 @@ Copyright 2008
     def on_actionAlign_images_triggered(self):
         fn = QFileDialog.getOpenFileName(self, "Select a data file for alignment", self._project.data_dir,
                                                "CSV Files (*.csv);;All files (*.*)")
-        if not fn.isEmpty():
+        if fn:
             d = self._data.copy()
             fn = path(fn)
             try:

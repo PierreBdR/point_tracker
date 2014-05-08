@@ -5,6 +5,7 @@ import traceback
 import sys
 import __main__
 import os.path
+import logging
 
 log = sys.stderr
 pth = None
@@ -14,27 +15,33 @@ def init():
     Open the log files and redirect outputs if necessary.
     """
     global log
-    return
-#if not "IPython" in type(__main__).__module__: # i.e. if ipython is not launched
-    if hasattr(__main__, "__file__") and not "IPython" in type(__main__).__module__ and "epydoc" not in __main__.__file__: # if not interactive session and not doc
-        global stored_out, stored_err, restore_io
-        pth = os.path.dirname(__main__.__file__)
-        output = open(os.path.join(pth, "point_tracking_output.txt"), "wt")
+    log = logging.getLogger("point_tracker")
+    global restore_io
+    def restore_io():
+        pass
 
-        stored_out = os.dup(1)
-        stored_err = os.dup(2)
-        os.dup2(output.fileno(), 1)
-        os.dup2(output.fileno(), 2)
+    #global log
+    #return
+##if not "IPython" in type(__main__).__module__: # i.e. if ipython is not launched
+    #if hasattr(__main__, "__file__") and not "IPython" in type(__main__).__module__ and "epydoc" not in __main__.__file__: # if not interactive session and not doc
+        #global stored_out, stored_err, restore_io
+        #pth = os.path.dirname(__main__.__file__)
+        #output = open(os.path.join(pth, "point_tracking_output.txt"), "wt")
 
-        def restore_io():
-            os.dup2(stored_out, 1)
-            os.dup2(stored_err, 2)
-    else:
-        pth = os.path.dirname(os.path.dirname(__file__))
-        def restore_io():
-            pass
+        #stored_out = os.dup(1)
+        #stored_err = os.dup(2)
+        #os.dup2(output.fileno(), 1)
+        #os.dup2(output.fileno(), 2)
 
-    log = open(os.path.join(pth, "point_tracking.log"), "wt")
+        #def restore_io():
+            #os.dup2(stored_out, 1)
+            #os.dup2(stored_err, 2)
+    #else:
+        #pth = os.path.dirname(os.path.dirname(__file__))
+        #def restore_io():
+            #pass
+
+    #log = open(os.path.join(pth, "point_tracking.log"), "wt")
 
 #log = sys.stderr
 
@@ -86,7 +93,8 @@ def print_debug_simple(msg):
     Simply print the message in the log file.
     """
     global log
-    print(msg, file=log)
+    log.debug(msg)
+    #print(msg, file=log)
 
 def print_debug_calling_class(msg):
     """
@@ -95,10 +103,10 @@ def print_debug_calling_class(msg):
     global log
     cls = calling_class()
     if cls:
-        print("[%s.%s] %s" % (cls.__module__, cls.__name__, msg), file=log)
+        log.debug("[%s.%s] %s" % (cls.__module__, cls.__name__, msg))
     else:
-        print("[GLOBAL] %s" % (msg,), file=log)
-    log.flush()
+        log.debug("[GLOBAL] %s" % (msg,))
+    #log.flush()
 
 print_debug = print_debug_calling_class
 
