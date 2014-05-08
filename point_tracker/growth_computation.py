@@ -60,7 +60,7 @@ class GrowthComputationDlg(QDialog):
         self.ui.forwardMethod.setChecked(True)
         self.resample = 100
         self.ui.resample.setChecked(True)
-        
+
     @pyqtSignature("")
     def loadGrowthFile(self, **opts):
         if 'filename' not in opts:
@@ -85,7 +85,7 @@ class GrowthComputationDlg(QDialog):
                 if selectedimages_model:
                     self.ui.selectedImages.resizeColumnToContents(0)
                     self.ui.selectedImages.resizeColumnToContents(1)
-                # Second, load growth method 
+                # Second, load growth method
                 meth = res.method_params
                 if meth[0].startswith('Forward'):
                     self.ui.forwardMethod.setChecked(True)
@@ -225,14 +225,14 @@ class GrowthComputationDlg(QDialog):
     def on_backwardMethod_toggled(self, value):
         if value:
             self.method = "Backward"
-            
+
     @pyqtSignature("bool")
     def on_resample_toggled(self, value):
         if value:
             self.resample = self.ui.samplingPoints.value()
         else:
             self.resample = 0
-            
+
     @pyqtSignature("int")
     def on_samplingPoints_changed(self, value):
         self.resample = int(value)
@@ -397,9 +397,9 @@ class GrowthComputationThread(QThread):
             return
         self.save(result)
         self.finished()
-        
+
     def start(self):
-        from parameters import instance
+        from .parameters import instance
         if instance.use_thread:
             QThread.start(self)
         else:

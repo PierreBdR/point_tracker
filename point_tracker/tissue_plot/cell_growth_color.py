@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
-from tracking_plot import (ColoringClass, TransferFunctionParameters, fixRangeParameters, make_cap_symetric, DirectionGrowthParameters)
+from .tracking_plot import (ColoringClass, TransferFunctionParameters, fixRangeParameters, make_cap_symetric, DirectionGrowthParameters)
 from PyQt4.QtGui import QColor, QPen
 from PyQt4.QtCore import Qt
 from numpy import inf, log, pi, dot

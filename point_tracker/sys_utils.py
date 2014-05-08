@@ -51,7 +51,7 @@ def module_dir(module_name):
 
 def createForm(uifile, parent):
     p = path(caller()[0]).dirname()/uifile
-    widget = uic.loadUi(p, from_imports=True)
+    widget = uic.loadUi(p, package='.')
     widget.setParent(parent)
     return widget
 

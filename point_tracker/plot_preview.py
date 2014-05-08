@@ -66,21 +66,21 @@ class PlotPreview(QDialog):
             self.scene.removeItem(self.pix_item)
         self.pix_item = self.scene.addPixmap(QPixmap.fromImage(pix))
         self.scene.setSceneRect(QRectF(self.pix.rect()))
-        if self.show_pic_c:
-            self.show_pic_c.close()
-            self.show_pic_c = None
         if self.show_pic_w:
             self.show_pic_w.close()
             self.show_pic_w = None
         if self.pic_w:
             self.show_pic_w = QLabel(self, Qt.Window)
-            self.show_pic_w.setAttribute(Qt.WA_DeleteOnClose)
+            #self.show_pic_w.setAttribute(Qt.WA_DeleteOnClose)
             self.show_pic_w.setPicture(self.pic_w)
             self.show_pic_w.show()
             self.show_pic_w.raise_()
+        if self.show_pic_c:
+            self.show_pic_c.close()
+            self.show_pic_c = None
         if self.pic_c:
             self.show_pic_c = QLabel(self, Qt.Window)
-            self.show_pic_c.setAttribute(Qt.WA_DeleteOnClose)
+            #self.show_pic_c.setAttribute(Qt.WA_DeleteOnClose)
             self.show_pic_c.setPicture(self.pic_c)
             self.show_pic_c.show()
             self.show_pic_c.raise_()

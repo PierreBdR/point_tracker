@@ -1,5 +1,5 @@
 from __future__ import print_function, division, absolute_import
-from tracking_plot import ColoringClass, TransferFunctionParameters
+from .tracking_plot import ColoringClass, TransferFunctionParameters
 from PyQt4.QtGui import QColor
 
 class NbVerticesDrawing(ColoringClass('cell')):
@@ -13,7 +13,7 @@ class NbVerticesDrawing(ColoringClass('cell')):
 
     def __init__(self, result):
         ColoringClass('cell').__init__(self, result)
-        
+
     def init(self):
         self.max_nb_vertices = self.maxNbVertices()
 

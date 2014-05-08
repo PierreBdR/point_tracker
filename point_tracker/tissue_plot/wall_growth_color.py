@@ -1,5 +1,5 @@
 from __future__ import print_function, division, absolute_import
-from tracking_plot import ColoringClass, TransferFunctionParameters
+from .tracking_plot import ColoringClass, TransferFunctionParameters
 from PyQt4.QtGui import QColor
 from numpy import inf, log
 

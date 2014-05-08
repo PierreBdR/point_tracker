@@ -1,5 +1,5 @@
 from __future__ import print_function, division, absolute_import
-from tracking_plot import ColoringClass
+from .tracking_plot import ColoringClass
 from PyQt4.QtGui import QColor
 
 class NoDrawing(ColoringClass()):

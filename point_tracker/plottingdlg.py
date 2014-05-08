@@ -61,7 +61,7 @@ def createColoring(ctype):
             self.apply_button.setEnabled(self.thread.valid())
             self.update_preview()
     return createColoringMethod
-    
+
 class ResizableMessageBox(QMessageBox):
     def __init__(self, *args):
         QMessageBox.__init__(self, *args)
@@ -110,6 +110,9 @@ class PlottingDlg(QDialog):
         self.updateInterface()
         self.reload_classes()
 
+    def __del__(self):
+        print("Finalize Plotting")
+
     def load_preferences(self):
         settings = QSettings()
         settings.beginGroup("Plotting")
@@ -132,7 +135,7 @@ class PlottingDlg(QDialog):
         self._point_size = ps
         self.ui.pointSize.setValue(ps)
         try:
-            plt = (settings.value("PointLineThickness"))
+            plt = float(settings.value("PointLineThickness"))
         except (ValueError, TypeError):
             plt = 0
         self._point_line_thickness = plt
@@ -229,55 +232,55 @@ class PlottingDlg(QDialog):
     def _get_point_size(self):
         """
         Size of the point drawing (i.e. radius of the disk)
-        
+
         :returntype: float
         """
         return self._point_size
-    
+
     def _set_point_size(self, value):
         value = float(value)
         if self._point_size != value:
             self._point_size = value
             if self.thread is not None:
                 self.thread.pointSize = value
-                self.update_preview()    
-   
+                self.update_preview()
+
     point_size = property(_get_point_size, _set_point_size)
 
     def _get_point_line_thickness(self):
         """
         Thickness of the contour of the points
-        
+
         :returntype: float
         """
         return self._point_line_thickness
-    
+
     def _set_point_line_thickness(self, value):
         value = float(value)
         if self._point_line_thickness != value:
             self._point_line_thickness = value
             if self.thread is not None:
                 self.thread.pointLineThickness = value
-                self.update_preview()    
-   
+                self.update_preview()
+
     point_line_thickness = property(_get_point_line_thickness, _set_point_line_thickness)
 
     def _get_point_line_color(self):
         """
         Color of the contour of the points
-        
+
         :returntype: QColor
         """
         return self._point_line_color
-    
+
     def _set_point_line_color(self, value):
         value = QColor(value)
         if self._point_line_color != value:
             self._point_line_color = value
             if self.thread is not None:
                 self.thread.pointLineColor = value
-                self.update_preview()    
-   
+                self.update_preview()
+
     point_line_color = property(_get_point_line_color, _set_point_line_color)
 
     def _get_bg_color(self):
@@ -601,8 +604,7 @@ class PlottingDlg(QDialog):
     def on_selectFilePrefix_clicked(self):
         params = parameters.instance
         startdir = params.last_dir
-        filters = ""
-        filename = QFileDialog.getSaveFileName(self, "Choose a file prefix for saving images", startdir, "Image Files (*.%s)" % self.ui.fileFormat.currentText(), filters, QFileDialog.DontConfirmOverwrite | QFileDialog.DontResolveSymlinks)
+        filename, filters = QFileDialog.getSaveFileNameAndFilter(self, "Choose a file prefix for saving images", startdir, "Image Files (*.%s)" % self.ui.fileFormat.currentText(), "", QFileDialog.DontConfirmOverwrite | QFileDialog.DontResolveSymlinks)
         if filename:
             fn = path(filename).dirname()
             params.last_dir = fn
@@ -872,16 +874,16 @@ class PlottingThread(QThread):
         return QRect(self._crop)
 
     crop = property(_get_crop)
-    
+
     def _get_end_image_plot(self):
         '''
         If true, plot the growth data on the end image rather than the start image of the growth calculation.
         '''
         return self._end_image_plot
-        
+
     def _set_end_image_plot(self, value):
         self._end_image_plot = bool(value)
-        
+
     end_image_plot = property(_get_end_image_plot, _set_end_image_plot)
 
     def _get_pix(self):
@@ -1140,7 +1142,7 @@ class PlottingThread(QThread):
         filename = self.result
         try:
             self.retryObject = None
-# First, prepare the data by getting the images and computing how big they 
+# First, prepare the data by getting the images and computing how big they
 # should be
             f = file(filename)
             first_line = f.readline()
