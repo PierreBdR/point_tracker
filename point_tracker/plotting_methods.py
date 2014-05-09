@@ -9,7 +9,7 @@ from PyQt4.QtGui import QColor, QPen
 from PyQt4.QtCore import Qt, QPointF, QObject, SIGNAL, QSettings
 from . import parameters
 from .geometry import gravityCenter
-from .debug import print_debug
+from .debug import log_debug
 from . import tissue_plot
 from math import pi
 
@@ -48,7 +48,7 @@ def initParamClasses(colorings_dict, colorings_cls, ctype):
     settings = QSettings()
     settings.beginGroup("Plotting")
     for cls in colorings_cls:
-        print_debug("Init class '%s' for %s coloring '%s'" % (cls.__name__, ctype, cls.coloring_name))
+        log_debug("Init class '%s' for %s coloring '%s'" % (cls.__name__, ctype, cls.coloring_name))
         load_params = getattr(cls, "load_parameters", None)
         if load_params is not None:
             load_params(settings)
@@ -131,7 +131,7 @@ def coloringClasses(result_type, colorings_cls, ctype):
     for cls in colorings_cls:
         if cls.accept_result_type(result_type):
             items.append(cls)
-    print_debug("%s coloring for %s: %s" % (ctype, result_type, [cls.coloring_name for cls in items]))
+    log_debug("%s coloring for %s: %s" % (ctype, result_type, [cls.coloring_name for cls in items]))
     return items
 
 def cellColoringClasses(result_type):

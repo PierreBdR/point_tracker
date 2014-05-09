@@ -8,7 +8,7 @@ from PyQt4.QtOpenGL import QGLWidget, QGLFormat, QGL
 
 from .ui_plot_preview import Ui_PlotPreview
 from . import parameters
-from .debug import print_debug
+from .debug import log_debug
 
 class PlotPreview(QDialog):
     def __init__(self, thread, parent):
@@ -84,7 +84,7 @@ class PlotPreview(QDialog):
             self.show_pic_c.setPicture(self.pic_c)
             self.show_pic_c.show()
             self.show_pic_c.raise_()
-        print_debug("Received image")
+        log_debug("Received image")
 
     pix = property(_get_pix, _set_pix)
 
@@ -136,7 +136,7 @@ class PlotPreview(QDialog):
     def render_image(self):
         if self.isVisible():
             i = self.ui.imageList.currentIndex()
-            print_debug("Launch computing for image %d" % i)
+            log_debug("Launch computing for image %d" % i)
             if self.thread.render_single(i) is None:
                 QMessageBox.information(self, "Failed rendering image", "The renderer is busy and could not render the image.\nTry again later")
             else:

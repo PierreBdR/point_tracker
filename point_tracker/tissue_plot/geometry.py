@@ -6,7 +6,7 @@ from PyQt4.QtGui import QColor
 from numpy import inf
 from math import log10, pow, floor
 from ..geometry import polygonArea
-from ..debug import print_debug
+from ..debug import log_debug
 
 units = [
   u"y", # yocto - 10^-24
@@ -144,5 +144,5 @@ class CellArea(CellGeometry):
             polygon.append(data[pid])
             prev = pid
         value = polygonArea(polygon)
-        print_debug("Cell area = %g" % (value,))
+        log_debug("Cell area = %g" % (value,))
         return value

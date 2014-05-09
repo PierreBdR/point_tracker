@@ -6,7 +6,7 @@ from .tracking_data import TrackingData, TrackingDataException
 from PyQt4.QtCore import QObject, QCoreApplication, SIGNAL
 from PyQt4.QtGui import QImageReader
 from . import parameters
-from .debug import print_debug
+from .debug import log_debug
 import re
 
 class Project(QObject):
@@ -85,7 +85,7 @@ class Project(QObject):
         if file_ is None:
             raise RuntimeError("None data file")
         file_ = path(file_)
-        print("Setting data file to %s" % (file_,))
+        log_debug("Setting data file to %s" % (file_,))
         if file_ != self._data_file:
             self._data_file = path(file_)
             self.emit(SIGNAL("changedDataFile"), self._data_file)
@@ -135,10 +135,10 @@ class Project(QObject):
             self._images_dir = dir_
             return
         dir_ = path(dir_)
-        #print("Recognised extensions: %s" % Project.supported_image_types)
-        #print("Extension regexpr = {0!r}".format(Project.sit_re.pattern))
+        #log_debug("Recognised extensions: %s" % Project.supported_image_types)
+        #log_debug("Extension regexpr = {0!r}".format(Project.sit_re.pattern))
         images_path = [ f for f in dir_.files() if Project.sit_re.search(f) ]
-        print_debug("List of images in {0}: {1}".format(dir_, images_path))
+        log_debug("List of images in {0}: {1}".format(dir_, images_path))
         if images_path:
             images_path.sort()
             self.images_path = images_path
@@ -157,10 +157,10 @@ class Project(QObject):
             #dir_ = self._dir
             valid_project = True
             if self.data_dir is None or not self.data_dir.exists():
-                print_debug("Error, no data dir: {0}".format(self.data_dir))
+                log_debug("Error, no data dir: {0}".format(self.data_dir))
                 valid_project = False
             elif self.images_dir is None or not self.images_dir.exists():
-                print_debug("Error, no images dir: {0}".format(self.images_dir))
+                log_debug("Error, no images dir: {0}".format(self.images_dir))
                 valid_project = False
             self._valid_project = valid_project
         return self._valid_project
@@ -190,7 +190,7 @@ class Project(QObject):
     def load(self, **opts):
         if self.data_file is None:
             raise TrackingDataException("No data file to be loaded.")
-        print("Loading %s" % self.data_file)
+        log_debug("Loading %s" % self.data_file)
         data = self.data
         if data is None or data.project_dir != self.main_dir:
             data = TrackingData(self.main_dir)

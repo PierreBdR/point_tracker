@@ -27,7 +27,7 @@ from .editresdlg import EditResDlg
 from .growth_computation import GrowthComputationDlg
 from .plottingdlg import PlottingDlg
 from .sys_utils import createForm, showException, retryException
-from .debug import print_debug
+from .debug import log_debug
 from .__init__ import __version__, __revision__
 
 class TrackingWindow(QMainWindow):
@@ -380,10 +380,10 @@ class TrackingWindow(QMainWindow):
             raise TrackingDataException("Trying to load data when no project have been loaded")
         try:
             if self._project.load(**opts):
-                print_debug("Data file was corrected. Need saving.")
+                log_debug("Data file was corrected. Need saving.")
                 self.ui.action_Save.setEnabled(True)
             else:
-                print_debug("Data file is clean.")
+                log_debug("Data file is clean.")
                 self.ui.action_Save.setEnabled(False)
             return True
         except TrackingDataException as ex:
@@ -852,7 +852,7 @@ class TrackingWindow(QMainWindow):
                 self._currentScene.resetNewPoints()
                 self._project.data_file = fn
                 self.initFromData()
-                print_debug("Data file = %s" % (self._project.data_file,))
+                log_debug("Data file = %s" % (self._project.data_file,))
 
     @pyqtSignature("")
     def on_actionAbout_triggered(self):
@@ -984,16 +984,16 @@ Copyright 2008
             cur_pos = self._currentScene.current_data._current_index
             full_poly = data.cells[cid]
             poly = [ pid for pid in full_poly if pid in data[prev_pos] ]
-            #print_debug("Cell %d on time %d: %s" % (cid, prev_pos, poly))
+            #log_debug("Cell %d on time %d: %s" % (cid, prev_pos, poly))
             if prev_pos < ls.start or prev_pos >= ls.end or not poly:
                 for i in range(*ls.slice().indices(len(data))):
                     poly = [ pid for pid in full_poly if pid in data[i] ]
                     if poly:
-                        print_debug("Found cell %d on image %d with polygon %s" % (cid, i, poly))
+                        log_debug("Found cell %d on image %d with polygon %s" % (cid, i, poly))
                         new_prev_pos = i
                         break
                 else:
-                    print_debug("Cell %d found nowhere in range %s!!!" % (cid, ls.slice()))
+                    log_debug("Cell %d found nowhere in range %s!!!" % (cid, ls.slice()))
             else:
                 new_prev_pos = prev_pos
             new_cur_pos = min(max(cur_pos + new_prev_pos - prev_pos, 0), len(data))
@@ -1005,7 +1005,7 @@ Copyright 2008
             poly = data.cells[cid]
             prev_poly = QPolygonF([prev_data[ptid] for ptid in poly if ptid in prev_data])
             prev_bbox = prev_poly.boundingRect()
-            print_debug("Previous bounding box = %dx%d+%d+%d" % (prev_bbox.width(), prev_bbox.height(), prev_bbox.left(), prev_bbox.top()))
+            log_debug("Previous bounding box = %dx%d+%d+%d" % (prev_bbox.width(), prev_bbox.height(), prev_bbox.left(), prev_bbox.top()))
             self.ui.previousData.ensureVisible(prev_bbox)
 
     @pyqtSignature("")

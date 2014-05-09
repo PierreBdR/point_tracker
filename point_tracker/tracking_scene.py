@@ -13,7 +13,7 @@ from .tracking_undo import (AddPoints, RemovePoints, MovePoints, RemovePointsInA
 from . import parameters
 from .tracking_items import PointItem, OldPointItem, ArrowItem, TemplateItem, CellItem
 from .geometry import makeStarShaped
-from .debug import print_debug
+from .debug import log_debug
 from .sys_utils import createForm
 from .tracking_data import EndOfTime
 
@@ -232,23 +232,23 @@ class TrackingScene(QGraphicsScene):
         self.undo_stack.push(RemovePoints(self.data_manager, self.image_name, pt_ids))
 
     def planAddCell(self, cell_id, pt_ids):
-        print_debug("Planning adding cell %d" % cell_id)
+        log_debug("Planning adding cell %d" % cell_id)
         self.undo_stack.push(AddCellCommand(self.data_manager, cell_id, pt_ids))
 
     def planChangeCell(self, cell_id, pt_ids, lifespan = None):
-        print_debug("Planning change cell %d" % cell_id)
+        log_debug("Planning change cell %d" % cell_id)
         self.undo_stack.push(ChangeCellCommand(self.data_manager, cell_id, pt_ids, lifespan))
 
     def planInsertPointInWall(self, new_pt, wall):
-        print_debug("Planning insert point %d in wall (%d,%d)" % ((new_pt,)+wall))
+        log_debug("Planning insert point %d in wall (%d,%d)" % ((new_pt,)+wall))
         self.undo_stack.push(InsertPointInWallCommand(self.data_manager, new_pt, wall))
 
     def planDivideCell(self, cell_id, cid1, cid2, p1, p2):
-        print_debug("Planning divide cell %d into %d and %d" % (cell_id, cid1, cid2))
+        log_debug("Planning divide cell %d into %d and %d" % (cell_id, cid1, cid2))
         self.undo_stack.push(DivideCellCommand(self.data_manager, self.image_name, cell_id, cid1, cid2, p1, p2))
 
     def planRemoveCells(self, cell_ids):
-        print_debug("Planning remove cells %s" % ", ".join("%d"%c for c in cell_ids))
+        log_debug("Planning remove cells %s" % ", ".join("%d"%c for c in cell_ids))
         self.undo_stack.push(RemoveCellsCommand(self.data_manager, cell_ids))
 
     def mouseReleaseEvent(self, event):
@@ -360,7 +360,7 @@ class TrackingScene(QGraphicsScene):
                 new_ls.end = EndOfTime()
             else:
                 new_ls.end = dlg.end_index + dlg.start_index
-            print("Change lifespan of cell %d to %s" % (cid, new_ls))
+            log_debug("Change lifespan of cell %d to %s" % (cid, new_ls))
             self.planChangeCell(cid, self.data_manager.cells[cid], new_ls)
 
     @pyqtSignature("int")
@@ -483,7 +483,7 @@ class TrackingScene(QGraphicsScene):
             pt.setGeometry()
 
     def setImageMove(self, scale, pos, angle):
-        print_debug("New scale = %s" % (scale,))
+        log_debug("New scale = %s" % (scale,))
         self.scale = scale
         self.min_scale = self.data_manager.minScale()
         self.img_scale = (scale[0]/self.min_scale, scale[1]/self.min_scale)
@@ -511,7 +511,7 @@ class TrackingScene(QGraphicsScene):
     real_scene_rect = property(_get_real_scene_rect, _set_real_scene_rect)
 
     def changeImage(self, image_path):
-        print_debug("Changed image to {0}".format(image_path))
+        log_debug("Changed image to {0}".format(image_path))
         if image_path is None:
             image_path = self.image_path
         if image_path is None:
@@ -527,13 +527,13 @@ class TrackingScene(QGraphicsScene):
         pos = current_data.shift[0]
         angle = current_data.shift[1]
         scale = current_data.scale
-        print_debug('Scale of image "%s": %s' % (image_name, scale))
+        log_debug('Scale of image "%s": %s' % (image_name, scale))
         self.setImageMove(scale, pos, angle)
         self.invalidate()
         for pt_id in current_data:
             self.addPoint(pt_id, current_data[pt_id], new=False)
         cells = self.current_data.cells
-        print_debug("Found {0} cells".format(len(cells)))
+        log_debug("Found {0} cells".format(len(cells)))
         if cells:
             self.addCells(list(cells.keys()))
         del self.current_cell
@@ -547,7 +547,7 @@ class TrackingScene(QGraphicsScene):
         painter.fillRect(rect, QBrush(QColor(0,0,0)))
         if self.background_image:
             #bm = self.back_matrix
-            #print_debug("m = [%g %g ; %g %g ]" % (bm.m11(), bm.m12(), bm.m21(), bm.m22()))
+            #log_debug("m = [%g %g ; %g %g ]" % (bm.m11(), bm.m12(), bm.m21(), bm.m22()))
             painter.setWorldTransform(self.back_matrix, True)
             #real_rect = self.invert_back_matrix.mapRect(rect)
             #rect = self.back_matrix.mapRect(real_rect)
@@ -626,7 +626,7 @@ class TrackingScene(QGraphicsScene):
                         cell.setGeometry()
 
     def addCells(self, cell_ids, image_list = None):
-        print_debug("addCell signal with images: (%s,%s)" % (cell_ids, image_list))
+        log_debug("addCell signal with images: (%s,%s)" % (cell_ids, image_list))
         if image_list is not None:
             used_ids = []
             used_il = []
@@ -635,22 +635,22 @@ class TrackingScene(QGraphicsScene):
                     used_ids.append(cid)
                     used_il = il
             if not used_ids:
-                print_debug("Current image is: '%s' and is not in any of the lists" % self.image_name)
+                log_debug("Current image is: '%s' and is not in any of the lists" % self.image_name)
                 return
             cell_ids = used_ids
             image_list = used_il
-        print_debug("Adding cells %s to image %s" % (','.join("%d" % c for c in cell_ids), self.image_name))
+        log_debug("Adding cells %s to image %s" % (','.join("%d" % c for c in cell_ids), self.image_name))
         data = self.data_manager
         current_data = self.current_data
         cell_ids = [ cid for cid in cell_ids if cid in current_data.cells ]
-        print_debug("cell_ids = %s" % (cell_ids,))
+        log_debug("cell_ids = %s" % (cell_ids,))
         points = self.points
         cells = self.cells
         cell_points = data.cell_points
         for cid in cell_ids:
             if cid in cells or not [pid for pid in current_data.cells[cid] if pid in current_data]:
                 continue
-            print_debug("-- Add cell %d with points %s" % (cid, current_data.cells[cid]))
+            log_debug("-- Add cell %d with points %s" % (cid, current_data.cells[cid]))
             ci = CellItem(self.img_scale, self.min_scale, cid, current_data.cells[cid], points, current_data.walls)
             self.addItem(ci)
             cells[cid] = ci
@@ -670,7 +670,7 @@ class TrackingScene(QGraphicsScene):
                     pt.setCells(cells[i] for i in cell_points[pid] if i in cells)
 
     def removeCells(self, cell_ids, image_list = None):
-        print_debug("removeCells signal with images: (%s,%s)" % (cell_ids, image_list))
+        log_debug("removeCells signal with images: (%s,%s)" % (cell_ids, image_list))
         if image_list is not None:
             used_ids = []
             used_il = []
@@ -679,11 +679,11 @@ class TrackingScene(QGraphicsScene):
                     used_ids.append(cid)
                     used_il = il
             if not used_ids:
-                print_debug("Current image is: '%s' and is not in any of the lists" % self.image_name)
+                log_debug("Current image is: '%s' and is not in any of the lists" % self.image_name)
                 return
             cell_ids = used_ids
             image_list = used_il
-        print_debug("Removing cells %s to image %s" % (','.join("%d" % c for c in cell_ids), self.image_name))
+        log_debug("Removing cells %s to image %s" % (','.join("%d" % c for c in cell_ids), self.image_name))
         if self.has_current_cell and self.current_cell in cell_ids:
             del self.current_cell
         cells = self.cells
@@ -695,7 +695,7 @@ class TrackingScene(QGraphicsScene):
 
     def changeCells(self, cell_ids):
         #print "TrackingScene - Changing cells: [%s]" % ','.join("%d" % c for c in cell_ids)
-        print_debug("Change cells %s in image %s" % (','.join("%d" % c for c in cell_ids), self.image_name))
+        log_debug("Change cells %s in image %s" % (','.join("%d" % c for c in cell_ids), self.image_name))
         data = self.data_manager
         current_data = self.current_data
         cell_ids = [ cid for cid in cell_ids if cid in current_data.cells ]
@@ -839,7 +839,7 @@ class TrackingScene(QGraphicsScene):
     def _set_mode(self, new_mode):
         if new_mode in TrackingScene.modes:
             if new_mode != self._mode:
-                print_debug("Changed mode to %s" % new_mode)
+                log_debug("Changed mode to %s" % new_mode)
                 self._mode = new_mode
                 fct_view, fct = self._init_view[new_mode]
                 fct(self)

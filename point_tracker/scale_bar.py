@@ -5,7 +5,7 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 from PyQt4.QtGui import QFont, QLinearGradient, QColor, QFontMetricsF, QPen
 from PyQt4.QtCore import QRectF, Qt, QPointF
 from numpy import log10, floor, arange, ceil, round, abs
-from .debug import print_debug
+from .debug import log_debug
 
 def limit_rect(rect, size, lim_width, lim_height):
     if rect.left() < lim_width:
@@ -336,9 +336,9 @@ class ScaleBar(object):
             total_width = r.width()+exp_r.width()+unit_r.width()
             total_height = max(r.height(),unit_r.height())+exp_r.height()/2
             pos = scale_rect.topRight()
-            print_debug("top right of scale bar = (%g,%g)" % (pos.x(), pos.y()))
-            print_debug("Size of image = (%d,%d)" % (w,h))
-            print_debug("Size of text = (%g,%g)" % (total_width, total_height))
+            log_debug("top right of scale bar = (%g,%g)" % (pos.x(), pos.y()))
+            log_debug("Size of image = (%d,%d)" % (w,h))
+            log_debug("Size of text = (%g,%g)" % (total_width, total_height))
             if position == "Bottom":
                 pos.setY(pos.y() + scale_rect.height() + dist_to_bar)
                 pos.setX(pos.x() - total_width)
@@ -352,7 +352,7 @@ class ScaleBar(object):
                 elif pos.x()+total_width+dist_to_bar > w:
                     pos.setX(w - total_width - dist_to_bar)
                 pos.setY(pos.y() - dist_to_bar - total_height)
-            print_debug("Display unit at position: (%g,%g)" % (pos.x(), pos.y()))
+            log_debug("Display unit at position: (%g,%g)" % (pos.x(), pos.y()))
 
             if ticks_extra is not None:
                 r.moveTo(pos)

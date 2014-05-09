@@ -5,7 +5,7 @@ from PyQt4.QtGui import QColor, QPen
 from PyQt4.QtCore import Qt
 from numpy import inf, log, pi, dot
 from ..growth_algo import params2Tensor
-from ..debug import print_debug
+from ..debug import log_debug
 
 class CellAreaGrowth(ColoringClass('cell')):
     coloring_name = u"Area growth rate"

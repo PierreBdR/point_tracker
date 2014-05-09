@@ -19,7 +19,7 @@ if sys.version_info.major < 3:
 else:
     from io import StringIO
 from numpy import isnan, isinf, sqrt, array
-from .debug import print_debug
+from .debug import log_debug
 from .project import Project
 
 class GrowthResultException(Exception):
@@ -671,7 +671,7 @@ def alignCells(c, pts, new_pts, img_data, next_img_data, nb_points):
             new_pts = new_pts[idx1:] + new_pts[:idx1]
             break
     else:
-        print_debug("Error, cell %d have no common points between times %s and %s" % (c, img_data.image_name, next_img_data.image_name))
+        log_debug("Error, cell %d have no common points between times %s and %s" % (c, img_data.image_name, next_img_data.image_name))
         return
     # Then, align the cells. i.e. add missing points
     aligned_pts = []
@@ -682,7 +682,7 @@ def alignCells(c, pts, new_pts, img_data, next_img_data, nb_points):
         if pid in new_pts:
             j2 = new_pts.index(pid)
             if j2 < j1:
-                print_debug("Error, cell %d is inconsistent between times %s and %s" % (c, img_data.image_name, next_img_data.image_name))
+                log_debug("Error, cell %d is inconsistent between times %s and %s" % (c, img_data.image_name, next_img_data.image_name))
                 aligned_pts = []
                 aligned_new_pts = []
                 i1 = 0
@@ -758,7 +758,7 @@ class ForwardDenseMethod(GrowthMethod):
         return growthParams(ps, qs, dt, at_start=True)
     
     def processCell(self, c, img_data, next_img_data, ref_is_img):
-        print_debug("Processing cell %d" % c)
+        log_debug("Processing cell %d" % c)
         cell_shapes = self.cell_shapes
         cell_result = self.cell_result
         wall_result = self.wall_result
@@ -815,7 +815,7 @@ class ForwardDenseMethod(GrowthMethod):
                 return
             r = log(a2/a1)/dt
             if isnan(r) or isinf(r) or isnan(gp).any():
-                print_debug("Invalid growth for cell %d on image %s:\n %s" % (c, img_data.image_name, gp,))
+                log_debug("Invalid growth for cell %d on image %s:\n %s" % (c, img_data.image_name, gp,))
                 return
             cell_area_result[c] = r
             cell_result[c] = gp
@@ -830,7 +830,7 @@ class ForwardDenseMethod(GrowthMethod):
             used_imgs = self.computeFromImages(list_img, i)
             ref_img = self.baseImage(list_img, i)
             cells_pts = cells_selection(used_imgs, data)
-            print_debug("%d cells for images %s" % (len(cells_pts), used_imgs))
+            log_debug("%d cells for images %s" % (len(cells_pts), used_imgs))
             if cells_pts:
                 img_data = data[used_imgs[0]]
                 next_img_data = data[used_imgs[1]]
@@ -889,7 +889,7 @@ class FullCellsOnlySelection(object):
         for c in cells_pts.keys():
             if len(cells_pts[c]) < 3:
                 del cells_pts[c]
-        print_debug("Initial list of cells: %s" % (sorted(cells_pts.keys()),))
+        log_debug("Initial list of cells: %s" % (sorted(cells_pts.keys()),))
         for img in list_img:
             new_img_data = data[img]
             for c,_ in cells_pts.items():
@@ -920,7 +920,7 @@ class AddPointsSelection(object):
         return params
 
     def __call__(self, list_img, data):
-        print_debug("Starting AddPointsSelection")
+        log_debug("Starting AddPointsSelection")
         img_data = data[list_img[0]]
         cells = list(img_data.cells)
         if not self.daughterCells:
@@ -928,7 +928,7 @@ class AddPointsSelection(object):
         cells_pts = dict([ (c,[ p for p in data.cells[c] if p in img_data ]) for c in cells ])
         for c in cells_pts.keys():
             if len(cells_pts[c]) < 3:
-                print("Deleting cell %s because it has less than three vertices" % c)
+                log_debug("Deleting cell %s because it has less than three vertices" % c)
                 del cells_pts[c]
         print("Initial list of cells: %s" % (sorted(cells_pts.keys()),))
         for img in list_img[1:]:
@@ -936,7 +936,7 @@ class AddPointsSelection(object):
             for c,pts in cells_pts.items():
                 for p in pts:
                     if p not in new_img_data:
-                        print("Deleting cell %d because it is not in the other image" % c)
+                        log_debug("Deleting cell %d because it is not in the other image" % c)
                         del cells_pts[c]
                         break
                 else:
@@ -945,7 +945,7 @@ class AddPointsSelection(object):
                     a1 = polygonArea(p1)
                     a2 = polygonArea(p2)
                     if abs((a2-a1)/a1) > self.max_variation:
-                        print("Deleting cell %d because of big size variation" % c)
+                        log_debug("Deleting cell %d because of big size variation" % c)
                         del cells_pts[c]
         return cells_pts
 
@@ -970,7 +970,7 @@ class AllCellsSelection(object):
         if not self.daughterCells:
             cells = list(set(data.oldestAncestor(c) for c in cells))
         cells_pts = dict([ (c,[ p for p in data.cells[c] if p in img_data ]) for c in cells ])
-        print_debug("Initial list of cells: %s" % (sorted(cells_pts.keys()),))
+        log_debug("Initial list of cells: %s" % (sorted(cells_pts.keys()),))
         for c in cells_pts.keys():
             if len(cells_pts[c]) < 3:
                 del cells_pts[c]

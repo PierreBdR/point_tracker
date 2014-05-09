@@ -22,7 +22,7 @@ from .plotting_methods import (createWallColoring, createCellColoring, createPoi
 from . import plotting_methods
 from .sys_utils import setColor, getColor, changeColor
 from .plot_preview import PlotPreview
-from .debug import print_debug
+from .debug import log_debug
 from .tracking_data import TrackingData, RetryTrackingDataException
 from .plottingoptionsdlg import PlottingOptionsDlg
 
@@ -48,14 +48,14 @@ def createColoring(ctype):
     else:
         raise ValueError('Unknown coloring: %s' % (ctype,))
     def createColoringMethod(self, coloring):
-        print_debug("Create new %s coloring of type: %s" % (ctype, coloring))
+        log_debug("Create new %s coloring of type: %s" % (ctype, coloring))
         parent = getattr(self.ui, parent_attr)
         method = createColoring(coloring, self.thread.result)
         QObject.connect(method, SIGNAL("changed"), self.update_preview)
         self.setupColoringWidget(parent, method, config_widget)
         setattr(self, method_attr, method)
         if self.thread is not None:
-            print_debug("Testing thread validity")
+            log_debug("Testing thread validity")
             setattr(self.thread, thread_attr, method)
             self.preview_button.setEnabled(self.thread.render_valid())
             self.apply_button.setEnabled(self.thread.valid())
@@ -111,7 +111,7 @@ class PlottingDlg(QDialog):
         self.reload_classes()
 
     def __del__(self):
-        print("Finalize Plotting")
+        print("Finalize Plotting") # this seems to be fixing bugs !#!#!
 
     def load_preferences(self):
         settings = QSettings()
@@ -376,7 +376,7 @@ class PlottingDlg(QDialog):
         self.thread = PlottingThread(self)
         self.progress = self.createProgress("Loading file.")
         self.setEnabled(False)
-        print_debug("Plotting window disabled. Starting loading thread.")
+        log_debug("Plotting window disabled. Starting loading thread.")
         self.thread.load(filename)
 
     def load_results(self):
@@ -437,7 +437,7 @@ class PlottingDlg(QDialog):
 
     def setupColoringWidget(self, parent, method, name):
         child = self.findChild(QWidget, name)
-        print_debug('Found children named "%s": %s' % (name, id(child)))
+        log_debug('Found children named "%s": %s' % (name, id(child)))
         if child is None:
             raise RuntimeError('There is no widget called "%s' % name)
         parent = child.parent()
@@ -457,28 +457,28 @@ class PlottingDlg(QDialog):
     createPointColoring = createColoring('point')
 
 #    def createCellColoring(self, coloring):
-#        print_debug("Create new cell coloring of type: %s" % coloring)
+#        log_debug("Create new cell coloring of type: %s" % coloring)
 #        parent = self.ui.cellsColoring
 #        method = createCellColoring(coloring, self.thread.result)
 #        QObject.connect(method, SIGNAL("changed"), self.update_preview)
 #        self.setupColoringWidget(parent, method, "CellConfigWidget")
 #        self.cell_coloring_method = method
 #        if self.thread is not None:
-#            print_debug("Testing thread validity")
+#            log_debug("Testing thread validity")
 #            self.thread.cellColoring = method
 #            self.preview_button.setEnabled(self.thread.render_valid())
 #            self.apply_button.setEnabled(self.thread.valid())
 #            self.update_preview()
 #
 #    def createWallColoring(self, coloring):
-#        print_debug("Create new wall coloring of type: %s" % coloring)
+#        log_debug("Create new wall coloring of type: %s" % coloring)
 #        parent = self.ui.wallsColoring
 #        method = createWallColoring(coloring, self.thread.result)
 #        QObject.connect(method, SIGNAL("changed"), self.update_preview)
 #        self.setupColoringWidget(parent, method, "WallConfigWidget")
 #        self.wall_coloring_method = method
 #        if self.thread is not None:
-#            print_debug("Testing thread validity")
+#            log_debug("Testing thread validity")
 #            self.thread.wallColoring = method
 #            self.preview_button.setEnabled(self.thread.render_valid())
 #            self.apply_button.setEnabled(self.thread.valid())
@@ -722,7 +722,7 @@ class PlottingDlg(QDialog):
                 self.setEnabled(True)
                 self.load_results()
                 self.updateInterface()
-                print_debug("Loading thread finished. Plotting window enabled again.")
+                log_debug("Loading thread finished. Plotting window enabled again.")
             return True
         elif event.type() == ImageReadyPlottingEvent.event_type:
             self.thread.wait()
@@ -732,7 +732,7 @@ class PlottingDlg(QDialog):
                 self.preview.pix = self.thread.pix
         elif event.type() == UpdateNbImageEvent.event_type:
             nb = event.nb
-            print_debug("Number of events to process: %d" % nb)
+            log_debug("Number of events to process: %d" % nb)
             self.progress.setMaximum(nb)
         return QDialog.event(self, event)
 
@@ -899,52 +899,52 @@ class PlottingThread(QThread):
 
     def render_valid(self):
         if self.result is None:
-            print_debug("result is None")
+            log_debug("result is None")
             return False
         if self.parent is None:
-            print_debug("parent is None")
+            log_debug("parent is None")
             return False
         if self.ellipsisDraw is None:
-            print_debug("ellipsisDraw is None")
+            log_debug("ellipsisDraw is None")
             return False
         if self.cellColoring is None:
-            print_debug("cellColoring is None")
+            log_debug("cellColoring is None")
             return False
         if self.wallColoring is None:
-            print_debug("wallColoring is None")
+            log_debug("wallColoring is None")
             return False
         if self.pointColoring is None:
-            print_debug("pointColoring is None")
+            log_debug("pointColoring is None")
             return False
         if self.pointSize is None:
-            print_debug("pointSize is None")
+            log_debug("pointSize is None")
             return False
         if self.pointLineThickness is None:
-            print_debug("pointSize is None")
+            log_debug("pointSize is None")
             return False
         if self.pointLineColor is None:
-            print_debug("pointSize is None")
+            log_debug("pointSize is None")
             return False
         if self.wallThickness is None:
-            print_debug("wallThickness is None")
+            log_debug("wallThickness is None")
             return False
         if self.overSampling is None:
-            print_debug("overSampling is None")
+            log_debug("overSampling is None")
             return False
         if self.bgColor is None:
-            print_debug("bgColor is None")
+            log_debug("bgColor is None")
             return False
         return True
 
     def valid(self):
         if self.filePrefix is None:
-            print_debug("filePrefix is None")
+            log_debug("filePrefix is None")
             return False
         if not self.filePrefix:
-            print_debug("filePrefix is Empty")
+            log_debug("filePrefix is Empty")
             return False
         if self.fileFormat is None:
-            print_debug("fileFormat is None")
+            log_debug("fileFormat is None")
             return False
         return self.render_valid()
 
@@ -982,7 +982,7 @@ class PlottingThread(QThread):
             painter.scale(overSampling, overSampling)
         painter.save()
         painter.translate(self.translate)
-        print_debug("Translating: %gx%g" % (self.translate.x(), self.translate.y()) )
+        log_debug("Translating: %gx%g" % (self.translate.x(), self.translate.y()) )
         painter.scale(1/min_scale, 1/min_scale)
         painter.save()
         matrix = img_data.matrix()
@@ -1037,7 +1037,7 @@ class PlottingThread(QThread):
         pointSize = self.pointSize*min_scale
         pointLineColor = self.pointLineColor
         pointLineThickness = self.pointLineThickness*min_scale
-        print_debug("pointSize = %g" % pointSize)
+        log_debug("pointSize = %g" % pointSize)
         for pid in img_data:
             color = pointColoring(imageid, pid)
             if color.alpha() > 0:
@@ -1079,7 +1079,7 @@ class PlottingThread(QThread):
             assert not self.rendering_all, "Cannot run twice the rendering of all images with the same object."
             return
         if parameters.instance.use_thread:
-            print_debug("Starting rendering thread.")
+            log_debug("Starting rendering thread.")
             QThread.start(self)
             return False
         else:
@@ -1118,15 +1118,15 @@ class PlottingThread(QThread):
         self.cellColoring.init()
         self.wallColoring.init()
         self.pointColoring.init()
-        print_debug("Rendering image %d" % img)
+        log_debug("Rendering image %d" % img)
         self.pix, self.pic_w, self.pic_c = self.drawImage(img)
         if self.pic_w is not None:
-            print_debug("Has wall image")
+            log_debug("Has wall image")
         if self.pic_c is not None:
-            print_debug("Has cell image")
+            log_debug("Has cell image")
         if self.pix is not None:
-            print_debug("Pix correctly rendered")
-        print_debug("Rendered image %d  = %s" % (img, self.pix))
+            log_debug("Pix correctly rendered")
+        log_debug("Rendered image %d  = %s" % (img, self.pix))
         self.image_ready()
 
     def reload(self):
@@ -1187,10 +1187,10 @@ class PlottingThread(QThread):
                 r = QRectF(img.rect())
                 rbox = matrix.map(QPolygonF(r)).boundingRect()
                 bbox |= rbox
-                print_debug("Image '%s':\n\tSize = %gx%g\n\tTransformed = %gx%g %+g %+g\n\tGlobal bbox = %gx%g %+g %+g\n" %
+                log_debug("Image '%s':\n\tSize = %gx%g\n\tTransformed = %gx%g %+g %+g\n\tGlobal bbox = %gx%g %+g %+g\n" %
                              (img_name, r.width(), r.height(), rbox.width(), rbox.height(), rbox.left(), rbox.top(),
                               bbox.width(), bbox.height(), bbox.left(), bbox.top()))
-                print_debug("Matrix:\n%g\t%g\t%g\n%g\t%g\t%g\n" %
+                log_debug("Matrix:\n%g\t%g\t%g\n%g\t%g\t%g\n" %
                             (matrix.m11(), matrix.m12(), matrix.dx(), matrix.m21(), matrix.m22(), matrix.dy()))
                 if result_type == "Growth":
                     if result.cells[i]:

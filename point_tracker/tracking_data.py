@@ -11,7 +11,7 @@ from .path import path
 import csv
 import numpy
 from .utils import compare_versions
-from .debug import print_debug
+from .debug import log_debug
 from .geometry import cross
 from functools import total_ordering
 
@@ -561,7 +561,7 @@ class TrackingData(QObject):
                 cells_lifespan[c] = LifeSpan()
             self.cells_lifespan = cells_lifespan
         if wall_shapes is None:
-            print("Init empty walls")
+            log_debug("Init empty walls")
             wall_shapes = WallShapes()
             for image_data in self:
                 t = image_data.index
@@ -580,11 +580,11 @@ class TrackingData(QObject):
                 for p in cells[cid]:
                     cell_points[p].add(cid)
             self._cellsAdded(cells.keys())
-        print_debug("TrackingData loaded with %d images, %d points and %d cells." % (len(self.data), len(cell_points), len(cells)))
+        log_debug("TrackingData loaded with %d images, %d points and %d cells." % (len(self.data), len(cell_points), len(cells)))
         cells_changed, _ = self.cleanCells()
         self.checkCells()
         if cells_changed:
-            print_debug("Correction of the data:\n%s" % ("\n".join("Cell %d was invalid" % cid for cid in cells_changed),))
+            log_debug("Correction of the data:\n%s" % ("\n".join("Cell %d was invalid" % cid for cid in cells_changed),))
             return True
         return False
 
@@ -769,9 +769,10 @@ class TrackingData(QObject):
                 ls2 = cells_lifespan[daughters[1]]
                 ls2.start = div_time
                 ls2.parent = cell
-#                print("Cell %s divided at time %s" % (repr(cell), repr(div_time)))
+#                log_debug("Cell %s divided at time %s" % (repr(cell), 
+#                repr(div_time)))
 #            for i in range(len(cells)):
-#                print("%d: %s" % (i, cells_lifespan[i]))
+#                log_debug("%d: %s" % (i, cells_lifespan[i]))
             for cid,ls in cells_lifespan.items():
                 if ls.daughters:
                     cells_lifespan[ls.daughters[0]].parent = cid
@@ -857,9 +858,10 @@ class TrackingData(QObject):
                 ls2 = cells_lifespan[daughters[1]]
                 ls2.start = div_time
                 ls2.parent = cell
-#                print("Cell %s divided at time %s" % (repr(cell), repr(div_time)))
+#                log_debug("Cell %s divided at time %s" % (repr(cell), 
+#                repr(div_time)))
 #            for i in range(len(cells)):
-#                print("%d: %s" % (i, cells_lifespan[i]))
+#                log_debug("%d: %s" % (i, cells_lifespan[i]))
             for cid,ls in cells_lifespan.items():
                 if ls.daughters:
                     cells_lifespan[ls.daughters[0]].parent = cid
@@ -912,7 +914,7 @@ class TrackingData(QObject):
                 xscale = shift[1::2]
                 yscale = shift[2::2]
                 for img,x,y in zip(images, xscale, yscale):
-                    print_debug('scale[%s] = (%s,%s)' % (repr(img), repr(x), repr(y)))
+                    log_debug('scale[%s] = (%s,%s)' % (repr(img), repr(x), repr(y)))
                     x = float(x)
                     y = float(y)
                     if x == 0 or y == 0:
@@ -1014,7 +1016,7 @@ class TrackingData(QObject):
                 xscale = shift[1::2]
                 yscale = shift[2::2]
                 for img,x,y in zip(images, xscale, yscale):
-                    print_debug('scale[%s] = (%s,%s)' % (repr(img), repr(x), repr(y)))
+                    log_debug('scale[%s] = (%s,%s)' % (repr(img), repr(x), repr(y)))
                     x = float(x)
                     y = float(y)
                     if x == 0 or y == 0:
@@ -1029,11 +1031,11 @@ class TrackingData(QObject):
                 delta += 1
                 continue
             if len(l) == 1 and l[0].lower() == "cells":
-                print_debug("Found list of cells")
+                log_debug("Found list of cells")
                 cell_list = True
                 break
             elif not l[0].lower().startswith("point"):
-                print_debug("No more points: " + l[0])
+                log_debug("No more points: " + l[0])
                 break
             elif len(l) != num_columns+1:
                 raise TrackingDataException("Incorrect number of columns in line %d: %d instead of %d expected" % (i+1, len(l), num_columns+1))
@@ -1050,11 +1052,11 @@ class TrackingData(QObject):
                     delta += 1
                     continue
                 if l[0].lower() == "divisions":
-                    print_debug("Found division")
+                    log_debug("Found division")
                     cell_division = True
                     break
                 elif not l[0].lower().startswith("cell"):
-                    print_debug("No more cell: " + l[0])
+                    log_debug("No more cell: " + l[0])
                     break
                 cell = line_cell - delta
                 pts_ids = [ int(i) for i in l[1:] ]
@@ -1067,11 +1069,11 @@ class TrackingData(QObject):
                 if not l:
                     continue
                 if l[0].lower() == "lifespan of cells":
-                    print_debug("Found life span of cells")
+                    log_debug("Found life span of cells")
                     lifespan_of_cells = True
                     break
                 elif not l[0].lower().startswith("cell"):
-                    print_debug("No more cell: " + l[0])
+                    log_debug("No more cell: " + l[0])
                     break
                 cell = int(l[0].split()[1])
                 div_time = int(l[1])
@@ -1100,11 +1102,11 @@ class TrackingData(QObject):
                 if not l:
                     continue
                 if l[0].lower() == "wall shapes":
-                    print_debug("Found wall shapes")
+                    log_debug("Found wall shapes")
                     has_wall_shapes = True
                     break
                 elif not l[0].lower().startswith("cell"):
-                    print_debug("No more cell: " + l[0])
+                    log_debug("No more cell: " + l[0])
                     break
                 cell = int(l[0].split()[1])
                 start = int(l[1])
@@ -1127,9 +1129,9 @@ class TrackingData(QObject):
                 assert len(pos) % 2 == 0
                 pos = [ QPointF(pos[i],pos[i+1]) for i in range(0,len(pos),2) ]
                 wall_shapes[time, p1, p2] = pos
-                print_debug("wall shape from %d to %d at time %d =\n%s" % (p1, p2, time, ", ".join("%f,%f" % (p.x(), p.y()) for p in pos)))
+                log_debug("wall shape from %d to %d at time %d =\n%s" % (p1, p2, time, ", ".join("%f,%f" % (p.x(), p.y()) for p in pos)))
         else:
-            print_debug("No wall shape!")
+            log_debug("No wall shape!")
         return self._set_data(data, shifts, scales, cells, cells_lifespan, times, wall_shapes)
 
     versions_loader = {
@@ -1747,7 +1749,7 @@ class TrackingData(QObject):
             if lifespans is not None:
                 return self.setCells([cell_ids], [pt_ids_list], [lifespans])
             return self.setCells([cell_ids], [pt_ids_list])
-        print_debug("Settings cells: %s" % ", ".join("%d" % c for c in cell_ids))
+        log_debug("Settings cells: %s" % ", ".join("%d" % c for c in cell_ids))
         cells_added = {}
         cells_changed = []
         cells_deleted = {}
@@ -1828,7 +1830,7 @@ class TrackingData(QObject):
             iter(cell_ids)
         except TypeError:
             return self.removeCells([cell_ids])
-        print_debug("Removing cells: %s" % ", ".join("%d" % c for c in cell_ids))
+        log_debug("Removing cells: %s" % ", ".join("%d" % c for c in cell_ids))
         cells = self.cells
         cells_lifespan = self.cells_lifespan
         cell_points = self.cell_points

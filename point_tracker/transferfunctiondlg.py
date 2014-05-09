@@ -278,7 +278,7 @@ class TransferFunctionDlg( QtGui.QDialog ):
         settings.endGroup()
 
     def loadSettings(self, name):
-        print("Loading settings")
+        log_debug("Loading settings")
         settings = QtCore.QSettings()
         section = "%sTransferFct" % name
         settings.beginGroup(section)

@@ -8,6 +8,7 @@ from .path import path
 from .project import Project
 import csv
 import os.path
+from .debug import log_info, log_debug, log_warning
 
 grey_threshold = 40
 color_distance = 80
@@ -53,22 +54,22 @@ class Data(object):
 
     def process(self, i):
         img_file = self.list_imgs[i]
-        print("Processing image: %s" % img_file)
+        log_info("Processing image: %s" % img_file)
         img = misc.imread(self.project.images_dir / img_file)
 # First, find the list of color points
         img_diff = img.astype('int16')
         if len(img_diff.shape) != 3 or img_diff.shape[2] != 3:
-            print("  Image has shape %s. Skipping." % (img_diff.shape,))
+            log_info("  Image has shape %s. Skipping." % (img_diff.shape,))
             return
         img_diff -= img_diff[...,[1,2,0]]
         Y,X = nonzero(img_diff.max(2) > 40)
-        print("  Found %d points" % len(X))
+        log_info("  Found %d points" % len(X))
 # Second, store their points
         for x,y in zip(X,Y):
             c = img[y,x]
             pt = self.get_pts(c)
             pt[i] = (x,y)
-        print("  Total nb of points: %d" % len(self.pts))
+        log_info("  Total nb of points: %d" % len(self.pts))
 
     def save(self, filename):
         f = (self.project.data_dir / filename).open("w")
@@ -107,12 +108,12 @@ def main():
             p = ""
     proj = Project(p)
     if not proj.valid:
-        print("Warning, the project directory doesn't have the valid structure.")
+        log_warning("The project directory doesn't have the valid structure.")
         a = raw_input("Do you want to convert it?").lower()
         if a == "y" or a == "yes":
             proj.create()
         else:
-            print("Ok, aborting.")
+            log_debug("Ok, aborting.")
             return
     proj.use()
     d = Data(proj)

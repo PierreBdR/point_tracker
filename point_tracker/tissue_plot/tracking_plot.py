@@ -12,7 +12,7 @@ from ..transferfunction import TransferFunction
 from ..transferfunctiondlg import TransferFunctionDlg
 from ..scale_bar import ScaleBar as ScaleBarDrawer
 from ..sys_utils import setColor, changeColor, getColor, createForm
-from ..debug import print_debug
+from ..debug import log_debug
 from math import hypot as norm
 from ..path import path
 from ..tracking_data import RetryTrackingDataException, TrackingData
@@ -225,7 +225,7 @@ class ColoringObject(QObject):
         :returntype: `QWidget`
         """
         if self._config is None:
-            print_debug( "Creating config widget")
+            log_debug( "Creating config widget")
             self._config = self._config_widget(parent)
             self._update_parameters()
         return self._config
@@ -555,7 +555,7 @@ class ScaleBar(QObject):
                                 line_thickness = self.scale_line_thickness,
                                 value_range = value_range,
                                 unit = unit)
-            print_debug("Drawing scale bar!")
+            log_debug("Drawing scale bar!")
             if not self.scale_bar_outside_image:
                 sc.draw(painter, size)
             else:
@@ -571,7 +571,7 @@ class ScaleBar(QObject):
                 bounding_rect = sc.draw(new_painter, size)
                 new_painter.end()
                 pic.setBoundingRect(pic.boundingRect() | bounding_rect.toRect())
-                print_debug("Returning picture %s" % (pic,))
+                log_debug("Returning picture %s" % (pic,))
                 return pic
 
     @staticmethod
@@ -954,7 +954,7 @@ class DirectionGrowthParameters(ScaleBar):
             if value != self.data_points[0]:
                 self.data_points = (value, self.data_points[1])
         except ValueError as err:
-            print_debug("Error while changing point1 = %s" % str(err))
+            log_debug("Error while changing point1 = %s" % str(err))
 
     @pyqtSignature("const QString&")
     def _changePoint2(self, value):
@@ -963,7 +963,7 @@ class DirectionGrowthParameters(ScaleBar):
             if value != self.data_points[1]:
                 self.data_points = (self.data_points[0], value)
         except ValueError as err:
-            print_debug("Error while changing point1 = %s" % str(err))
+            log_debug("Error while changing point1 = %s" % str(err))
 
     def _get_data_points(self):
         """Ids of the data points defining the direction in the data file"""
@@ -1297,7 +1297,7 @@ class ColorParameters(QObject):
     """
     def __init__(self, params, parent = None):
         QObject.__init__(self, parent)
-        print_debug( "Parameter object: %s" % id(params))
+        log_debug( "Parameter object: %s" % id(params))
         self._color = params.color
         self._params = params
 
@@ -1330,7 +1330,7 @@ class ColorParameters(QObject):
 
     @staticmethod
     def load(params, settings):
-        print_debug( "Loading with parameter object: %s" % id(params))
+        log_debug( "Loading with parameter object: %s" % id(params))
         color = QColor(settings.value("Color"))
         if not color.isValid():
             color = QColor(0,0,0)

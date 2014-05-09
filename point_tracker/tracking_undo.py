@@ -5,7 +5,7 @@ __docformat__ = "restructuredtext"
 from PyQt4.QtGui import QUndoCommand, QMessageBox
 from PyQt4.QtCore import QPointF
 from .tracking_data import LifeSpan
-from .debug import print_debug
+from .debug import log_debug
 
 class TrackingCommand(QUndoCommand):
     def __init__(self, text, cmd_id, parent):
@@ -258,7 +258,7 @@ class MergeCells(PointsCommand):
             ls1 = self.data_manager.lifespan(self.ls_cid.daughters[1])
             ls0.parent = self.cell_id
             ls1.parent = self.cell_id
-        print_debug("Restoring cells %d and %d" % (self.cell_id, self.new_cell_id))
+        log_debug("Restoring cells %d and %d" % (self.cell_id, self.new_cell_id))
         self.data_manager.setCells([self.cell_id, self.new_cell_id],
                                    [self.cell   , self.new_cell],
                                    [self.ls_cid , self.ls_new_cid])
@@ -306,7 +306,7 @@ class MergeCells(PointsCommand):
             lf1 = self.data_manager.lifespan(self.ls_cid.daughters[1])
             lf0.parent = self.new_cell_id
             lf1.parent = self.new_cell_id
-        print_debug("Merging cell %d with cell %d" % (self.cell_id, self.new_cell_id))
+        log_debug("Merging cell %d with cell %d" % (self.cell_id, self.new_cell_id))
         self.data_manager.removeCells(self.cell_id)
         self.data_manager.setCells(self.new_cell_id, new_cell, new_ls)
 
@@ -340,7 +340,7 @@ class SplitPointsId(PointsCommand):
                 walls.add((t,p1,p2))
         self.walls = walls
         self.tid = tid
-        print("Split point of id %d.\nCreating point %d on images %s" % (pt_id, self.new_pt_id, str(self.images)))
+        log_debug("Split point of id %d.\nCreating point %d on images %s" % (pt_id, self.new_pt_id, str(self.images)))
 
     def undo(self):
         dm = self.data_manager
@@ -383,7 +383,7 @@ class SplitPointsId(PointsCommand):
         lifespans = []
         # First, change cells
         for cid in self.cells:
-            print("Inserting point %d in cell %d" % (new_pt_id, cid))
+            log_debug("Inserting point %d in cell %d" % (new_pt_id, cid))
             ls = dm.lifespan(cid)
             lifespans.append(ls)
             cell_shape = list(dm.cells[cid])

@@ -8,7 +8,7 @@ from PyQt4.QtCore import QPointF, QRectF, Qt, QLineF
 from math import cos, pi
 from math import hypot as norm
 from .geometry import dist, distToPolyLine,  inf
-from .debug import print_debug
+from .debug import log_debug
 
 class OldPointItem(QGraphicsItem):
     def __init__(self, scale, pt_id, parent = None):
@@ -603,7 +603,7 @@ class CellItem(QGraphicsItem):
                     break
             prev = start
             cur = start+1 if start+1 < len(polygon) else 0
-            print_debug("Polygon before: [%s]" % ",".join("(%f,%f)" % (p.x(), p.y()) if p is not None else "None" for p in polygon))
+            log_debug("Polygon before: [%s]" % ",".join("(%f,%f)" % (p.x(), p.y()) if p is not None else "None" for p in polygon))
             while cur != start:
                 if polygon[cur] is None:
                     cnt = 1

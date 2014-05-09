@@ -6,6 +6,10 @@ import sys
 import __main__
 import os.path
 import logging
+from logging import handlers
+from PyQt4 import QtGui
+from .path import path
+from functools import partial
 
 log = None
 
@@ -14,8 +18,17 @@ def init():
     Open the log files and redirect outputs if necessary.
     """
     global log
-    logging.basicConfig(level=logging.DEBUG)
+    file_location = path(QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation))
+    file_location = file_location / 'point-tracker.log'
+
+    logging.basicConfig(level=logging.INFO, filename=file_location, filemode='w')
+    print("Location of log file: '{0}'".format(file_location), file=sys.stderr)
     log = logging.getLogger("point-tracker")
+
+    directReport = logging.StreamHandler(sys.stderr)
+    directReport.setLevel(logging.INFO)
+    log.addHandler(directReport)
+
     global restore_io
     def restore_io():
         logging.shutdown()
@@ -63,14 +76,14 @@ def caller():
     stack = traceback.extract_stack()
     return stack[-3][:]
 
-def print_debug_simple(msg):
+def print_simple(msg, level):
     """
     Simply print the message in the log file.
     """
-    log.info(msg)
+    log.log(level, msg)
     #print(msg) #, file=log)
 
-def print_debug_calling_class(msg):
+def print_calling_class(msg, level):
     """
     Print the message in the log file, preceded by the module and name of the caller class.
     """
@@ -79,11 +92,15 @@ def print_debug_calling_class(msg):
         msg = "[%s.%s] %s" % (cls.__module__, cls.__name__, msg)
     else:
         msg = "[GLOBAL] %s" % (msg,)
-    log.info(msg)
+    log.log(level, msg)
     #print(msg)
     #log.flush()
 
-print_debug = print_debug_calling_class
+log_debug = partial(print_calling_class, level=logging.DEBUG)
+log_info = partial(print_calling_class, level=logging.INFO)
+log_warning = partial(print_calling_class, level=logging.WARNING)
+log_error = partial(print_calling_class, level=logging.ERROR)
+log_critical = partial(print_calling_class, level=logging.CRITICAL)
 
 class debug_type(type):
     """
@@ -97,9 +114,9 @@ class debug_type(type):
         '''
         type.__init__(cls, name, bases, dct)
         def debug_del(self):
-            print_debug( "Deleted object %s of class '%s'" % (id(self), type(self).__name__))
+            log_debug( "Deleted object %s of class '%s'" % (id(self), type(self).__name__))
         def debug_init(self):
-            print_debug( "Creating object %s of class '%s'" % (id(self), type(self).__name__))
+            log_debug( "Creating object %s of class '%s'" % (id(self), type(self).__name__))
 
         if not hasattr(cls, "__debug_class__") or not cls.__debug_class__:
             if hasattr(cls, '__del__'):

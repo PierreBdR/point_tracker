@@ -6,7 +6,7 @@ from PyQt4.QtGui import QPalette, QColorDialog, QMessageBox
 from .path import path
 import sys
 from PyQt4 import uic
-from .debug import caller
+from .debug import caller, log_debug
 
 def toBool(s):
     try:
@@ -84,7 +84,7 @@ def compileForm(uipath):
     compiled_ui = uipath.dirname() / ("%s.py" % (modulename,))
     if not compiled_ui.exists():# or compiled_ui.getmtime() < uipath.getmtime():
         with compiled_ui.open("wt") as f:
-            print("Compiling form '{0}'".format(uipath))
+            log_debug("Compiling form '{0}'".format(uipath))
             uic.compileUi(uipath, f, from_imports=True)
     return compiled_ui
 

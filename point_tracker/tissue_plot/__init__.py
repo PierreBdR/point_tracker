@@ -7,7 +7,7 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 from ..path import path
 from . import tracking_plot
 from .tracking_plot import cell_colorings_cls, wall_colorings_cls, point_colorings_cls, reset_classes
-from ..debug import print_debug
+from ..debug import log_debug, log_error
 import sys
 import traceback
 from .. import loader
@@ -30,7 +30,7 @@ def loadClasses():
             module_name = f.basename()[:-3]
             pack_name = "point_tracker.tissue_plot.%s" % module_name
             try:
-                print_debug("Importing classes from module %s" % module_name)
+                log_debug("Importing classes from module %s" % module_name)
                 mod_desc = imp.find_module(module_name, [search_path])
                 mod = imp.load_module(pack_name, *mod_desc)
             except ImportError as ex:
@@ -38,7 +38,6 @@ def loadClasses():
                 error_loc = "\n".join("In file %s, line %d\n\tIn '%s': %s" % e for e in traceback.extract_tb(tb))
                 errors.append((f,"Exception %s:\n%s\n%s" % (type(ex).__name__, str(ex), error_loc)))
     if errors:
-        print("Errors: ")
-        print("\n\n".join("In file %s:\n%s" % (f,e) for f,e in errors))
+        log_error("Errors: " + "\n\n".join("In file %s:\n%s" % (f,e) for f,e in errors))
     return errors
 
