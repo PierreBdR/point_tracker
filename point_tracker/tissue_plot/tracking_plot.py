@@ -930,7 +930,7 @@ class DirectionGrowthParameters(ScaleBar):
                 config.point1.clear()
                 config.point2.clear()
                 for i in self.points:
-                    print("i = %s" % i)
+                    log_debug("i = %s" % i)
                     config.point1.addItem(str(i))
                     config.point2.addItem(str(i))
                 config.point1.setCurrentIndex(0)

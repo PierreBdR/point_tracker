@@ -904,7 +904,7 @@ class CellItem(QGraphicsItem):
 
     def mouseReleaseEvent(self, event):
         if self.dragging_line:
-            print("Adding point to cell")
+            log_debug("Adding point to cell")
             self.setGeometry()
             drag_side = (self.drag_side+1) % (len(self.polygon)-1)
             self.scene().addPointToCell(self.cell_id, drag_side, self.mapToScene(event.pos()))

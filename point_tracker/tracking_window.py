@@ -820,7 +820,7 @@ class TrackingWindow(QMainWindow):
                 if old_pts != new_pts:
                     self.undo_stack.push(ChangePointsId(self._data, self._previousScene.image_name, old_pts, new_pts))
                 else:
-                    print("Splitting point of id %d" % old_pts[0])
+                    log_debug("Splitting point of id %d" % old_pts[0])
                     self.undo_stack.push(SplitPointsId(self._data, self._previousScene.image_name, old_pts))
             except AssertionError as error:
                 QMessageBox.critical(self, "Cannot merge the points", str(error))

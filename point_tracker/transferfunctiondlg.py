@@ -302,7 +302,7 @@ class TransferFunctionDlg( QtGui.QDialog ):
         current_fct = str(settings.value("TransferFct", "Hue scale"))
         settings.beginGroup("TransferFctList")
         keys = settings.allKeys()
-        print("Keys of transfer function: %s" % ",".join(str(s) for s in keys))
+        log_debug("Keys of transfer function: %s" % ",".join(str(s) for s in keys))
         if "Grey scale" not in keys:
             fct = TransferFunction()
             fct.add_rgba_point(0, 0, 0, 0, 0)
