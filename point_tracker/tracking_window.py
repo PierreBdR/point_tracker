@@ -340,7 +340,7 @@ class TrackingWindow(QMainWindow):
     @pyqtSignature("int")
     def on_previousState_currentIndexChanged(self, index):
         #print "Previous image loaded: %s" % self._data.images[index]
-        self.changeScene(self._previousScene,index)
+        self.changeScene(self._previousScene, index)
         self._currentScene.changeImage(None)
 
     @pyqtSignature("int")
@@ -807,7 +807,7 @@ class TrackingWindow(QMainWindow):
                 if old_cell != new_cell:
                     self.undo_stack.push(MergeCells(self._data, self._previousScene.image_name, old_cell, new_cell))
                 else:
-                    self.undo_stack.push(SplitCells(self._data, self._previousScene.image_name, old_cell, new_cell))                    
+                    self.undo_stack.push(SplitCells(self._data, self._previousScene.image_name, old_cell, new_cell))
             except AssertionError as error:
                 QMessageBox.critical(self, "Cannot merge the cells", str(error))
         else:
@@ -939,7 +939,7 @@ Copyright 2008
         if dlg.exec_() == QDialog.Accepted:
             self.undo_stack.push(ChangeTiming(data, [t for n,t in dlg.model]))
         del self.current_dlg
-        
+
     @pyqtSignature("")
     def on_actionEdit_scales_triggered(self):
         data = self._data

@@ -7,43 +7,18 @@ import __main__
 import os.path
 import logging
 
-log = sys.stderr
-pth = None
+log = None
 
 def init():
     """
     Open the log files and redirect outputs if necessary.
     """
     global log
-    log = logging.getLogger("point_tracker")
+    logging.basicConfig(level=logging.DEBUG)
+    log = logging.getLogger("point-tracker")
     global restore_io
     def restore_io():
-        pass
-
-    #global log
-    #return
-##if not "IPython" in type(__main__).__module__: # i.e. if ipython is not launched
-    #if hasattr(__main__, "__file__") and not "IPython" in type(__main__).__module__ and "epydoc" not in __main__.__file__: # if not interactive session and not doc
-        #global stored_out, stored_err, restore_io
-        #pth = os.path.dirname(__main__.__file__)
-        #output = open(os.path.join(pth, "point_tracking_output.txt"), "wt")
-
-        #stored_out = os.dup(1)
-        #stored_err = os.dup(2)
-        #os.dup2(output.fileno(), 1)
-        #os.dup2(output.fileno(), 2)
-
-        #def restore_io():
-            #os.dup2(stored_out, 1)
-            #os.dup2(stored_err, 2)
-    #else:
-        #pth = os.path.dirname(os.path.dirname(__file__))
-        #def restore_io():
-            #pass
-
-    #log = open(os.path.join(pth, "point_tracking.log"), "wt")
-
-#log = sys.stderr
+        logging.shutdown()
 
 def calling_class():
     """
@@ -92,20 +67,20 @@ def print_debug_simple(msg):
     """
     Simply print the message in the log file.
     """
-    global log
-    log.debug(msg)
-    #print(msg, file=log)
+    log.info(msg)
+    #print(msg) #, file=log)
 
 def print_debug_calling_class(msg):
     """
     Print the message in the log file, preceded by the module and name of the caller class.
     """
-    global log
     cls = calling_class()
     if cls:
-        log.debug("[%s.%s] %s" % (cls.__module__, cls.__name__, msg))
+        msg = "[%s.%s] %s" % (cls.__module__, cls.__name__, msg)
     else:
-        log.debug("[GLOBAL] %s" % (msg,))
+        msg = "[GLOBAL] %s" % (msg,)
+    log.info(msg)
+    #print(msg)
     #log.flush()
 
 print_debug = print_debug_calling_class

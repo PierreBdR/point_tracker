@@ -144,8 +144,7 @@ class GrowthComputationDlg(QDialog):
     def on_removeImages_clicked(self):
         selection = self.ui.selectedImages.selectionModel()
         selectedimages_model = self.selectedimages_model
-        poss = [ selectedimages_model.position(idx) for idx in selection.selectedRows() ]
-        poss.sort(reverse=True)
+        poss = sorted((selectedimages_model.position(idx) for idx in selection.selectedRows()), reverse = True)
         for pos in poss:
             selectedimages_model.removeImage(pos)
         selection.clear()
@@ -350,26 +349,26 @@ class GrowthComputationThread(QThread):
         self.filename = None
         self._stop = False
 
-    def _get_method(self):
+    @property
+    def method(self):
         return self._method
 
-    def _set_method(self, method):
+    @method.setter
+    def method(self, method):
         assert hasattr(method, "__call__"), "Invalid computation method, no '__call__' method"
         assert hasattr(method, "thread"), "Invalid computation method, no 'thread' attribute"
         assert hasattr(method, "parameters"), "Invalid computation method, no 'parameters' method"
         self._method = method
 
-    method = property(_get_method, _set_method)
-
-    def _get_cells_selection(self):
+    @property
+    def cells_selection(self):
         return self._cells_selection
 
-    def _set_cells_selection(self, cells_selection):
+    @cells_selection.setter
+    def cells_selection(self, cells_selection):
         assert hasattr(cells_selection, "__call__"), "Invalid cells selection method, no '__call__' method"
         assert hasattr(cells_selection, "parameters"), "Invalid cells selection method, no 'parameters' method"
         self._cells_selection = cells_selection
-
-    cells_selection = property(_get_cells_selection, _set_cells_selection)
 
     def valid(self):
         if self.parent is None:

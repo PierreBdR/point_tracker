@@ -166,7 +166,7 @@ class Result(object):
         growth_num = Result.growth_num
         fdata = StringIO()
         invert_pts, invert_cells = self.data.save(f=fdata)
-        f = open(filename, 'wb')
+        f = open(filename, 'w')
         w = csv.writer(f, delimiter=',')
         w.writerow(["TRKR_VERSION", Result.CURRENT_VERSION])
         w.writerow(["Growth computation parameters"])
@@ -218,9 +218,9 @@ class Result(object):
         fields_num = Result.fields_num
         f = open(filename, "rb")
         r = csv.reader(f, delimiter=',')
-        l = r.next()
+        l = next(r)
         assert l[0] == "TRKR_VERSION" and l[1] == "0.1", "Wrong reader for version %s:%s" % (l[0], l[1])
-        l = r.next()
+        l = next(r)
 # First, the header
         header_fields = self.header_fields
         for l in r:
@@ -228,8 +228,8 @@ class Result(object):
                 break
             if l[0] in header_fields:
                 header_fields[l[0]][1](self, l)
-        r.next() # "Growth per image"
-        r.next() # header ...
+        next(r) # "Growth per image"
+        next(r) # header ...
         split_wall_re = re.compile('[ -]')
         for l in r:
             if len(l) == 0:
@@ -249,7 +249,7 @@ class Result(object):
                     p1,p2 = (int(i) for i in split_wall_re.split(l[fields_num["wall"]])[1:3])
                     k = float(l[fields_num["kwall"]])
                     walls[p1,p2] = k
-        l = r.next()
+        l = next(r)
         if len(l) == 1 and l[0] == "Data":
             self.data.load(f = f, **opts)
 
@@ -272,10 +272,10 @@ class Result(object):
         f.close()
         f = open(filename, "rb")
         r = csv.reader(f, delimiter=delim)
-        l = r.next()
+        l = next(r)
         if "force_load" not in opts or not opts['force_load']:
             assert l[0] == "TRKR_VERSION" and l[1] == "0.3", "Wrong reader for version %s:%s" % (l[0], l[1])
-        l = r.next()
+        l = next(r)
 # First, the header
         header_fields = self.header_fields
         for l in r:
@@ -283,8 +283,8 @@ class Result(object):
                 break
             if l[0] in header_fields:
                 header_fields[l[0]][1](self, l)
-        r.next() # "Growth per image"
-        r.next() # header ...
+        next(r) # "Growth per image"
+        next(r) # header ...
         split_wall_re = re.compile('[ -]')
         for l in r:
             if len(l) == 0:
@@ -304,7 +304,7 @@ class Result(object):
                     p1,p2 = (int(i) for i in split_wall_re.split(l[fields_num["wall"]])[1:3])
                     k = float(l[fields_num["kwall"]])
                     walls[p1,p2] = k
-        l = r.next()
+        l = next(r)
         if len(l) == 1 and l[0] == "Data":
             if "no_data" not in opts or not opts["no_data"]:
                 self.data.load(f = f, **opts)
@@ -322,10 +322,10 @@ class Result(object):
         f.close()
         f = open(filename, "rb")
         r = csv.reader(f, delimiter=delim)
-        l = r.next()
+        l = next(r)
         if "force_load" not in opts or not opts['force_load']:
             assert l[0] == "TRKR_VERSION" and l[1] == "0.4", "Wrong reader for version %s:%s" % (l[0], l[1])
-        l = r.next()
+        l = next(r)
 # First, the header
         header_fields = self.header_fields
         for l in r:
@@ -333,8 +333,8 @@ class Result(object):
                 break
             if l[0] in header_fields:
                 header_fields[l[0]][1](self, l)
-        r.next() # "Growth per image"
-        r.next() # header ...
+        next(r) # "Growth per image"
+        next(r) # header ...
         split_wall_re = re.compile('[ -]')
         found_cell_shapes = False
         for l in r:
@@ -359,7 +359,7 @@ class Result(object):
                     k = float(l[fields_num["kwall"]])
                     walls[p1,p2] = k
         if found_cell_shapes:
-            r.next() # Skip header description
+            next(r) # Skip header description
             for l in r:
                 if len(l) == 0:
                     break
@@ -383,7 +383,7 @@ class Result(object):
                                 cells_shapes[cell_id] = (shape, [])
                             else:
                                 cells_shapes[cell_id] = ([], shape)
-        l = r.next()
+        l = next(r)
         if len(l) == 1 and l[0] == "Data":
             if "no_data" not in opts or not opts["no_data"]:
                 self.data.load(f = f, **opts)

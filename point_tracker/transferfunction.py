@@ -206,9 +206,9 @@ class TransferFunction(QtCore.QObject):
         for i, v in enumerate(self._values):
             keys[v[0]] = i
         self._keys = keys
-        
+
     def reverse(self):
-        values = [ (1-pos, col) for pos,col in self._values ]
+        values = sorted(((1-pos, col) for pos,col in self._values), reverse = True)
         values.sort()
         self._values = values
         self.update_keys()

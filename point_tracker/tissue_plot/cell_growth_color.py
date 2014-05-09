@@ -134,8 +134,8 @@ class CellGrowthAlongDirection(ColoringClass('cell')):
         caps = [inf,-inf]
         for i in range(len(result)):
             if result.cells[i]:
-                caps[0] = min(caps[0], min(min(v[0:2]) for v in result.cells[i].itervalues()))
-                caps[1] = max(caps[1], max(max(v[0:2]) for v in result.cells[i].itervalues()))
+                caps[0] = min(caps[0], min(min(v[0:2]) for v in result.cells[i].values()))
+                caps[1] = max(caps[1], max(max(v[0:2]) for v in result.cells[i].values()))
         return caps
 
     def __call__(self, imageid, uid):
@@ -233,8 +233,8 @@ class CellGrowth(ColoringClass('cell')):
         ratio = self.ratio
         for i in range(len(result)):
             if result.cells[i]:
-                caps[0] = min(caps[0], min(ratio*v[info_pos] for v in result.cells[i].itervalues()))
-                caps[1] = max(caps[1], max(ratio*v[info_pos] for v in result.cells[i].itervalues()))
+                caps[0] = min(caps[0], min(ratio*v[info_pos] for v in result.cells[i].values()))
+                caps[1] = max(caps[1], max(ratio*v[info_pos] for v in result.cells[i].values()))
         return caps
 
     def __call__(self, imageid, cid):

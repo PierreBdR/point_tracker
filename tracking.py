@@ -18,7 +18,7 @@ if sys.platform == 'win32':
 from point_tracker import tracking
 
 def run():
-    tracking.ipython()
+    return tracking.ipython()
 
 if __name__ == "__main__":
     if "interactive" in sys.argv:

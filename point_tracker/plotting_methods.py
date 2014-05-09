@@ -164,114 +164,114 @@ class EllipsisDraw(QObject):
         self._major_axis = True
         self._minor_axis = True
 
-    def _get_color(self):
+    @property
+    def color(self):
         '''Color used to draw the ellipsis itself
-        
+
         :returntype: QColor'''
         return self._color
 
-    def _set_color(self, value):
+    @color.setter
+    def color(self, value):
         value = QColor(value)
         if self._color != value:
             self._color = value
             parameters.instance.ellipsis_color = value
             self.emit(SIGNAL("changed"))
 
-    color = property(_get_color, _set_color)
-
-    def _get_scaling(self):
+    @property
+    def scaling(self):
         '''Scaling factor for ellipsis drawing
-        
+
         :returntype: float'''
         return self._scaling
 
-    def _set_scaling(self, value):
+    @scaling.setter
+    def scaling(self, value):
         value = float(value)
         if self._scaling != value:
             self._scaling = value
             parameters.instance.ellipsis_scaling = value
             self.emit(SIGNAL("changed"))
 
-    scaling = property(_get_scaling, _set_scaling)
-    
-    def _get_scale_axis(self):
+    @property
+    def scale_axis(self):
         '''Are the axis scaled or do they just represent direction?
-        
+
         :returntype: bool'''
         return self._scale_axis
-    
-    def _set_scale_axis(self, value):
+
+    @scale_axis.setter
+    def scale_axis(self, value):
         value = bool(value)
         if self._scale_axis != value:
             self._scale_axis = value
             parameters.instance.ellipsis_scale_axis = value
             self.emit(SIGNAL("changed"))
 
-    scale_axis = property(_get_scale_axis, _set_scale_axis)
-
-    def _get_major_axis(self):
+    @property
+    def major_axis(self):
         '''Draw the major axis of the ellipsis?
-        
+
         :returntype: bool'''
         return self._major_axis
-    
-    def _set_major_axis(self, value):
+
+    @major_axis.setter
+    def major_axis(self, value):
         value = bool(value)
         if self._major_axis != value:
             self._major_axis = value
             parameters.instance.ellipsis_major_axis = value
             self.emit(SIGNAL("changed"))
 
-    major_axis = property(_get_major_axis, _set_major_axis)
-
-    def _get_minor_axis(self):
+    @property
+    def minor_axis(self):
         '''Draw the minor axis of the ellipsis?
-        
+
         :returntype: bool'''
         return self._minor_axis
-    
-    def _set_minor_axis(self, value):
+
+    @minor_axis.setter
+    def minor_axis(self, value):
         value = bool(value)
         if self._minor_axis != value:
             self._minor_axis = value
             parameters.instance.ellipsis_minor_axis = value
             self.emit(SIGNAL("changed"))
 
-    minor_axis = property(_get_minor_axis, _set_minor_axis)
-
-    def _get_thickness(self):
+    @property
+    def thickness(self):
         '''Thickness of the ellipsis drawing
-        
+
         :returntype: float'''
         return self._thickness
 
-    def _set_thickness(self, value):
+    @thickness.setter
+    def thickness(self, value):
         value = float(value)
         if self._thickness != value:
             self._thickness = value
             parameters.instance.ellipsis_thickness = value
             self.emit(SIGNAL("changed"))
 
-    thickness = property(_get_thickness, _set_thickness)
-
-    def _get_min_anisotropy(self):
+    @property
+    def min_anisotropy(self):
         '''Minimum anisotropy under which the axis of the ellipsis are not drawned anymore
-        
+
         :returntype: float'''
         return self._min_anisotropy
 
-    def _set_min_anisotropy(self, value):
+    @min_anisotropy.setter
+    def min_anisotropy(self, value):
         value = float(value)
         if self._min_anisotropy != value:
             self._min_anisotropy = value
             parameters.instance.ellipsis_min_anisotropy = value
             self.emit(SIGNAL("changed"))
 
-    min_anisotropy = property(_get_min_anisotropy, _set_min_anisotropy)
-
     def _get_positive_color(self):
         '''Color used to draw the axis if positive
-        
+
         :returntype: QColor'''
         return self._positive_color
 
@@ -286,7 +286,7 @@ class EllipsisDraw(QObject):
 
     def _get_negative_color(self):
         '''Color used to draw the axis if negative
-        
+
         :returntype: QColor'''
         return self._negative_color
 
@@ -301,7 +301,7 @@ class EllipsisDraw(QObject):
 
     def _get_plot(self):
         '''True if the ellipsis is to be plotted at all
-        
+
         :returntype: bool'''
         return self._plot
 

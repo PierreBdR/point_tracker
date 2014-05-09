@@ -19,7 +19,7 @@ def makeStarShaped(pts, pts2coords):
         center = sum(coords, QPointF())/len(coords)
         ref = coords[0] - center
         angles = [ angle(ref, p-center) for p in coords ]
-        to_sort = range(len(angles))
+        to_sort = list(range(len(angles)))
         to_sort.sort(key=lambda k:angles[k])
         return [ pts[i] for i in to_sort ]
     else:

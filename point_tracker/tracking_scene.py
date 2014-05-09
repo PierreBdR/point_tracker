@@ -69,7 +69,7 @@ class TrackingScene(QGraphicsScene):
         popup = QMenu("Scene menu")
         validate_cell_act = popup.addAction("Validate cell", self.validateCell)
         validate_cell_act.setVisible(False)
-        self._validate_cell_act = validate_cell_act        
+        self._validate_cell_act = validate_cell_act
         lifespan_act = popup.addAction("Change cell lifespan", self.changeLifespan)
         lifespan_act.setVisible(False)
         self.lifespan_act = lifespan_act
@@ -142,7 +142,7 @@ class TrackingScene(QGraphicsScene):
         self._current_cell = None
 
     current_cell = property(_get_current_cell, _set_current_cell, _del_current_cell)
-    
+
     def _get_selected_cell(self):
         if self._current_cell is not None and self._current_cell not in self.cells:
             self._current_cell = None
@@ -206,7 +206,7 @@ class TrackingScene(QGraphicsScene):
                 QGraphicsScene.mousePressEvent(self, event)
         else:
             QGraphicsScene.mousePressEvent(self, event)
-            
+
     def contextMenuEvent(self, event):
         cell_under = None
         for it in self.items(event.scenePos()):
@@ -477,7 +477,7 @@ class TrackingScene(QGraphicsScene):
             self.invalidate()
             self.update()
 
-    def updateElements(self):      
+    def updateElements(self):
         for pt in self.items():
             pt.scale = self.img_scale
             pt.setGeometry()
@@ -511,6 +511,7 @@ class TrackingScene(QGraphicsScene):
     real_scene_rect = property(_get_real_scene_rect, _set_real_scene_rect)
 
     def changeImage(self, image_path):
+        print_debug("Changed image to {0}".format(image_path))
         if image_path is None:
             image_path = self.image_path
         if image_path is None:
@@ -532,8 +533,9 @@ class TrackingScene(QGraphicsScene):
         for pt_id in current_data:
             self.addPoint(pt_id, current_data[pt_id], new=False)
         cells = self.current_data.cells
+        print_debug("Found {0} cells".format(len(cells)))
         if cells:
-            self.addCells(cells.keys())
+            self.addCells(list(cells.keys()))
         del self.current_cell
         self.setTemplatePos()
 
@@ -646,7 +648,7 @@ class TrackingScene(QGraphicsScene):
         cells = self.cells
         cell_points = data.cell_points
         for cid in cell_ids:
-            if cid in cells or not [pid for pid in current_data.cells[cid] if pid in current_data]: 
+            if cid in cells or not [pid for pid in current_data.cells[cid] if pid in current_data]:
                 continue
             print_debug("-- Add cell %d with points %s" % (cid, current_data.cells[cid]))
             ci = CellItem(self.img_scale, self.min_scale, cid, current_data.cells[cid], points, current_data.walls)
@@ -718,40 +720,40 @@ class TrackingScene(QGraphicsScene):
         self.planMovePoints([pt_id], [end_pos], starts = [start_pos])
 
     def selectNew(self):
-        for it in self.points.itervalues():
+        for it in self.points.es():
             it.setSelected(it.new)
 
     def selectAll(self):
-        for it in self.points.itervalues():
+        for it in self.points.values():
             it.setSelected(True)
 
     def selectNone(self):
-        for it in self.points.itervalues():
+        for it in self.points.values():
             it.setSelected(False)
 
     def selectInvert(self):
-        for it in self.points.itervalues():
+        for it in self.points.values():
             it.setSelected(not it.isSelected())
 
     def selectNonAssociated(self):
-        for it in self.points.itervalues():
+        for it in self.points.values():
             if it.arrow is None and it.link is None:
                 it.setSelected(True)
             else:
                 it.setSelected(False)
 
     def selectAssociated(self):
-        for it in self.points.itervalues():
+        for it in self.points.values():
             if it.arrow is None and it.link is None:
                 it.setSelected(False)
             else:
                 it.setSelected(True)
 
     def getSelected(self):
-        return [ pt for pt in self.points.itervalues() if pt.isSelected() ]
+        return [ pt for pt in self.points.values() if pt.isSelected() ]
 
     def getSelectedIds(self):
-        return [ pt.pt_id for pt in self.points.itervalues() if pt.isSelected() ]
+        return [ pt.pt_id for pt in self.points.values() if pt.isSelected() ]
 
     def getAllItems(self):
         return self.points.values()
@@ -875,7 +877,7 @@ class TrackingScene(QGraphicsScene):
             self.setSelectionArea(path)
 
     def setSelectedIds(self, ids):
-        for it in self.points.itervalues():
+        for it in self.points.values():
             it.setSelected(False)
         for id in ids:
             it = self.points.get(id)
@@ -944,7 +946,7 @@ class TrackingScene(QGraphicsScene):
         current_data = self.current_data
         items = self.selectedItems()
         if len(items) == 0:
-            items = [ it for it in self.points.itervalues() if it.arrow is None and it.link is None ]
+            items = [ it for it in self.points.values() if it.arrow is None and it.link is None ]
         new_pt_ids = []
         new_pt_pos = []
         move_pt_ids = []
@@ -1024,7 +1026,7 @@ class TrackingScene(QGraphicsScene):
         self.emit(SIGNAL("templatePosChange"), pos)
 
     def resetNewPoints(self):
-        for items in self.points.itervalues():
+        for items in self.points.values():
             items.new = False
         self.update()
 

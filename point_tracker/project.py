@@ -6,6 +6,7 @@ from .tracking_data import TrackingData, TrackingDataException
 from PyQt4.QtCore import QObject, QCoreApplication, SIGNAL
 from PyQt4.QtGui import QImageReader
 from . import parameters
+from .debug import print_debug
 import re
 
 class Project(QObject):
@@ -27,13 +28,12 @@ class Project(QObject):
         self._valid_project = None
         self.data = None
 
-    def _get_dir(self):
+    @property
+    def main_dir(self):
         """
         Project main directory
         """
         return self._dir
-
-    main_dir = property(_get_dir)
 
     def use(self):
         """
@@ -73,13 +73,15 @@ class Project(QObject):
         else:
             self.data_file = data_file
 
-    def _get_data_file(self):
+    @property
+    def data_file(self):
         """
         Directory containing generated data files
         """
         return self._data_file
 
-    def _set_data_file(self, file_):
+    @data_file.setter
+    def data_file(self, file_):
         if file_ is None:
             raise RuntimeError("None data file")
         file_ = path(file_)
@@ -87,8 +89,6 @@ class Project(QObject):
         if file_ != self._data_file:
             self._data_file = path(file_)
             self.emit(SIGNAL("changedDataFile"), self._data_file)
-
-    data_file = property(_get_data_file, _set_data_file, None, "File containing digitized data.")
 
     supported_image_types = []
     """
@@ -111,11 +111,21 @@ class Project(QObject):
         """
         if QCoreApplication.startingUp():
             raise RuntimeError("This class need to be initialized after the QtGui application")
-        cls.supported_image_types = [ str(i) for i in QImageReader.supportedImageFormats() ]
-        cls.sit_re = re.compile("\.(%s)$" % "|".join(cls.supported_image_types), re.IGNORECASE)
+        cls.supported_image_types = [ bytes(i).decode() for i in QImageReader.supportedImageFormats() ]
+        cls.sit_re = re.compile(u"\.(%s)$" % "|".join(cls.supported_image_types), re.IGNORECASE)
         cls.initialized = True
 
-    def _set_images_dir(self, dir_):
+    @property
+    def images_dir(self):
+        """
+        Directory containing the images
+
+        :returntype: `path`
+        """
+        return self._images_dir
+
+    @images_dir.setter
+    def images_dir(self, dir_):
         if dir_ is None:
             self.reset()
             return
@@ -125,8 +135,10 @@ class Project(QObject):
             self._images_dir = dir_
             return
         dir_ = path(dir_)
-        #print "Recognised extensions: %s" % TrackingData.supported_image_types
+        #print("Recognised extensions: %s" % Project.supported_image_types)
+        #print("Extension regexpr = {0!r}".format(Project.sit_re.pattern))
         images_path = [ f for f in dir_.files() if Project.sit_re.search(f) ]
+        print_debug("List of images in {0}: {1}".format(dir_, images_path))
         if images_path:
             images_path.sort()
             self.images_path = images_path
@@ -136,25 +148,20 @@ class Project(QObject):
             #for i in images:
             #  print i
 
-    def _get_images_dir(self):
-        """
-        Directory containing the images
-
-        :returntype: `path`
-        """
-        return self._images_dir
-
-    images_dir = property(_get_images_dir, _set_images_dir, None, "Directory containing the images.")
-
-    def _get_valid_project(self):
+    @property
+    def valid(self):
         """
         True if the project points toward a valid project directory.
         """
         if self._valid_project is None:
             #dir_ = self._dir
             valid_project = True
-            valid_project &= self._data_dir.exists()
-            valid_project &= self._images_dir.exists()
+            if self.data_dir is None or not self.data_dir.exists():
+                print_debug("Error, no data dir: {0}".format(self.data_dir))
+                valid_project = False
+            elif self.images_dir is None or not self.images_dir.exists():
+                print_debug("Error, no images dir: {0}".format(self.images_dir))
+                valid_project = False
             self._valid_project = valid_project
         return self._valid_project
 
@@ -197,10 +204,9 @@ class Project(QObject):
         self.data = data
         return True
 
-    def _reset_valid_project(self):
+    @valid.deleter
+    def valid(self):
         self._valid_project = None
-
-    valid = property(_get_valid_project, None, _reset_valid_project)
 
     def create(self):
         """
@@ -208,10 +214,11 @@ class Project(QObject):
         """
         if not self._data_dir.exists():
             self._data_dir.mkdir()
-        if not self._images_dir.exists():
-            self._images_dir.mkdir()
+        if not self.images_dir.exists():
+            self.images_dir.mkdir()
 
-    def _get_data_dir(self):
+    @property
+    def data_dir(self):
         """
         Directory containing the data sets
 
@@ -219,10 +226,10 @@ class Project(QObject):
         """
         return self._data_dir
 
-    def _set_data_dir(self, dir_):
+    @data_dir.setter
+    def data_dir(self, dir_):
         if not dir_.exists():
             self._data_dir= dir_
             return
         self._data_dir = dir_
 
-    data_dir = property(_get_data_dir, _set_data_dir)

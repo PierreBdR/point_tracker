@@ -325,19 +325,16 @@ class PlottingDlg(QDialog):
             dlg.exec_()
         self.ui.cellColoring.clear()
         if self.has_cells:
-            cell_cls_names = plotting_methods.cellColoringClasses(self.thread.result_type)
-            cell_cls_names.sort()
+            cell_cls_names = sorted(plotting_methods.cellColoringClasses(self.thread.result_type))
             for cls in cell_cls_names:
                 self.ui.cellColoring.addItem(cls.coloring_name)
         self.ui.wallColoring.clear()
         if self.has_walls:
-            wall_cls_names = plotting_methods.wallColoringClasses(self.thread.result_type)
-            wall_cls_names.sort()
+            wall_cls_names = sorted(plotting_methods.wallColoringClasses(self.thread.result_type))
             for cls in wall_cls_names:
                 self.ui.wallColoring.addItem(cls.coloring_name)
         if self.has_points:
-            point_cls_names = plotting_methods.pointColoringClasses(self.thread.result_type)
-            point_cls_names.sort()
+            point_cls_names = sorted(plotting_methods.pointColoringClasses(self.thread.result_type))
             for cls in point_cls_names:
                 self.ui.pointColoring.addItem(cls.coloring_name)
 

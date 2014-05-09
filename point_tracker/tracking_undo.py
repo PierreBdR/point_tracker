@@ -33,12 +33,12 @@ class MovePoints(PointsCommand):
 
     def undo(self):
         data = self.current_data
-        for pt_id, mvt in self.move.iteritems():
+        for pt_id, mvt in self.move.items():
             data[pt_id] = mvt[0]
 
     def redo(self):
         data = self.current_data
-        for pt_id, mvt in self.move.iteritems():
+        for pt_id, mvt in self.move.items():
             data[pt_id] = mvt[1]
 
 def cellsToWatch(data, pts_id):

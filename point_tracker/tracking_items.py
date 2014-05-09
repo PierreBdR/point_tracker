@@ -83,7 +83,7 @@ class OldPointItem(QGraphicsItem):
         saved = False
         scale = self.scale
         ms = min(scale)
-        if tr.m11() < 1/scale[0] or tr.m12 < 1/scale[1]:
+        if tr.m11() < 1/scale[0] or tr.m12() < 1/scale[1]:
             painter.save()
             saved = True
             dx = tr.dx()

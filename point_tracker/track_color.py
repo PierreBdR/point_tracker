@@ -26,8 +26,7 @@ class Data(object):
             ext_count.setdefault(e, 0)
             ext_count[e] += 1
         maj_ext = max(ext_count.keys(), key=ext_count.__getitem__)
-        self.list_imgs = [ f for f in self.list_imgs if f.endswith(maj_ext) ]
-        self.list_imgs.sort()
+        self.list_imgs = sorted([ f for f in self.list_imgs if f.endswith(maj_ext) ])
 
     def get_pts(self, color):
         color = tuple(color)
@@ -72,7 +71,7 @@ class Data(object):
         print("  Total nb of points: %d" % len(self.pts))
 
     def save(self, filename):
-        f = (self.project.data_dir / filename).open("wb")
+        f = (self.project.data_dir / filename).open("w")
         w = csv.writer(f, delimiter=",")
         w.writerow(["TRK_VERSION", "0.1"])
         imgs = sum([ [img,''] for img in self.list_imgs ], [])

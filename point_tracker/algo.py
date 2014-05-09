@@ -272,7 +272,7 @@ def alignImages(data, alignment_data, translation, rotation):
             mat, _ = d.matrix().inverted()
             p1 = None
             rect = QRectF()
-            for p in d.iterpositions():
+            for p in d.positions():
                 p = mat.map(p)
                 if p1 is None:
                     p1 = p
@@ -283,7 +283,7 @@ def alignImages(data, alignment_data, translation, rotation):
     elif translation == "Barycentre":
         for i,d in enumerate(alignment_data):
             mat, _ = d.matrix().inverted()
-            mid_pos = mat.map(sum(d.iterpositions(), QPointF())/len(d))
+            mid_pos = mat.map(sum(d.positions(), QPointF())/len(d))
             refs[i,:] = (mid_pos.x(), mid_pos.y())
     else:
         for i,d in enumerate(alignment_data):
