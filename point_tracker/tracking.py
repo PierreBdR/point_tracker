@@ -44,6 +44,7 @@ def createWindow():
     from .project import Project
     Project.initClass()
     main_win = TrackingWindow()
+    app.setActiveWindow(main_win)
     main_win.show()
     main_win.raise_()
     return app, main_win

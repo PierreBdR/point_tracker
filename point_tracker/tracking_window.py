@@ -239,6 +239,7 @@ class TrackingWindow(QMainWindow):
             event.ignore()
             return
         QMainWindow.closeEvent(self, event)
+        #sys.exit(0)
 
     def loadConfig(self):
         params = parameters.instance

@@ -121,9 +121,8 @@ class PlottingDlg(QDialog):
         self.thread = None
         self.data = None
         self.result = None
-        self.ui = None
         self.progress = None
-        print("Finalize Plotting") # this seems to be fixing bugs !#!#!
+        self.ui = None
 
     def load_preferences(self):
         settings = QSettings()

@@ -43,23 +43,41 @@ class PlotPreview(QDialog):
         if parameters.instance.use_OpenGL:
             self.ui.imageView.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
 
-    def _get_thread(self):
+    def __del__(self):
+        QObject.disconnect(self.timer, SIGNAL("timeout()"), self.render_image)
+        self.scene = None
+        self.ui.imageView.setScene(None)
+        self.show_pix_c = None
+        self.show_pix_w = None
+        self.pix_item = None
+        self.pic_w = None
+        self.pic_c = None
+        self._pix = None
+        self.pix_item = None
+        self.timer = None
+        self._thread = None
+        self.parent = None
+        self.ui = None
+
+    @property
+    def thread(self):
         '''Thread object drawing the img'''
         return self._thread
 
-    def _set_thread(self, value):
+    @thread.setter
+    def thread(self, value):
         if self._thread != value:
             self._thread = value
 
-    thread = property(_get_thread, _set_thread)
-
-    def _get_pix(self):
+    @property
+    def pix(self):
         '''Image to be previewed.
 
         :returntype: `QImage`'''
         return self._pix
 
-    def _set_pix(self, pix):
+    @pix.setter
+    def pix(self, pix):
         self.ui.imageView.setEnabled(True)
         self._pix = pix
         if self.pix_item is not None:
@@ -86,13 +104,13 @@ class PlotPreview(QDialog):
             self.show_pic_c.raise_()
         log_debug("Received image")
 
-    pix = property(_get_pix, _set_pix)
-
-    def _get_image_list(self):
+    @property
+    def image_list(self):
         '''List of images to paint'''
         return tuple(self._image_list)
 
-    def _set_image_list(self, value):
+    @image_list.setter
+    def image_list(self, value):
         value = list(value)
         if self._image_list != value:
             self._image_list = value
@@ -105,8 +123,6 @@ class PlotPreview(QDialog):
             self.ui.zoom1.setEnabled(True)
             self.ui.zoomFit.setEnabled(True)
             self.ui.imageList.setEnabled(True)
-
-    image_list = property(_get_image_list, _set_image_list)
 
     @pyqtSignature("")
     def on_zoomIn_clicked(self):
