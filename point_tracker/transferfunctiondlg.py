@@ -6,6 +6,7 @@ from .ui_transferfunctiondlg import Ui_TransferFunctionDlg
 from .transferfunction import TransferFunction
 from pickle import load, dump
 from .path import path
+from .debug import log_debug
 
 class TransferFunctionDlg( QtGui.QDialog ):
     immutable_fct = ["Hue scale", "Grey scale"]

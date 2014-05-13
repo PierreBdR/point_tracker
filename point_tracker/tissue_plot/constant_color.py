@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
-from .tracking_plot import (ColoringObject, ColorParameters, ColoringObjectType)
+from .tracking_plot import (ColoringObject, ColorParameters, ColoringClass)
 
 class ConstantColor(ColoringObject):
     parameter_class = ColorParameters
@@ -15,29 +15,23 @@ class ConstantColor(ColoringObject):
     def accept_result_type(result_type):
         return True
 
-class CellConstantColor(ConstantColor):
+class CellConstantColor(ColoringClass('cell', base=ConstantColor)):
     coloring_name = "Constant color"
     settings_name = "CellConstantColor"
 
-    __metaclass__ = ColoringObjectType('cell')
-
     def __init__(self, result):
         ConstantColor.__init__(self, result)
 
-class WallConstantColor(ConstantColor):
+class WallConstantColor(ColoringClass('wall', base=ConstantColor)):
     coloring_name = "Constant color"
     settings_name = "WallConstantColor"
 
-    __metaclass__ = ColoringObjectType('wall')
-
     def __init__(self, result):
         ConstantColor.__init__(self, result)
 
-class PointConstantColor(ConstantColor):
+class PointConstantColor(ColoringClass('point', base=ConstantColor)):
     coloring_name = "Constant color"
     settings_name = "PointConstantColor"
-    
-    __metaclass__ = ColoringObjectType('point')
 
     def __init__(self, result):
         ConstantColor.__init__(self, result)

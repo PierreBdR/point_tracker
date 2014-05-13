@@ -19,6 +19,7 @@ from ..tracking_data import RetryTrackingDataException, TrackingData
 from ..growth_computation_methods import Result
 import sys
 from ..sys_utils import toBool
+from ..debug import log_debug
 
 def make_cap_symetric(caps):
     caps = list(caps)
@@ -217,8 +218,8 @@ class ColoringObject(QObject):
 
     def config_widget(self,parent):
         """
-        Default implementation returns `_config` if it exists, otherwise, 
-        call `_config_widget` and store the result in `_config` for 
+        Default implementation returns `_config` if it exists, otherwise,
+        call `_config_widget` and store the result in `_config` for
         later calls.
 
         :returns: The configuration widget for the current method
@@ -314,13 +315,14 @@ coloring_metaclasses = {}
 
 def ColoringObjectType(*objects):
     if not objects:
-        objects = ('cell', 'wall', 'point') 
+        objects = ('cell', 'wall', 'point')
     objects = frozenset(objects)
     global coloring_metaclasses
     if objects not in coloring_metaclasses:
-        colorings_cls = tuple(coloring_classes[obj] for obj in objects)            
+        colorings_cls = tuple(coloring_classes[obj] for obj in objects)
         class ObjectColoringObjectType(type(QObject)):
             def __init__(cls, name, bases, dct):
+                #print("Adding coloring object {0} for objects {1}".format(cls, ", ".join(objects)))
                 type(QObject).__init__(cls, name, bases, dct)
                 if cls.coloring_name:
                     for ccls in colorings_cls:
@@ -328,16 +330,18 @@ def ColoringObjectType(*objects):
         coloring_metaclasses[objects] = ObjectColoringObjectType
     return coloring_metaclasses[objects]
 
-def ColoringClass(*objects):
-    if not objects:
-        objects = ('cell', 'wall', 'point') 
-    objects = frozenset(objects)
+def ColoringClass(objects = None, base=ColoringObject):
+    if objects is None:
+        objects = ('cell', 'wall', 'point')
+    elif not isinstance(objects, tuple):
+        objects = (objects,)
+    ids = frozenset(objects + (base,))
     global coloring_baseclasses
-    if objects not in coloring_baseclasses:
-        class ColoringBaseClass(ColoringObject):
-            __metaclass__ = ColoringObjectType(*objects)
-        coloring_baseclasses[objects] = ColoringBaseClass
-    return coloring_baseclasses[objects]
+    if ids not in coloring_baseclasses:
+        name = "{0}ColoringBaseClass".format("".join(t.capitalize() for t in objects))
+        ColoringBaseClass = ColoringObjectType(*objects)(name, (base,), {})
+        coloring_baseclasses[ids] = ColoringBaseClass
+    return coloring_baseclasses[ids]
 
 class ScaleBar(QObject):
     """
@@ -361,7 +365,7 @@ class ScaleBar(QObject):
         self._scale_show = params.scale_show
         self._scale_bar_outside_image = params.scale_bar_outside_image
         self._params = params
-        
+
     def _showConfig(self):
         self._scale_config_param.exec_()
 
@@ -414,8 +418,8 @@ class ScaleBar(QObject):
 
     @pyqtSignature("int")
     def _changeScaleLineThickness(self, value):
-        self.scale_line_thickness = value 
-        
+        self.scale_line_thickness = value
+
     @pyqtSignature("bool")
     def _set_scaleBarOutsideImage(self, value):
         self.scale_bar_outside_image = value
@@ -615,47 +619,47 @@ def fixRangeParameters(m,M):
             self.range = range
             self._transfer_function = params.transfer_function
             self._config = None
-    
+
         def _get_transfer_function(self):
             '''Transfer function used to convert values into colors
-    
+
             :returntype: `TransferFunction`'''
             return self._transfer_function
-    
+
         def _set_transfer_function(self, value):
             if self._transfer_function != value:
                 self._transfer_function = TransferFunction(value)
                 self._params.transfer_function = self._transfer_function
                 self.emit(SIGNAL("changed"))
-    
+
         transfer_function = property(_get_transfer_function, _set_transfer_function)
-    
+
         def _get_value_capping(self):
             return None
-    
+
         def _set_value_capping(self, value):
             pass
-    
+
         value_capping = property(_get_value_capping, _set_value_capping)
-    
+
         def _get_symetric_coloring(self):
             return False
-    
+
         def _set_symetric_coloring(self, value):
             pass
-    
+
         symetric_coloring = property(_get_symetric_coloring, _set_symetric_coloring)
-    
+
         def widget(self, parent):
             config = createForm("plot_param_theta.ui", parent)
             self._config = config
             QObject.connect(config.changeColorMap, SIGNAL("clicked()"), self._changeColorMap)
             self.addScaleBarWidget(config)
             return self._config
-    
+
         def drawScaleBar(self, painter, value_range, unit, size = None):
             return ScaleBar.drawScaleBar(self, painter, self.range, unit, size)
-    
+
         @pyqtSignature("")
         def _changeColorMap(self):
             dlg = transfer_fct_dlg()
@@ -663,7 +667,7 @@ def fixRangeParameters(m,M):
             if dlg.exec_() == QDialog.Accepted:
                 self.transfer_function = dlg.transfer_fct
             dlg.saveSettings("")
-    
+
         @staticmethod
         def load(params, settings):
             ScaleBar.load(params, settings)
@@ -672,7 +676,7 @@ def fixRangeParameters(m,M):
                 params.transfer_function = TransferFunction.loads(tr)
             else:
                 params.transfer_function = TransferFunction.hue_scale()
-    
+
         @staticmethod
         def save(params, settings):
             ScaleBar.save(params, settings)
@@ -707,8 +711,8 @@ class TransferFunctionParameters(ScaleBar):
 
     def _get_symetric_coloring(self):
         '''
-        If true, the color scheme is forced to be symetric. i.e. If all 
-        values are of the same sign, then 0 is forced into the range. 
+        If true, the color scheme is forced to be symetric. i.e. If all
+        values are of the same sign, then 0 is forced into the range.
         Otherwise, 0 is the middle color of the transfer function.
 
         :returntype: `bool`
@@ -727,8 +731,8 @@ class TransferFunctionParameters(ScaleBar):
 
     def _get_value_capping(self):
         """
-        If not None, value_capping gives the min and max of the color used. 
-        If symetric_coloring is True, the actual capping will be adjusted 
+        If not None, value_capping gives the min and max of the color used.
+        If symetric_coloring is True, the actual capping will be adjusted
         to a symetric one.
 
         :returntype: (float,float)|None
@@ -891,18 +895,18 @@ class DirectionGrowthParameters(ScaleBar):
         self.edit_timer.setSingleShot(True)
         self.edit_timer.setInterval(500)
         self.edit_timer.timeout.connect(self.loadEdit)
-    
+
     def _get_data_file(self):
         """Data file holding the points for the direction"""
         return self._data_file
-    
+
     def _set_data_file(self, value):
         value = path(value)
         if self._data_file != value:
             self._data_file = value
             self.load_data()
             self.emit(SIGNAL("changed"))
-    
+
     data_file = property(fget=_get_data_file,fset=_set_data_file,doc=_get_data_file.__doc__)
 
     def load_data(self, **loading_arguments):
@@ -910,7 +914,7 @@ class DirectionGrowthParameters(ScaleBar):
             if self.data_file == self.result.current_filename:
                 self.data = self.result.data
             else:
-# First, prepare the data by getting the images and computing how big they 
+# First, prepare the data by getting the images and computing how big they
 # should be
                 f = open(self.data_file)
                 first_line = f.readline()
@@ -968,7 +972,7 @@ class DirectionGrowthParameters(ScaleBar):
     def _get_data_points(self):
         """Ids of the data points defining the direction in the data file"""
         return self._data_points
-    
+
     def _set_data_points(self, value):
         value = (int(value[0]), int(value[1]))
         if self._data_points != value:
@@ -993,8 +997,8 @@ class DirectionGrowthParameters(ScaleBar):
 
     def _get_symetric_coloring(self):
         '''
-        If true, the color scheme is forced to be symetric. i.e. If all 
-        values are of the same sign, then 0 is forced into the range. 
+        If true, the color scheme is forced to be symetric. i.e. If all
+        values are of the same sign, then 0 is forced into the range.
         Otherwise, 0 is the middle color of the transfer function.
 
         :returntype: `bool`
@@ -1010,11 +1014,11 @@ class DirectionGrowthParameters(ScaleBar):
             self.emit(SIGNAL("changed"))
 
     symetric_coloring = property(_get_symetric_coloring, _set_symetric_coloring)
-    
+
     def _get_orthogonal(self):
         """If true, the points mark the line orthogonal to the direction wanted"""
         return self._orthogonal
-    
+
     @pyqtSignature("bool")
     def _set_orthogonal(self, value):
         value = bool(value)
@@ -1022,13 +1026,13 @@ class DirectionGrowthParameters(ScaleBar):
             self._orthogonal = value
             self._params.orthogonal = value
             self.emit(SIGNAL("changed"))
-    
+
     orthogonal = property(fget=_get_orthogonal,fset= _set_orthogonal,doc=_get_orthogonal.__doc__)
 
     def _get_draw_line(self):
         """If truem draw the line defining the direction"""
         return self._draw_line
-    
+
     @pyqtSignature("bool")
     def _set_draw_line(self, value):
         value = bool(value)
@@ -1042,20 +1046,20 @@ class DirectionGrowthParameters(ScaleBar):
     def _get_line_color(self):
         """Color of the line defining the direction"""
         return self._line_color
-    
+
     def _set_line_color(self, value):
         value = QColor(value)
         if self._line_color != value:
             self._line_color = value
             self._params.line_color = value
             self.emit(SIGNAL("changed"))
-    
+
     line_color = property(fget=_get_line_color,fset= _set_line_color,doc=_get_line_color.__doc__)
-    
+
     def _get_line_width(self):
         """Width of the line in pixels"""
         return self._line_width
-    
+
     @pyqtSignature("int")
     def _set_line_width(self, value):
         value = int(value)
@@ -1063,13 +1067,13 @@ class DirectionGrowthParameters(ScaleBar):
             self._line_width = value
             self._params.line_width = value
             self.emit(SIGNAL("changed"))
-    
+
     line_width = property(fget=_get_line_width,fset= _set_line_width,doc=_get_line_width.__doc__)
 
     def _get_value_capping(self):
         """
-        If not None, value_capping gives the min and max of the color used. 
-        If symetric_coloring is True, the actual capping will be adjusted 
+        If not None, value_capping gives the min and max of the color used.
+        If symetric_coloring is True, the actual capping will be adjusted
         to a symetric one.
 
         :returntype: (float,float)|None
@@ -1189,7 +1193,7 @@ class DirectionGrowthParameters(ScaleBar):
             self.transfer_function = dlg.transfer_fct
         dlg.stickers = []
         dlg.saveSettings("")
-        
+
     @pyqtSignature("bool")
     def _cappingChanged(self, value):
         if value:

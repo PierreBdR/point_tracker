@@ -100,7 +100,7 @@ class CellGeometry(ColoringClass('cell')):
 
     def bestUnit(self, _):
         return self.unit, 1
-    
+
     def bestUnitLinear(self, caps):
         ref_value = max(abs(caps[0], abs(caps[1])))
         ref_exp = floor(log10(ref_value)/3)

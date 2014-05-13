@@ -81,7 +81,7 @@ class PlottingDlg(QDialog):
         self.ui = Ui_PlottingDlg()
         self.ui.setupUi(self)
         self.options_button = self.ui.buttonBox.addButton("Options", QDialogButtonBox.ActionRole)
-        imgs = [ str(i) for i in QImageWriter.supportedImageFormats() ]
+        imgs = [ bytes(i).decode() for i in QImageWriter.supportedImageFormats() ]
         self.ui.fileFormat.addItems(imgs)
         self.img_formats = imgs
         self.result = None
@@ -680,7 +680,8 @@ class PlottingDlg(QDialog):
                 self.thread.wait()
                 del self.progress
             if self.thread.loading:
-                QMessageBox.critical(self, "Invalid file", "File %s could not be loaded.\nError: '%s'" % (self.thread.result, event.reason.message))
+                QMessageBox.critical(self, "Invalid file", "File %s could not be loaded.\nError: '%s'" 
+                        % (self.thread.result, str(event.reason)))
                 self.has_cells = False
                 self.has_walls = False
                 self.has_points = False
@@ -1141,7 +1142,7 @@ class PlottingThread(QThread):
             self.retryObject = None
 # First, prepare the data by getting the images and computing how big they
 # should be
-            f = file(filename)
+            f = open(filename)
             first_line = f.readline()
             f.close()
             if first_line.startswith("TRKR_VERSION"):

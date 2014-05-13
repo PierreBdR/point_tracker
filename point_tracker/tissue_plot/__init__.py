@@ -12,7 +12,7 @@ import sys
 import traceback
 from .. import loader
 from ..path import path
-import imp
+import importlib
 import sys
 
 def loadClasses():
@@ -25,14 +25,15 @@ def loadClasses():
         sys_files.append(path(f).abspath())
     search_path = path(__file__).abspath().dirname()
     errors = []
+    pack_name = "point_tracker.tissue_plot"
     for f in search_path.files("*.py"):
         if f not in sys_files:
             module_name = f.basename()[:-3]
-            pack_name = "point_tracker.tissue_plot.%s" % module_name
             try:
                 log_debug("Importing classes from module %s" % module_name)
-                mod_desc = imp.find_module(module_name, [search_path])
-                mod = imp.load_module(pack_name, *mod_desc)
+                importlib.import_module("." + module_name, pack_name)
+                #mod_desc = imp.find_module(module_name, [search_path])
+                #mod = imp.load_module(pack_name, *mod_desc)
             except ImportError as ex:
                 tb = sys.exc_info()[2]
                 error_loc = "\n".join("In file %s, line %d\n\tIn '%s': %s" % e for e in traceback.extract_tb(tb))

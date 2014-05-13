@@ -216,7 +216,7 @@ class Result(object):
 
     def load_version01(self, filename, **opts):
         fields_num = Result.fields_num
-        f = open(filename, "rb")
+        f = open(filename, "r")
         r = csv.reader(f, delimiter=',')
         l = next(r)
         assert l[0] == "TRKR_VERSION" and l[1] == "0.1", "Wrong reader for version %s:%s" % (l[0], l[1])
@@ -261,7 +261,7 @@ class Result(object):
 
     def load_version03(self, filename, **opts):
         fields_num = Result.fields_num
-        f = open(filename, "rb")
+        f = open(filename, "r")
         l1 = f.readline()
         if '\t' in l1: 
             delim = '\t'
@@ -270,7 +270,7 @@ class Result(object):
         else:
             raise GrowthResultException("Invalid file format, delimiter needs to be '\\t' or ','")
         f.close()
-        f = open(filename, "rb")
+        f = open(filename, "r")
         r = csv.reader(f, delimiter=delim)
         l = next(r)
         if "force_load" not in opts or not opts['force_load']:
@@ -311,7 +311,7 @@ class Result(object):
 
     def load_version04(self, filename, **opts):
         fields_num = Result.fields_num
-        f = open(filename, "rb")
+        f = open(filename, "r")
         l1 = f.readline()
         if '\t' in l1: 
             delim = '\t'
@@ -320,7 +320,7 @@ class Result(object):
         else:
             raise GrowthResultException("Invalid file format, delimiter needs to be '\\t' or ','")
         f.close()
-        f = open(filename, "rb")
+        f = open(filename, "r")
         r = csv.reader(f, delimiter=delim)
         l = next(r)
         if "force_load" not in opts or not opts['force_load']:
@@ -401,7 +401,7 @@ class Result(object):
     def load(self, filename, **opts):
         self.current_filename = filename
         version = None
-        f = open(filename, 'rb')
+        f = open(filename, 'r')
         first_line = f.readline()
         f.close()
         if "," in first_line:
