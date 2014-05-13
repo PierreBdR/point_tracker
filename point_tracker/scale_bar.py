@@ -207,6 +207,7 @@ class ScaleBar(object):
 # First, prepare the gradient
         w = viewport.width()
         h = viewport.height()
+        #print("Size of viewport: {0}x{1}".format(w, h))
         gr = QLinearGradient()
         nb_values = ceil(w/5.0)
         brush_color = QColor()
@@ -292,12 +293,15 @@ class ScaleBar(object):
             shift_top = -dist_to_bar-max_height
         painter.save()
         painter.translate(viewport.topLeft())
+        #print("viewport.topLeft() = {0}x{1}".format(viewport.left(), viewport.top()))
         painter.setBrush(gr)
         line_pen = QPen(line_color)
         line_pen.setWidth(line_thickness)
         painter.setPen(line_pen)
         painter.drawRect(scale_rect)
         bounding_rect |= scale_rect
+        #print("Scale rect: +{0}+{1}x{2}x{3}".format(scale_rect.left(),
+            #scale_rect.top(), scale_rect.width(), scale_rect.height()))
         painter.setFont(font)
         painter.setPen(text_color)
         for ts,t in zip(ticks_str, ticks):

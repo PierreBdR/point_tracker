@@ -978,9 +978,9 @@ class PlottingThread(QThread):
             return None, None, None
         painter.setRenderHints(QPainter.SmoothPixmapTransform, True)
         painter.setRenderHints(QPainter.Antialiasing, True)
-        painter.translate(-self._crop.topLeft())
         if overSampling > 1:
             painter.scale(overSampling, overSampling)
+        painter.translate(-self._crop.topLeft())
         painter.save()
         painter.translate(self.translate)
         log_debug("Translating: %gx%g" % (self.translate.x(), self.translate.y()) )
