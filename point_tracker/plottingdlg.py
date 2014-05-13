@@ -111,6 +111,18 @@ class PlottingDlg(QDialog):
         self.reload_classes()
 
     def __del__(self):
+        QObject.disconnect(self.preview_button, SIGNAL("toggled(bool)"), self.show_preview)
+        QObject.disconnect(self.reload_button, SIGNAL("clicked()"), self.reload_classes)
+        QObject.disconnect(self.options_button, SIGNAL("clicked()"), self.open_options)
+        self.preview = None
+        self.preview_button = None
+        self.apply_button = None
+        self.reload_button = None
+        self.thread = None
+        self.data = None
+        self.result = None
+        self.ui = None
+        self.progress = None
         print("Finalize Plotting") # this seems to be fixing bugs !#!#!
 
     def load_preferences(self):
@@ -177,13 +189,15 @@ class PlottingDlg(QDialog):
         settings.setValue("FileFormat", self.file_format)
         settings.endGroup()
 
-    def _get_file_format(self):
+    @property
+    def file_format(self):
         '''Default file format
 
         :returntype: str'''
         return self._file_format
 
-    def _set_file_format(self, value):
+    @file_format.setter
+    def file_format(self, value):
         value = str(value)
         if self._file_format != value:
             self._file_format = value
@@ -191,9 +205,8 @@ class PlottingDlg(QDialog):
                 self.thread.fileFormat = value
                 self.apply_button.setEnabled(self.thread.valid())
 
-    file_format = property(_get_file_format, _set_file_format)
-
-    def _get_over_sampling(self):
+    @property
+    def over_sampling(self):
         '''
         Over-sampling rate for the rendering
 
@@ -201,7 +214,8 @@ class PlottingDlg(QDialog):
         '''
         return self._over_sampling
 
-    def _set_over_sampling(self, value):
+    @over_sampling.setter
+    def over_sampling(self, value):
         value = int(value)
         if self._over_sampling != value:
             self._over_sampling = value
@@ -209,9 +223,8 @@ class PlottingDlg(QDialog):
                 self.thread.overSampling = value
                 self.update_preview()
 
-    over_sampling = property(_get_over_sampling, _set_over_sampling)
-
-    def _get_wall_thickness(self):
+    @property
+    def wall_thickness(self):
         '''
         Thickness used to draw the cell walls
 
@@ -219,7 +232,8 @@ class PlottingDlg(QDialog):
         '''
         return self._wall_thickness
 
-    def _set_wall_thickness(self, value):
+    @wall_thickness.setter
+    def wall_thickness(self, value):
         value = float(value)
         if self._wall_thickness != value:
             self._wall_thickness = value
@@ -227,9 +241,8 @@ class PlottingDlg(QDialog):
                 self.thread.wallThickness = value
                 self.update_preview()
 
-    wall_thickness = property(_get_wall_thickness, _set_wall_thickness)
-
-    def _get_point_size(self):
+    @property
+    def point_size(self):
         """
         Size of the point drawing (i.e. radius of the disk)
 
@@ -237,7 +250,8 @@ class PlottingDlg(QDialog):
         """
         return self._point_size
 
-    def _set_point_size(self, value):
+    @point_size.setter
+    def point_size(self, value):
         value = float(value)
         if self._point_size != value:
             self._point_size = value
@@ -245,9 +259,8 @@ class PlottingDlg(QDialog):
                 self.thread.pointSize = value
                 self.update_preview()
 
-    point_size = property(_get_point_size, _set_point_size)
-
-    def _get_point_line_thickness(self):
+    @property
+    def point_line_thickness(self):
         """
         Thickness of the contour of the points
 
@@ -255,7 +268,8 @@ class PlottingDlg(QDialog):
         """
         return self._point_line_thickness
 
-    def _set_point_line_thickness(self, value):
+    @point_line_thickness.setter
+    def point_line_thickness(self, value):
         value = float(value)
         if self._point_line_thickness != value:
             self._point_line_thickness = value
@@ -263,9 +277,8 @@ class PlottingDlg(QDialog):
                 self.thread.pointLineThickness = value
                 self.update_preview()
 
-    point_line_thickness = property(_get_point_line_thickness, _set_point_line_thickness)
-
-    def _get_point_line_color(self):
+    @property
+    def point_line_color(self):
         """
         Color of the contour of the points
 
@@ -273,7 +286,8 @@ class PlottingDlg(QDialog):
         """
         return self._point_line_color
 
-    def _set_point_line_color(self, value):
+    @point_line_color.setter
+    def point_line_color(self, value):
         value = QColor(value)
         if self._point_line_color != value:
             self._point_line_color = value
@@ -281,23 +295,21 @@ class PlottingDlg(QDialog):
                 self.thread.pointLineColor = value
                 self.update_preview()
 
-    point_line_color = property(_get_point_line_color, _set_point_line_color)
-
-    def _get_bg_color(self):
+    @property
+    def bg_color(self):
         '''Color of the image background
 
         :returntype: `QColor`'''
         return self._bg_color
 
-    def _set_bg_color(self, value):
+    @bg_color.setter
+    def bg_color(self, value):
         value = QColor(value)
         if self._bg_color != value:
             self._bg_color = value
             if self.thread is not None:
                 self.thread.bgColor = value
                 self.update_preview()
-
-    bg_color = property(_get_bg_color, _set_bg_color)
 
     @pyqtSignature("bool")
     def show_preview(self, value):
@@ -343,15 +355,15 @@ class PlottingDlg(QDialog):
         p = path(txt)
         self.loadFile(p)
 
-    def _get_auto_update(self):
+    @property
+    def auto_update(self):
         '''If true, the preview is updated automatically everytime a new element is changed'''
         return self._auto_update
 
-    def _set_auto_update(self, value):
+    @auto_update.setter
+    def auto_update(self, value):
         if self._auto_update != value:
             self._auto_update = value
-
-    auto_update = property(_get_auto_update, _set_auto_update)
 
     def enableControls(self, value = True):
         self.preview_button.setEnabled(value)
