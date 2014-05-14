@@ -7,8 +7,9 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QItemDelegate, QLineEdit, QBrush, QColor, QPalette
-from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, SIGNAL
+from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex
 from math import floor
+from .sys_utils import cleanQObject
 
 class ScaleModel(QAbstractTableModel):
     def __init__(self, icons, names, scales):
@@ -23,6 +24,9 @@ class ScaleModel(QAbstractTableModel):
             self.createIndex(idx, 0, root)
             self.createIndex(idx, 1, root)
         self.root = root
+
+    def __del__(self):
+        cleanQObject(self)
 
     def findUnit(self, size):
         if size > 90:
@@ -139,7 +143,7 @@ class ScaleModel(QAbstractTableModel):
                 return False
             next_row_changed = False
             self.scales[row][column-1] = value
-            self.emit(SIGNAL("dataChanged(const QModelIndex&,const QModelIndex&)"), index, index)
+            self.dataChanged["const QModelIndex&","const QModelIndex&"].emit(index, index)
             return True
         return False
 
@@ -168,11 +172,13 @@ class ScaleModel(QAbstractTableModel):
         return idx.row()
 
     def allModified(self):
-        self.emit(SIGNAL("dataChanged(const QModelIndex&,const QModelIndex&)"), self.index(0,1), self.index(len(self.names)-1, 2))
+        self.dataChanged["const QModelIndex&","const QModelIndex&"].emit(self.index(0,1),
+                                                                         self.index(len(self.names)-1, 2))
 
     def subsetModified(self, sel):
         rows = [ r.row() for r in sel.selectedRows(1) ]
-        self.emit(SIGNAL("dataChanged(const QModelIndex&,const QModelIndex&)"), self.index(min(rows),1), self.index(max(rows), 2))
+        self.dataChanged["const QModelIndex&","const QModelIndex&"].emit(self.index(min(rows), 1),
+                                                                         self.index(max(rows), 2))
 
     def setAll(self, w, h):
         w = float(w)

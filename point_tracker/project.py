@@ -3,13 +3,16 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from .path import path
 from .tracking_data import TrackingData, TrackingDataException
-from PyQt4.QtCore import QObject, QCoreApplication, SIGNAL
+from PyQt4.QtCore import QObject, QCoreApplication, Signal
 from PyQt4.QtGui import QImageReader
 from . import parameters
 from .debug import log_debug
 import re
+from .sys_utils import cleanQObject
 
 class Project(QObject):
+    changedDataFile = Signal(path)
+
     """
     Class maintaining a project and its directory structure
 
@@ -27,6 +30,9 @@ class Project(QObject):
         self.images_dir = dir_/'Processed'
         self._valid_project = None
         self.data = None
+
+    def __del__(self):
+        cleanQObject(self)
 
     @property
     def main_dir(self):
@@ -88,7 +94,7 @@ class Project(QObject):
         log_debug("Setting data file to %s" % (file_,))
         if file_ != self._data_file:
             self._data_file = path(file_)
-            self.emit(SIGNAL("changedDataFile"), self._data_file)
+            self.changedDataFile.emit(self._data_file)
 
     supported_image_types = []
     """

@@ -7,6 +7,7 @@ from .normcross import normcross2d
 from PyQt4.QtCore import QThread, QEvent, QCoreApplication, QPointF, QRectF
 from .tracking_undo import AddPoints, MovePoints
 import math
+from .sys_utils import cleanQObject
 
 class NextImage(QEvent):
     """
@@ -72,6 +73,9 @@ class FindInAll(QThread):
         self.filter_size = (filter_size,filter_size)
         self.num_images = len(self.list_images)-2
         self.pts = pts
+
+    def __del__(self):
+        cleanQObject(self)
 
     def run(self):
         import image_cache

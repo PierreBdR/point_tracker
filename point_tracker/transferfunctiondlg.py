@@ -9,6 +9,9 @@ from .path import path
 from .debug import log_debug
 
 class TransferFunctionDlg( QtGui.QDialog ):
+    transferFctChanged = QtCore.Signal(object)
+    saveState = QtCore.Signal()
+
     immutable_fct = ["Hue scale", "Grey scale"]
 
 
@@ -20,7 +23,7 @@ class TransferFunctionDlg( QtGui.QDialog ):
 
         self.fctViewer = self.ui.fctViewer
 
-        QtCore.QObject.connect(self, QtCore.SIGNAL("transferFctChanged"), self.fctViewer.setupGradient)
+        self.transferFctChanged.connect(self.fctViewer.setupGradient)
 
         self._fctlist = {}
 
@@ -31,41 +34,46 @@ class TransferFunctionDlg( QtGui.QDialog ):
 
         self.setSelectionColor(self.ui.fctViewer.activ_pos_color)
 
-        QtCore.QObject.connect(self.fctViewer, QtCore.SIGNAL("slowChange"), self.temporaryChange)
+        self.fctViewer.slowChange.connect(self.temporaryChange)
 
     def setSelectionColor(self, col):
         palette = QtGui.QPalette()
         palette.setColor(self.ui.selectionColor.backgroundRole(), col)
         self.ui.selectionColor.setPalette(palette)
 
-    def _SetHistogram(self, histo):
+    @property
+    def histogram(self):
+        return self._histogram
+
+    @histogram.setter
+    def histogram(self, histo):
         if self._histogram == histo:
             return
         self._histogram = histo
         self.fctViewer.histogram = histo
 
-    def _GetHistogram(self):
-        return self._histogram
-
-    histogram = property(_GetHistogram, _SetHistogram)
-
-    def _GetUseHistogram(self):
+    @property
+    def use_histogram(self):
         return self.fctViewer.use_histogram
 
-    def _SetUseHistogram(self, value):
+    @use_histogram.setter
+    def use_histogram(self, value):
         self.fctViewer.use_histogram = value
 
-    use_histogram = property(_GetUseHistogram, _SetUseHistogram)
-
-    def _GetStickers(self):
+    @property
+    def stickers(self):
         return self.fctViewer.stickers
 
-    def _SetStickers(self, value):
+    @stickers.setter
+    def stickers(self, value):
         self.fctViewer.stickers = value
 
-    stickers = property(_GetStickers, _SetStickers)
+    @property
+    def transfer_fct(self):
+        return self._transfer_fct
 
-    def _SetTransferFct(self, fct):
+    @transfer_fct.setter
+    def transfer_fct(self, fct):
         if not hasattr(fct, "interpolation"):
             fct = TransferFunction.loads(fct)
         if fct == self._transfer_fct:
@@ -81,28 +89,23 @@ class TransferFunctionDlg( QtGui.QDialog ):
             self.ui.functionList.setEditText("")
             self.ui.functionList.setCurrentIndex(-1)
 
-    def _GetTransferFct(self):
-        return self._transfer_fct
-
-    transfer_fct = property(_GetTransferFct, _SetTransferFct)
-
     def transfer_fct_string(self):
         return self.transfer_fct.dumps()
 
     @QtCore.pyqtSignature("")
     def on_useRGB_clicked(self):
         self.fctViewer.transfer_fct.interpolation = "rgb"
-        self.emit(QtCore.SIGNAL("transferFctChanged"), self.transfer_fct)
+        self.transferFctChanged.emit(self.transfer_fct)
 
     @QtCore.pyqtSignature("")
     def on_useHSV_clicked(self):
         self.fctViewer.transfer_fct.interpolation = "hsv"
-        self.emit(QtCore.SIGNAL("transferFctChanged"), self.transfer_fct)
+        self.transferFctChanged.emit(self.transfer_fct)
 
     @QtCore.pyqtSignature("")
     def on_useCyclicHSV_clicked(self):
         self.fctViewer.transfer_fct.interpolation = "cyclic_hsv"
-        self.emit(QtCore.SIGNAL("transferFctChanged"), self.transfer_fct)
+        self.transferFctChanged.emit(self.transfer_fct)
 
     @QtCore.pyqtSignature("")
     def on_saveFunction_clicked(self):
@@ -167,7 +170,7 @@ class TransferFunctionDlg( QtGui.QDialog ):
                 self.ui.useHSV.setChecked(True)
             else:
                 self.ui.useCyclicHSV.setChecked(True)
-            self.emit(QtCore.SIGNAL("transferFctChanged"), self.transfer_fct)
+            self.transferFctChanged.emit(self.transfer_fct)
 
     def deleteFunction(self, fctname):
         if fctname in self._fctlist:
@@ -233,16 +236,16 @@ class TransferFunctionDlg( QtGui.QDialog ):
 
     def reset(self):
         self.transfer_fct = self.saved_transfer_fct.copy()
-        self.emit(QtCore.SIGNAL("transferFctChanged"), self.transfer_fct)
-        self.emit(QtCore.SIGNAL("saveState"))
+        self.transferFctChanged.emit(self.transfer_fct)
+        self.saveState.emit()
 
     def validate(self):
         self.saved_transfer_fct = self.transfer_fct.copy()
-        self.emit(QtCore.SIGNAL("transferFctChanged"), self.transfer_fct)
-        self.emit(QtCore.SIGNAL("saveState"))
+        self.transferFctChanged.emit(self.transfer_fct)
+        self.saveState.emit()
 
     def temporaryChange(self):
-        self.emit(QtCore.SIGNAL("transferFctChanged"), self.transfer_fct)
+        self.transferFctChanged.emit(self.transfer_fct)
 
     @QtCore.pyqtSignature("")
     def on_selectSelectionColor_clicked(self):

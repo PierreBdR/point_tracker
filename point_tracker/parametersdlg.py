@@ -3,12 +3,12 @@ __author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
 __docformat__ = "restructuredtext"
 from .ui_parametersdlg import Ui_ParametersDlg
 from PyQt4.QtGui import QDialog, QPalette, QColor, QColorDialog, QMessageBox
-from PyQt4.QtCore import QObject, SIGNAL, SLOT
+from PyQt4.QtCore import QObject, SLOT
 from PyQt4 import QtCore
 from math import ceil
 from . import image_cache
 from . import parameters
-from .sys_utils import changeColor, setColor, getColor
+from .sys_utils import changeColor, setColor, getColor, cleanQObject
 
 class ParametersDlg(QDialog):
     def __init__(self, max_size, *args):
@@ -51,7 +51,10 @@ class ParametersDlg(QDialog):
 
         self.ui.filterSize.setValue(params.filter_size_ratio_percent)
 
-        QObject.connect(self.params, SIGNAL("searchParameterChange"), self.setupTemplateParameters)
+        self.params.searchParameterChange.connect(self.setupTemplateParameters)
+
+    def __del__(self):
+        cleanQObject(self)
 
     def setupTemplateParameters(self):
         self.ui.searchSize.setValue(self.params.search_size)

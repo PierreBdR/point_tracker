@@ -3,6 +3,7 @@ __author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtGui import QDialog
 from .ui_alignmentdlg import Ui_AlignmentDlg
+from .sys_utils import cleanQObject
 
 class AlignmentDlg(QDialog):
     def __init__(self, nb_pts, *args):
@@ -17,4 +18,7 @@ class AlignmentDlg(QDialog):
             ui.rotationPt2.addItem(s)
         ui.rotationPt1.setCurrentIndex(0)
         ui.rotationPt2.setCurrentIndex(1)
+
+    def __del__(self):
+        cleanQObject(self)
 

@@ -7,7 +7,7 @@ __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import (QDialog, QIcon, QPixmap, QMenu, QItemSelectionModel, QItemSelection,
         QFileDialog, QMessageBox, QProgressDialog, QDialogButtonBox)
-from PyQt4.QtCore import pyqtSignature, Qt, QSize, QThread, QEvent, SIGNAL, QMutex, QCoreApplication
+from PyQt4.QtCore import pyqtSignature, Qt, QSize, QThread, QEvent, QMutex, QCoreApplication
 from .ui_growth_computation import Ui_GrowthComputationDlg
 from .timemodel import TimedImageModel
 from . import image_cache
@@ -15,6 +15,7 @@ from .path import path
 from . import growth_computation_methods
 from .sys_utils import retryException, showException
 from .tracking_data import TrackingDataException, RetryTrackingDataException
+from .sys_utils import cleanQObject
 
 class GrowthComputationDlg(QDialog):
     def __init__(self, data, parent=None):
@@ -60,6 +61,9 @@ class GrowthComputationDlg(QDialog):
         self.ui.forwardMethod.setChecked(True)
         self.resample = 100
         self.ui.resample.setChecked(True)
+
+    def __del__(self):
+        cleanQObject(self)
 
     @pyqtSignature("")
     def loadGrowthFile(self, **opts):
@@ -300,7 +304,7 @@ class GrowthComputationDlg(QDialog):
         progress = QProgressDialog("Computing the growth on %d images" % nb_images, "Abort", 0, nb_images-1, self)
         progress.setMinimumDuration(2000)
         self.progress = progress
-        self.connect(progress, SIGNAL("canceled()"), thread.stop)
+        progress.canceled.connect(thread.stop)
         thread.start()
 
     def event(self, event):
@@ -348,6 +352,9 @@ class GrowthComputationThread(QThread):
         self.mutex = QMutex()
         self.filename = None
         self._stop = False
+
+    def __del__(self):
+        cleanQObject(self)
 
     @property
     def method(self):

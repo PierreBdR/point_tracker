@@ -7,7 +7,7 @@ __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QDialog
 from PyQt4.QtCore import pyqtSignature
-from .sys_utils import setColor, getColor, changeColor
+from .sys_utils import setColor, getColor, changeColor, cleanQObject
 
 from .ui_plottingoptionsdlg import Ui_PlottingOptionsDlg
 
@@ -29,6 +29,9 @@ class PlottingOptionsDlg(QDialog):
         setColor(self.ui.bgColor, parent.bg_color)
         self.ui.pointLineThickness.setValue(parent.point_line_thickness)
         setColor(self.ui.pointLineColor, parent.point_line_color)
+
+    def __del__(self):
+        cleanQObject(self)
 
     @pyqtSignature("")
     def on_selectBgColor_clicked(self):

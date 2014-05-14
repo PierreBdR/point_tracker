@@ -4,7 +4,7 @@ __docformat__ = "restructuredtext"
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 from PyQt4.QtGui import QFont, QLinearGradient, QColor, QFontMetricsF, QPen
 from PyQt4.QtCore import QRectF, Qt, QPointF
-from numpy import log10, floor, arange, ceil, round, abs
+from numpy import log10, floor, arange, ceil, round, abs, isfinite
 from .debug import log_debug
 
 def limit_rect(rect, size, lim_width, lim_height):
@@ -82,7 +82,8 @@ class ScaleBar(object):
         if m <= 0.01:
             exp = -1000
             for t in ticks:
-                exp = max(log10(t), exp)
+                if t != 0:
+                    exp = max(log10(t), exp)
             exp -= 1
             exp = floor(exp)
             factor = 10**exp
@@ -96,7 +97,8 @@ class ScaleBar(object):
         elif m >= 20000:
             exp = 1000
             for t in ticks:
-                exp = min(log10(t), exp)
+                if t != 0:
+                    exp = min(log10(t), exp)
             factor = 10**exp
             new_ticks = ticks/factor
             t = abs(round(new_ticks) - new_ticks)

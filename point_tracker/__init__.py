@@ -6,5 +6,9 @@ import sip
 sip.setapi('QString', 2)
 sip.setapi('QVariant', 2)
 
+from PyQt4 import QtCore
+QtCore.Signal = QtCore.pyqtSignal
+QtCore.Slot = QtCore.pyqtSlot
+
 __version__ = "0.7"
 __revision__ = "1"

@@ -16,6 +16,8 @@ def hsva_to_rgba(h, s, v, a):
     return hsv_to_rgb(h, s, v) + (a,)
 
 class TransferFunction(QtCore.QObject):
+    changed = QtCore.Signal()
+
     def __init__(self, copy = None):
         QtCore.QObject.__init__(self)
         if copy is None:
@@ -103,35 +105,40 @@ class TransferFunction(QtCore.QObject):
         cpy.clamp = self.clamp
         return cpy
 
-    def _SetInterpolation(self, value):
-        if self._GetInterpolation() == value:
-            return
-        if value not in ["rgb", "hsv", "cyclic_hsv"]:
-            raise ValueError("Interpolation must be either 'rgb', 'hsv' or 'cyclic_hsv'")
-        self._interpolation = value[-3:]
-        self._cyclic = value.startswith("cyclic")
-        self.emit(QtCore.SIGNAL("changed()"))
-
-    def _GetInterpolation(self):
+    @property
+    def interpolation(self):
         cyclic = ""
         if self._cyclic:
             cyclic = "cyclic_"
         return "%s%s" % (cyclic, self._interpolation)
 
-    interpolation = property(_GetInterpolation, _SetInterpolation)
+    @interpolation.setter
+    def interpolation(self, value):
+        if self.interpolation == value:
+            return
+        if value not in ["rgb", "hsv", "cyclic_hsv"]:
+            raise ValueError("Interpolation must be either 'rgb', 'hsv' or 'cyclic_hsv'")
+        self._interpolation = value[-3:]
+        self._cyclic = value.startswith("cyclic")
+        self.changed.emit()
 
-    def _SetClamp(self, value):
+    @property
+    def clamp(self ):
+        return self._clamp
+
+    @clamp.setter
+    def clamp(self, value):
         if self._clamp == value:
             return
         self._clamp = bool(value)
-        self.emit(QtCore.SIGNAL("changed()"))
+        self.changed.emit()
 
-    def _GetClamp(self ):
-        return self._clamp
+    @property
+    def exterior_color(self):
+        return self._exterior_color
 
-    clamp = property(_GetClamp, _SetClamp)
-
-    def _SetExteriorColor(self, color):
+    @exterior_color.setter
+    def exterior_color(self, color):
         if color == self._exterior_color:
             return
         try:
@@ -143,12 +150,7 @@ class TransferFunction(QtCore.QObject):
         except TypeError:
             raise TypeError("Exterior color must be an iterable of 4 elements")
         self._exterior_color = color
-        self.emit(QtCore.SIGNAL("changed()"))
-
-    def _GetExteriorColor(self):
-        return self._exterior_color
-
-    exterior_color = property(_GetExteriorColor, _SetExteriorColor)
+        self.changed.emit()
 
     def __len__(self):
         return len(self._values)
@@ -212,7 +214,7 @@ class TransferFunction(QtCore.QObject):
         values.sort()
         self._values = values
         self.update_keys()
-        self.emit(QtCore.SIGNAL("changed()"))
+        self.changed.emit()
 
     def add_rgba_point(self, pos, r, g, b, a):
         if pos in self._keys:
@@ -224,7 +226,7 @@ class TransferFunction(QtCore.QObject):
             self._values.append((pos, (r, g, b, a)))
             self._values.sort()
             self.update_keys()
-        self.emit(QtCore.SIGNAL("changed()"))
+        self.changed.emit()
 
     def add_hsva_point(self, pos, h, s, v, a):
         rgba = hsva_to_rgba(h, s, v, a)
@@ -235,7 +237,7 @@ class TransferFunction(QtCore.QObject):
             raise ValueError("No point at pos %s" % pos)
         del self._values[self._keys[pos]]
         self.update_keys()
-        self.emit(QtCore.SIGNAL("changed()"))
+        self.changed.emit()
 
     def rgba_point(self, pos):
         return self._values[self._keys[pos]][1]
@@ -243,21 +245,21 @@ class TransferFunction(QtCore.QObject):
     def hsva_point(self, pos):
         return rgba_to_hsva(*self. rgba_point(pos))
 
-    def _GetPointList(self):
+    @property
+    def point_list(self):
         return self._values
 
-    def _SetPointList(self, values):
+    @point_list.setter
+    def point_list(self, values):
         if values == self._values:
             return
         self._values = values
         self.update_keys()
 
-    point_list = property(_GetPointList, _SetPointList)
-
     def clear(self):
         self._values = []
         self._keys = {}
-        self.emit(QtCore.SIGNAL("changed()"))
+        self.changed.emit()
 
     def move_point(self, old_pos, new_pos):
         if old_pos not in self._keys:
@@ -266,7 +268,7 @@ class TransferFunction(QtCore.QObject):
         col = self._values[id][1]
         self._values[id] = (new_pos, col)
         self.update_keys()
-        self.emit(QtCore.SIGNAL("changed()"))
+        self.changed.emit()
 
     def next_pos(self, pos):
         if pos not in self._keys:

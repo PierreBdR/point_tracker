@@ -3,10 +3,27 @@ from __future__ import print_function, division, absolute_import
 __docformat__ = "restructuredtext"
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 from PyQt4.QtGui import QPalette, QColorDialog, QMessageBox
+from PyQt4.QtCore import QObject
 from .path import path
 import sys
 from PyQt4 import uic
 from .debug import caller, log_debug
+
+class Destroyed(object):
+    instance = None
+    def __new__(cls):
+        if cls.instance is None:
+            cls.instance = object.__new__(cls)
+        return cls.instance
+
+def cleanQObject(obj):
+    """
+    Erase all instance of QObject from the `obj` dictionnary.
+
+    Useful to call in the destructor of QObject's to avoid crashes on application exit.
+    """
+    for n in list(obj.__dict__):
+        setattr(obj, n, Destroyed())
 
 def toBool(s):
     try:

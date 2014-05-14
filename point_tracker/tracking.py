@@ -28,7 +28,6 @@ def compileUis():
 
 def createWindow():
     global main_win
-    debug.init()
     setAppConfig()
     if QtGui.QApplication.startingUp():
         app = QtGui.QApplication(sys.argv)
@@ -50,6 +49,7 @@ def createWindow():
     return app, main_win
 
 def ipython():
+    debug.init()
     global main_window, app
     import __main__
     if 'IPython' in __main__.__class__.__module__:
@@ -59,6 +59,7 @@ def ipython():
     return app, main_window
 
 def run():
+    debug.init()
     compileUis()
     app, main_win = createWindow()
     app.exec_()

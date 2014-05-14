@@ -9,7 +9,7 @@ import sys
 from PyQt4.QtGui import (QDialog, QImageWriter, QMessageBox, QFileDialog,
         QColor, QDialogButtonBox, QProgressDialog, QPainter, QImage, QPolygonF, QWidget,
         QPushButton, QPen, QTransform, QBrush)
-from PyQt4.QtCore import (pyqtSignature, SIGNAL, QObject, QThread, QEvent, QMutex, QCoreApplication, QRectF,
+from PyQt4.QtCore import (pyqtSignature, QObject, QThread, QEvent, QMutex, QCoreApplication, QRectF,
         QPoint, Qt, QRect, QSettings)
 from .ui_plottingdlg import Ui_PlottingDlg
 from .path import path
@@ -20,7 +20,7 @@ from .plotting_methods import (createWallColoring, createCellColoring, createPoi
                                EllipsisDraw, saveWallParamClasses, saveCellParamClasses,
                                savePointParamClasses)
 from . import plotting_methods
-from .sys_utils import setColor, getColor, changeColor
+from .sys_utils import setColor, getColor, changeColor, cleanQObject
 from .plot_preview import PlotPreview
 from .debug import log_debug
 from .tracking_data import TrackingData, RetryTrackingDataException
@@ -51,7 +51,7 @@ def createColoring(ctype):
         log_debug("Create new %s coloring of type: %s" % (ctype, coloring))
         parent = getattr(self.ui, parent_attr)
         method = createColoring(coloring, self.thread.result)
-        QObject.connect(method, SIGNAL("changed"), self.update_preview)
+        method.changed.connect(self.update_preview)
         self.setupColoringWidget(parent, method, config_widget)
         setattr(self, method_attr, method)
         if self.thread is not None:
@@ -65,6 +65,9 @@ def createColoring(ctype):
 class ResizableMessageBox(QMessageBox):
     def __init__(self, *args):
         QMessageBox.__init__(self, *args)
+
+    def __del__(self):
+        cleanQObject(self)
 
     def event(self, event):
         ret = QMessageBox.event(self, event)
@@ -103,26 +106,15 @@ class PlottingDlg(QDialog):
         self.preview = None
         self.ui.buttonBox.addButton(self.reload_button, QDialogButtonBox.ActionRole)
         self.ui.buttonBox.addButton(self.preview_button, QDialogButtonBox.ActionRole)
-        QObject.connect(self.preview_button, SIGNAL("toggled(bool)"), self.show_preview)
-        QObject.connect(self.reload_button, SIGNAL("clicked()"), self.reload_classes)
-        QObject.connect(self.options_button, SIGNAL("clicked()"), self.open_options)
+        self.preview_button.toggled[bool].connect(self.show_preview)
+        self.reload_button.clicked.connect(self.reload_classes)
+        self.options_button.clicked.connect(self.open_options)
         self.load_preferences()
         self.updateInterface()
         self.reload_classes()
 
     def __del__(self):
-        QObject.disconnect(self.preview_button, SIGNAL("toggled(bool)"), self.show_preview)
-        QObject.disconnect(self.reload_button, SIGNAL("clicked()"), self.reload_classes)
-        QObject.disconnect(self.options_button, SIGNAL("clicked()"), self.open_options)
-        self.preview = None
-        self.preview_button = None
-        self.apply_button = None
-        self.reload_button = None
-        self.thread = None
-        self.data = None
-        self.result = None
-        self.progress = None
-        self.ui = None
+        cleanQObject(self)
 
     def load_preferences(self):
         settings = QSettings()
@@ -844,70 +836,73 @@ class PlottingThread(QThread):
     def update_nb_images(self, nb):
         QCoreApplication.postEvent(self.parent, UpdateNbImageEvent(nb))
 
-    def _get_crop_left(self):
+    @property
+    def crop_left(self):
         return self._crop.left()
 
-    def _set_crop_left(self, value):
+    @crop_left.setter
+    def crop_left(self, value):
         self._crop.moveLeft(int(value))
 
-    crop_left = property(_get_crop_left, _set_crop_left)
-
-    def _get_crop_top(self):
+    @property
+    def crop_top(self):
         return self._crop.top()
 
-    def _set_crop_top(self, value):
+    @crop_top.setter
+    def crop_top(self, value):
         self._crop.moveTop(int(value))
 
-    crop_top = property(_get_crop_top, _set_crop_top)
-
-    def _get_crop_width(self):
+    @property
+    def crop_width(self):
         return self._crop.width()
 
-    def _set_crop_width(self, value):
+    @crop_width.setter
+    def crop_width(self, value):
         self._crop.setWidth(int(value))
 
-    crop_width = property(_get_crop_width, _set_crop_width)
-
-    def _get_crop_height(self):
+    @property
+    def crop_height(self):
         return self._crop.height()
 
-    def _set_crop_height(self, value):
+    @crop_height.setter
+    def crop_height(self, value):
         self._crop.setHeight(int(value))
-
-    crop_height = property(_get_crop_height, _set_crop_height)
 
     def reset_crop(self):
         self._crop = QRect(QPoint(0,0), self.img_size)
 
-    def _get_crop(self):
+    @property
+    def crop(self):
         return QRect(self._crop)
 
-    crop = property(_get_crop)
+    @crop.deleter
+    def crop(self):
+        self.reset_crop()
 
-    def _get_end_image_plot(self):
+    @property
+    def end_image_plot(self):
         '''
         If true, plot the growth data on the end image rather than the start image of the growth calculation.
         '''
         return self._end_image_plot
 
-    def _set_end_image_plot(self, value):
+    @end_image_plot.setter
+    def end_image_plot(self, value):
         self._end_image_plot = bool(value)
 
-    end_image_plot = property(_get_end_image_plot, _set_end_image_plot)
-
-    def _get_pix(self):
+    @property
+    def pix(self):
         '''Thread-safe image storage.'''
         self.mutex.lock()
         pix = self._pix
         self.mutex.unlock()
         return pix
 
-    def _set_pix(self, value):
+    @pix.setter
+    def pix(self, value):
         self.mutex.lock()
         self._pix = value
         self.mutex.unlock()
-
-    pix = property(_get_pix, _set_pix)
 
     def render_valid(self):
         if self.result is None:

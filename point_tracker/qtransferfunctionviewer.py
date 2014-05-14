@@ -6,12 +6,15 @@ from PyQt4 import QtGui, QtCore
 from math import log
 from itertools import chain
 from .editmarkersdlg import EditMarkersDlg
+from .sys_utils import cleanQObject
 
 
 def invalid(r,g,b,a):
     return r < 0 or r > 1 or g < 0 or g > 1 or b < 0 or b > 1 or a < 0 or a > 1
 
 class QTransferFunctionViewer(QtGui.QWidget):
+    slowChange = QtCore.Signal()
+
     def __init__(self, *args):
         QtGui.QWidget.__init__(self, *args)
         self._transfer_fct = None
@@ -44,6 +47,9 @@ class QTransferFunctionViewer(QtGui.QWidget):
         self.addAction(self.edit_markers)
         self.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
 
+    def __del__(self):
+        cleanQObject(self)
+
     def createBackground(self, type = "checks"):
         pal = QtGui.QPalette()
         if type == "white":
@@ -68,7 +74,12 @@ class QTransferFunctionViewer(QtGui.QWidget):
         paint_bg.drawRect(size, 0, size, size)
         return bg_pix
 
-    def _SetHistogram(self, histogram):
+    @property
+    def histogram(self):
+        return self._histogram
+
+    @histogram.setter
+    def histogram(self, histogram):
         if self._histogram is histogram:
             return
         self._histogram = histogram
@@ -76,12 +87,12 @@ class QTransferFunctionViewer(QtGui.QWidget):
             self.prepareHistogram()
             self.setupGradient()
 
-    def _GetHistogram(self):
-        return self._histogram
+    @property
+    def use_histogram(self):
+        return self._use_histogram
 
-    histogram = property(_GetHistogram, _SetHistogram)
-
-    def _SetUseHistogram(self, value):
+    @use_histogram.setter
+    def use_histogram(self, value):
         value = bool(value)
         if value is self._use_histogram:
             return
@@ -89,50 +100,45 @@ class QTransferFunctionViewer(QtGui.QWidget):
         if not value:
             self.setupGradient()
 
-    def _GetUseHistogram(self):
-        return self._use_histogram
-
-    use_histogram = property(_GetUseHistogram, _SetUseHistogram)
-
-    def _GetStickers(self):
+    @property
+    def stickers(self):
         return tuple(self._stickers)
 
-    def _SetStickers(self, value):
+    @stickers.setter
+    def stickers(self, value):
         value = list(float(v) for v in value)
         value.sort()
         if value != self._stickers:
             self._stickers = value
 
-    stickers = property(_GetStickers, _SetStickers)
-
-    def _GetNbValues(self):
+    @property
+    def nb_values(self):
         if self._use_histogram:
             return self._nb_values
         else:
             return 256
 
-    def _SetNbValues(self, value):
+    @nb_values.setter
+    def nb_values(self, value):
         value = int(value)
         self._nb_values = value
 
-    nb_values = property(_GetNbValues, _SetNbValues)
+    @property
+    def transfer_fct(self):
+        return self._transfer_fct
 
-    def _SetTransferFct(self, map):
+    @transfer_fct.setter
+    def transfer_fct(self, map):
         if map is self._transfer_fct:
             return
         if self._transfer_fct is not None:
-            QtCore.QObject.disconnect(self._transfer_fct, QtCore.SIGNAL("changed()"), self.update)
+            self._transfer_fct.changed.disconnect(self.update)
         self._transfer_fct = map
         if map is not None:
-            QtCore.QObject.connect(self._transfer_fct, QtCore.SIGNAL("changed()"), self.update)
+            self._transfer_fct.changed.connect(self.update)
         if not self.use_histogram or self._hist_values:
             self.setupGradient()
         self.update()
-
-    def _GetTransferFct(self):
-        return self._transfer_fct
-
-    transfer_fct = property(_GetTransferFct, _SetTransferFct)
 
     @QtCore.pyqtSignature("")
     def setupGradient(self):
@@ -259,7 +265,7 @@ class QTransferFunctionViewer(QtGui.QWidget):
         if qcol.isValid():
             self.transfer_fct.add_rgba_point(pos, qcol.redF(), qcol.greenF(),
                     qcol.blueF(), qcol.alphaF())
-            self.emit(QtCore.SIGNAL("slowChange"))
+            self.slowChange.emit()
             self.setupGradient()
 
     def mousePressEvent(self, event):
@@ -291,7 +297,7 @@ class QTransferFunctionViewer(QtGui.QWidget):
         self.saved_pos = None
         self.setupGradient()
         self.update()
-        self.emit(QtCore.SIGNAL("slowChange"))
+        self.slowChange.emit()
 
     def mouseMoveEvent(self, event):
         cpos = self.current_pos

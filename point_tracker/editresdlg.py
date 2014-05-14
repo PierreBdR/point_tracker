@@ -13,10 +13,14 @@ from .ui_editresdlg import Ui_EditResDlg
 from . import image_cache
 from numpy import inf
 from .scalemodel import ScaleModel
+from .sys_utils import cleanQObject
 
 class ScaleEditorFactory(QItemEditorFactory):
     def __init__(self):
         QItemEditorFactory.__init__(self)
+
+    def __del__(self):
+        cleanQObject(self)
 
     def createEditor(self, type, parent):
         if type != QVariant.Double:
@@ -62,6 +66,9 @@ class EditResDlg(QDialog):
             miny = 1e-6
         # And set the default unit
         self.ui.unit.setCurrentIndex(self.model.findUnit(min(minx, miny)))
+
+    def __del__(self):
+        cleanQObject(self)
 
     @pyqtSignature("int")
     def on_unit_currentIndexChanged(self, idx):

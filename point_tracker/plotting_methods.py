@@ -6,12 +6,13 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QColor, QPen
-from PyQt4.QtCore import Qt, QPointF, QObject, SIGNAL, QSettings
+from PyQt4.QtCore import Qt, QPointF, QObject, QSettings, Signal
 from . import parameters
 from .geometry import gravityCenter
 from .debug import log_debug
 from . import tissue_plot
 from math import pi
+from .sys_utils import cleanQObject
 
 #debug_object = object
 cell_colorings_dict = {}
@@ -144,6 +145,8 @@ def pointColoringClasses(result_type):
     return coloringClasses(result_type, tissue_plot.point_colorings_cls, 'Point')
 
 class EllipsisDraw(QObject):
+    changed = Signal()
+
     """
     Object holding ellipsis parameters.
 
@@ -164,6 +167,9 @@ class EllipsisDraw(QObject):
         self._major_axis = True
         self._minor_axis = True
 
+    def __del__(self):
+        cleanQObject(self)
+
     @property
     def color(self):
         '''Color used to draw the ellipsis itself
@@ -177,7 +183,7 @@ class EllipsisDraw(QObject):
         if self._color != value:
             self._color = value
             parameters.instance.ellipsis_color = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
     @property
     def scaling(self):
@@ -192,7 +198,7 @@ class EllipsisDraw(QObject):
         if self._scaling != value:
             self._scaling = value
             parameters.instance.ellipsis_scaling = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
     @property
     def scale_axis(self):
@@ -207,7 +213,7 @@ class EllipsisDraw(QObject):
         if self._scale_axis != value:
             self._scale_axis = value
             parameters.instance.ellipsis_scale_axis = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
     @property
     def major_axis(self):
@@ -222,7 +228,7 @@ class EllipsisDraw(QObject):
         if self._major_axis != value:
             self._major_axis = value
             parameters.instance.ellipsis_major_axis = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
     @property
     def minor_axis(self):
@@ -237,7 +243,7 @@ class EllipsisDraw(QObject):
         if self._minor_axis != value:
             self._minor_axis = value
             parameters.instance.ellipsis_minor_axis = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
     @property
     def thickness(self):
@@ -252,7 +258,7 @@ class EllipsisDraw(QObject):
         if self._thickness != value:
             self._thickness = value
             parameters.instance.ellipsis_thickness = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
     @property
     def min_anisotropy(self):
@@ -267,52 +273,52 @@ class EllipsisDraw(QObject):
         if self._min_anisotropy != value:
             self._min_anisotropy = value
             parameters.instance.ellipsis_min_anisotropy = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    def _get_positive_color(self):
+    @property
+    def positive_color(self):
         '''Color used to draw the axis if positive
 
         :returntype: QColor'''
         return self._positive_color
 
-    def _set_positive_color(self, value):
+    @positive_color.setter
+    def positive_color(self, value):
         value = QColor(value)
         if self._positive_color != value:
             self._positive_color = value
             parameters.instance.ellipsis_positive_color = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    positive_color = property(_get_positive_color, _set_positive_color)
-
-    def _get_negative_color(self):
+    @property
+    def negative_color(self):
         '''Color used to draw the axis if negative
 
         :returntype: QColor'''
         return self._negative_color
 
-    def _set_negative_color(self, value):
+    @negative_color.setter
+    def negative_color(self, value):
         value = QColor(value)
         if self._negative_color != value:
             self._negative_color = value
             parameters.instance.ellipsis_negative_color = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    negative_color = property(_get_negative_color, _set_negative_color)
-
-    def _get_plot(self):
+    @property
+    def plot(self):
         '''True if the ellipsis is to be plotted at all
 
         :returntype: bool'''
         return self._plot
 
-    def _set_plot(self, value):
+    @plot.setter
+    def plot(self, value):
         value = bool(value)
         if self._plot != value:
             self._plot = value
             parameters.instance.ellipsis_plot = value
-            self.emit(SIGNAL("changed"))
-
-    plot = property(_get_plot, _set_plot)
+            self.changed.emit()
 
     def __call__(self, painter, imageid, cid, pts, image_scale):
         center = gravityCenter(pts)

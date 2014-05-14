@@ -24,7 +24,7 @@ from .project import Project
 
 class GrowthResultException(Exception):
     """
-    Exception launched by the `Result` object when an error linked to the 
+    Exception launched by the `Result` object when an error linked to the
     data arise.
     """
     def __init__(self, text, **others):
@@ -40,13 +40,13 @@ class Result(object):
             name of the images contained in the result
         cells : list of ( dict of int * (float,float,float,float) )
             Growth parameters for the cells for each image stored.
-            The parameters are: kmaj, kmin, theta and psi, respectively the 
-            growth along the major and minor axis, the orientation of the major 
+            The parameters are: kmaj, kmin, theta and psi, respectively the
+            growth along the major and minor axis, the orientation of the major
             axis (i.e. angle from the x axis) and the rotation speed.
         method_params : list of str
             Parameters defining how growth was computed
         walls : list of ( dict of (int,int) * float )
-            Relative growth rate for the walls. A wall is identified by a pair 
+            Relative growth rate for the walls. A wall is identified by a pair
             of points identifiers with the first number lower than the second.
         data : `TrackingData`
             Data used to calculate growth
@@ -263,7 +263,7 @@ class Result(object):
         fields_num = Result.fields_num
         f = open(filename, "r")
         l1 = f.readline()
-        if '\t' in l1: 
+        if '\t' in l1:
             delim = '\t'
         elif ',' in l1:
             delim = ','
@@ -313,7 +313,7 @@ class Result(object):
         fields_num = Result.fields_num
         f = open(filename, "r")
         l1 = f.readline()
-        if '\t' in l1: 
+        if '\t' in l1:
             delim = '\t'
         elif ',' in l1:
             delim = ','
@@ -376,7 +376,7 @@ class Result(object):
                         if cell_id in cells_shapes:
                             if begin:
                                 cells_shapes[cell_id] = (shape, cells_shapes[cell_id][1])
-                            else:  
+                            else:
                                 cells_shapes[cell_id] = (cells_shapes[cell_id][0], shape)
                         else:
                             if begin:
@@ -438,7 +438,8 @@ class GrowthMethod(object):
     def __init__(self):
         self._thread = None
 
-    def _get_thread(self):
+    @property
+    def thread(self):
         """
         Thread running the method.
 
@@ -448,14 +449,12 @@ class GrowthMethod(object):
         """
         return self._thread
 
-    def _set_thread(self, thread):
+    @thread.setter
+    def thread(self, thread):
         if not hasattr(thread, "stop"):
             raise ValueError("The thread must have a stop property")
         self._thread = thread
 
-    thread = property(_get_thread, _set_thread)
-
-        
 
 class ForwardMethod(GrowthMethod):
     def __init__(self):
@@ -466,7 +465,7 @@ class ForwardMethod(GrowthMethod):
 
     def nbOutputImages(self, inputImages, data):
         return len(inputImages)-1
-    
+
     def computeFromImages(self, list_img, i):
         return list_img[i:i+2]
 
@@ -553,7 +552,7 @@ class BackwardMethod(ForwardMethod):
 
     def growthParams(self, ps, qs, dt):
         return growthParams(ps, qs, dt, at_start=False)
-    
+
     def parameters(self):
         return ["Backward"]
 
@@ -577,9 +576,9 @@ def length_segment(s, data):
 
 def align_segments(s1, s2, data1, data2):
     """
-    Compute the alignment of segments s1 and s2, 
+    Compute the alignment of segments s1 and s2,
     such that the first and last elements of s1 and s2 are the same, but nothing else.
-    
+
     :return_type: list of (list of QPointF, int)
     :returns: List of wall parts such that the first point is the vertex.
               The integer is the id of the point (if it corresponds to one).
@@ -729,25 +728,25 @@ class ForwardDenseMethod(GrowthMethod):
 
     def parameters(self):
         return ["ForwardDense", self._nb_points]
-    
-    def _get_nb_points(self):
+
+    @property
+    def nb_points(self):
         """Number of points used to discretize the cell"""
         return self._nb_points
-            
-    def _set_nb_points(self, value):
+
+    @nb_points.setter
+    def nb_points(self, value):
         value = int(value)
         if value < 3:
             raise ValueError("The cell needs at least 3 points for the algorithm to work.")
         self._nb_points = value
 
-    nb_points = property(fget=_get_nb_points,fset= _set_nb_points,doc=_get_nb_points.__doc__)
-
     def nbOutputImages(self, inputImages, data):
         return len(inputImages)-1
-    
+
     def computeFromImages(self, list_img, i):
         return list_img[i:i+2]
-    
+
     def baseImage(self, list_img, i):
         return list_img[i]
 
@@ -756,7 +755,7 @@ class ForwardDenseMethod(GrowthMethod):
 
     def growthParams(self, ps, qs, dt):
         return growthParams(ps, qs, dt, at_start=True)
-    
+
     def processCell(self, c, img_data, next_img_data, ref_is_img):
         log_debug("Processing cell %d" % c)
         cell_shapes = self.cell_shapes
@@ -778,12 +777,12 @@ class ForwardDenseMethod(GrowthMethod):
         result = alignCells(c, pts, new_pts, img_data, next_img_data, self.nb_points)
         if result is None:
             return
-        aligned_pts, aligned_new_pts, ps, qs = result 
+        aligned_pts, aligned_new_pts, ps, qs = result
         # Now, we know enough to compute growth of walls
         w1,prev = aligned_pts[0]
         w2,_ = aligned_new_pts[0]
         shifted1 = aligned_pts[1:] + aligned_pts[0:1]
-        shifted2 = aligned_new_pts[1:] + aligned_new_pts[0:1] 
+        shifted2 = aligned_new_pts[1:] + aligned_new_pts[0:1]
         for (seg1,p1),(seg2,p2) in zip(shifted1, shifted2):
             if p1 in ref_pts or p2 in ref_pts:
                 cur = p2 if p1 is None else p1
@@ -820,7 +819,7 @@ class ForwardDenseMethod(GrowthMethod):
             cell_area_result[c] = r
             cell_result[c] = gp
             cell_shapes[c] = (ps, qs)
-    
+
     def __call__(self, list_img, data, cells_selection):
         result = Result(data, list_img)
         thread = self.thread
@@ -862,10 +861,10 @@ class BackwardDenseMethod(ForwardDenseMethod):
 
     def growthParams(self, ps, qs, dt):
         return growthParams(ps, qs, dt, at_start=False)
-    
+
     def parameters(self):
         return ["BackwardDense", self._nb_points]
-    
+
 
 class FullCellsOnlySelection(object):
     def __init__(self, daughterCells):

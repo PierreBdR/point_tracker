@@ -1,6 +1,7 @@
 from __future__ import print_function, division, absolute_import
 from .ui_editmarkersdlg import Ui_EditMarkersDlg
 from .transfer_markers import TransferMarkerModel, MarkerColorDelegate
+from .sys_utils import cleanQObject
 
 from PyQt4.QtCore import pyqtSignature
 from PyQt4 import QtGui
@@ -24,19 +25,21 @@ class EditMarkersDlg(QtGui.QDialog):
         self.spread_button.clicked.connect(self.spreadMarkers)
         self.ui.markersView.resizeColumnsToContents()
 
-    def _get_point_list(self):
-        return [ (m, (col.redF(), col.greenF(), col.blueF(), col.alphaF())) for (m,col) in zip(self.markers, self.colors)]
+    def __del__(self):
+        cleanQObject(self)
 
-    point_list = property(_get_point_list)
+    @property
+    def point_list(self):
+        return [ (m, (col.redF(), col.greenF(), col.blueF(), col.alphaF())) for (m,col) in zip(self.markers, self.colors)]
 
     @pyqtSignature("")
     def on_addMarker_clicked(self):
         self.model.addMarker(self.ui.markersView.selectionModel().selection())
-        
+
     @pyqtSignature("")
     def on_removeMarker_clicked(self):
         self.model.removeMarker(self.ui.markersView.selectionModel().selection())
-        
+
     def spreadMarkers(self):
         self.model.spreadMarkers(self.ui.markersView.selectionModel().selection())
 

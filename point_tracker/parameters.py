@@ -2,13 +2,23 @@ from __future__ import print_function, division, absolute_import
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtCore import (QCoreApplication, QObject, QSettings, QRectF,
-        SIGNAL, Qt)
+        Qt, Signal)
 from PyQt4.QtGui import QColor, QFontMetricsF, QFont
 from .path import path
 from math import floor, ceil
-from .sys_utils import toBool
+from .sys_utils import toBool, cleanQObject
 
 class Parameters(QObject):
+
+    pointParameterChange = Signal()
+    oldPointParameterChange = Signal()
+    arrowParameterChange = Signal()
+    searchParameterChange = Signal()
+    renderingChanged = Signal()
+    recentProjectsChange = Signal()
+    plottingParameterChange = Signal()
+    cellParameterChange = Signal()
+
     """
     Signal launched when parameters change:
         - pointParameterChange
@@ -23,6 +33,9 @@ class Parameters(QObject):
     def __init__(self):
         QObject.__init__(self)
         self.load()
+
+    #def __del__(self):
+        #cleanQObject(self)
 
     # Use thread or not to compute on the background
     use_thread = False
@@ -277,294 +290,296 @@ class Parameters(QObject):
 
 #{ On Screen Drawing
 
-    def _get_point_size(self):
+    @property
+    def point_size(self):
         """
         Size of a points on the scene
         """
         return self._point_size
 
-    def _set_point_size(self, size):
+    @point_size.setter
+    def point_size(self, size):
         if size > 0 and size != self._point_size:
             self._point_size = size
             self._find_font()
-            self.emit(SIGNAL("pointParameterChange"))
+            self.pointParameterChange.emit()
 
-    point_size = property(_get_point_size, _set_point_size)
-
-    def _get_point_color(self):
+    @property
+    def point_color(self):
         """
         Color used to draw points
         """
         return self._point_color
 
-    def _set_point_color(self, color):
+    @point_color.setter
+    def point_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._point_color:
             self._point_color = col
             self.point_hover_color = col.lighter(150)
             if self.point_hover_color == col:
                 self.point_hover_color = col.lighter(50)
-            self.emit(SIGNAL("pointParameterChange"))
+            self.pointParameterChange.emit()
 
-    point_color = property(_get_point_color, _set_point_color)
-
-    def _get_selected_point_color(self):
+    @property
+    def selected_point_color(self):
         """
         Set the color of a selected point
         """
         return self._selected_point_color
 
-    def _set_selected_point_color(self, color):
+    @selected_point_color.setter
+    def selected_point_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._selected_point_color:
             self._selected_point_color = col
-            self.emit(SIGNAL("pointParameterChange"))
+            self.pointParameterChange.emit()
 
-    selected_point_color = property(_get_selected_point_color, _set_selected_point_color)
-
-    def _get_new_point_color(self):
+    @property
+    def new_point_color(self):
         """
         Set the color of a new point
         """
         return self._new_point_color
 
-    def _set_new_point_color(self, color):
+    @new_point_color.setter
+    def new_point_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._new_point_color:
             self._new_point_color = col
             self.new_point_hover_color = col.lighter(150)
             if self.new_point_hover_color == col:
                 self.new_point_hover_color = col.lighter(50)
-            self.emit(SIGNAL("pointParameterChange"))
+            self.pointParameterChange.emit()
 
-    new_point_color = property(_get_new_point_color, _set_new_point_color)
-
-    def _get_cell_size(self):
+    @property
+    def cell_size(self):
         """
         Set the size of a cell graphic item
         """
         return self._cell_size
 
-    def _set_cell_size(self, new_size):
+    @cell_size.setter
+    def cell_size(self, new_size):
         if new_size > 0 and new_size != self._cell_size:
             self._cell_size = new_size
-            self.emit(SIGNAL("cellParameterChange"))
+            self.cellParameterChange.emit()
 
-    cell_size = property(_get_cell_size, _set_cell_size)
-
-    def _get_cell_thickness(self):
+    @property
+    def cell_thickness(self):
         """
         Set the thickness of the line used to draw the cell graphic item
         """
         return self._cell_thickness
 
-    def _set_cell_thickness(self, th):
+    @cell_thickness.setter
+    def cell_thickness(self, th):
         thick = int(th)
         if thick >= 0 and thick != self._cell_thickness:
             self._cell_thickness = thick
-            self.emit(SIGNAL("cellParameterChange"))
+            self.cellParameterChange.emit()
 
-    cell_thickness = property(_get_cell_thickness, _set_cell_thickness)
-
-    def _get_cell_color(self):
+    @property
+    def cell_color(self):
         """
         Set the color used to draw the cell
         """
         return self._cell_color
 
-    def _set_cell_color(self, color):
+    @cell_color.setter
+    def cell_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._cell_color:
             self._cell_color = col
             self.cell_hover_color = col.lighter(150)
             if self.cell_hover_color == col:
                 self.cell_hover_color = col.lighter(50)
-            self.emit(SIGNAL("cellParameterChange"))
+            self.cellParameterChange.emit()
 
-    cell_color = property(_get_cell_color, _set_cell_color)
-
-    def _get_selected_cell_color(self):
+    @property
+    def selected_cell_color(self):
         """
         Set the color used to draw the selected cell
         """
         return self._selected_cell_color
 
-    def _set_selected_cell_color(self, color):
+    @selected_cell_color.setter
+    def selected_cell_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._selected_cell_color:
             self._selected_cell_color = col
-            self.emit(SIGNAL("cellParameterChange"))
+            self.cellParameterChange.emit()
 
-    selected_cell_color = property(_get_selected_cell_color, _set_selected_cell_color)
-
-    def _get_division_wall_color(self):
+    @property
+    def division_wall_color(self):
         """
         Set the color used to draw the selected cell
         """
         return self._division_wall_color
 
-    def _set_division_wall_color(self, color):
+    @division_wall_color.setter
+    def division_wall_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._division_wall_color:
             self._division_wall_color = col
-            self.emit(SIGNAL("cellParameterChange"))
+            self.cellParameterChange.emit()
 
-    division_wall_color = property(_get_division_wall_color, _set_division_wall_color)
-
-    def _get_old_point_size(self):
+    @property
+    def old_point_size(self):
         """
         Size of a old points on the scene
         """
         return self._old_point_size
 
-    def _set_old_point_size(self, size):
+    @old_point_size.setter
+    def old_point_size(self, size):
         if size > 0 and size != self._old_point_size:
             self._old_point_size = size
-            self.emit(SIGNAL("oldPointParameterChange"))
+            self.oldPointParameterChange.emit()
 
-    old_point_size = property(_get_old_point_size, _set_old_point_size)
-
-    def _get_old_point_color(self):
+    @property
+    def old_point_color(self):
         """
         Color used to draw old points
         """
         return self._old_point_color
 
-    def _set_old_point_color(self, color):
+    @old_point_color.setter
+    def old_point_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._old_point_color:
             self._old_point_color = col
-            self.emit(SIGNAL("oldPointParameterChange"))
+            self.oldPointParameterChange.emit()
 
-    old_point_color = property(_get_old_point_color, _set_old_point_color)
-
-    def _get_old_point_matching_color(self):
+    @property
+    def old_point_matching_color(self):
         """
         Color used to draw old point matching the current hovered point
         """
         return self._old_point_matching_color
 
-    def _set_old_point_matching_color(self, color):
+    @old_point_matching_color.setter
+    def old_point_matching_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._old_point_matching_color:
             self._old_point_matching_color = col
-            self.emit(SIGNAL("oldPointParameterChange"))
+            self.oldPointParameterChange.emit()
 
-    old_point_matching_color = property(_get_old_point_matching_color, _set_old_point_matching_color)
-
-    def _get_arrow_line_size(self):
+    @property
+    def arrow_line_size(self):
         """
         Width of the pen used to draw arrows.
         """
         return self._arrow_line_size
 
-    def _set_arrow_line_size(self, size):
+    @arrow_line_size.setter
+    def arrow_line_size(self, size):
         if size>0 and size != self._arrow_line_size:
             self._arrow_line_size = size
-            self.emit(SIGNAL("arrowParameterChange"))
+            self.arrowParameterChange.emit()
 
-    arrow_line_size = property(_get_arrow_line_size, _set_arrow_line_size)
-
-    def _get_arrow_head_size(self):
+    @property
+    def arrow_head_size(self):
         """
         Size of the arrow head in proportion to the length of the arrow
         """
         return self._arrow_head_size
 
-    def _set_arrow_head_size(self, size):
+    @arrow_head_size.setter
+    def arrow_head_size(self, size):
         if 0 < size <= 1 and size != self._arrow_head_size:
             self._arrow_head_size = size
-            self.emit(SIGNAL("arrowParameterChange"))
+            self.arrowParameterChange.emit()
 
-    arrow_head_size = property(_get_arrow_head_size, _set_arrow_head_size)
-
-    def _get_arrow_color(self):
+    @property
+    def arrow_color(self):
         """
         Color used to draw arrows
         """
         return self._arrow_color
 
-    def _set_arrow_color(self, color):
+    @arrow_color.setter
+    def arrow_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._arrow_color:
             self._arrow_color = col
-            self.emit(SIGNAL("arrowParameterChange"))
+            self.arrowParameterChange.emit()
 
-    arrow_color = property(_get_arrow_color, _set_arrow_color)
-
-    def _get_draw_arrow(self):
+    @property
+    def draw_arrow(self):
         """
         Decide to make the arrows visible or not
         """
         return self._draw_arrow
 
-    def _set_draw_arrow(self, value):
+    @draw_arrow.setter
+    def draw_arrow(self, value):
         value = bool(value)
         if value != self._draw_arrow:
             self._draw_arrow = value
-            self.emit(SIGNAL("arrowParameterChange"))
+            self.arrowParameterChange.emit()
 
-    draw_arrow = property(_get_draw_arrow, _set_draw_arrow)
-
-    def _get_use_OpenGL(self):
+    @property
+    def use_OpenGL(self):
         """
         Force the use of OpenGL for rendering images
         """
         return self._use_OpenGL
 
-    def _set_user_OpenGL(self, value):
+    @use_OpenGL.setter
+    def user_OpenGL(self, value):
         if value != self._use_OpenGL:
             self._use_OpenGL = value
-            self.emit(SIGNAL("renderingChanged"))
+            self.renderingChanged.emit()
 
-    use_OpenGL = property(_get_use_OpenGL, _set_user_OpenGL)
-
-    def _get_point_thickness(self):
+    @property
+    def point_thickness(self):
         """Thickness of the line used to draw points"""
         return self._point_thickness
 
-    def _set_point_thickness(self, value):
+    @point_thickness.setter
+    def point_thickness(self, value):
         value = int(value)
         if value >= 0 and self._point_thickness != value:
             self._point_thickness= value
-            self.emit(SIGNAL("pointParameterChange"))
+            self.pointParameterChange.emit()
 
-    def _del_point_thickness(self):
+    @point_thickness.deleter
+    def point_thickness(self):
         del self._point_thickness
 
-    point_thickness = property(_get_point_thickness, _set_point_thickness)
-
-    def _get_old_point_thickness(self):
+    @property
+    def old_point_thickness(self):
         """Thickness of the line used to draw old points"""
         return self._old_point_thickness
 
-    def _set_old_point_thickness(self, value):
+    @old_point_thickness.setter
+    def old_point_thickness(self, value):
         value = int(value)
         if self._old_point_thickness != value:
             self._old_point_thickness = value
-            self.emit(SIGNAL("oldPointParameterChange"))
+            self.oldPointParameterChange.emit()
 
-    old_point_thickness = property(_get_old_point_thickness, _set_old_point_thickness)
-
-    def _get_show_vectors(self):
+    @property
+    def show_vectors(self):
         """Are the vectors from old to now points shown?"""
         return self._show_vectors
 
-    def _set_show_vectors(self, value):
+    @show_vectors.setter
+    def show_vectors(self, value):
         self._show_vectors = value
 
-    show_vectors = property(_get_show_vectors, _set_show_vectors, doc=_get_show_vectors.__doc__)
-
-    def _get_link_views(self):
+    @property
+    def link_views(self):
         """Link the viewports of the two panes in the main GUI"""
         return self._link_views
 
-    def _set_link_views(self, value):
+    @link_views.setter
+    def link_views(self, value):
         self._link_views = value
 
-    link_views = property(_get_link_views, _set_link_views, doc=_get_link_views.__doc__)
-
-    def _get_show_template(self):
+    @property
+    def show_template(self):
         """
         Whether the template should be shown or not
 
@@ -572,14 +587,14 @@ class Parameters(QObject):
         """
         return self._show_template
 
-    def _set_show_template(self, value):
+    @show_template.setter
+    def show_template(self, value):
         if value != self._show_template:
             self._show_template = value
-            self.emit(SIGNAL("searchParameterChange"))
+            self.searchParameterChange.emit()
 
-    show_template = property(_get_show_template, _set_show_template)
-
-    def _get_show_id(self):
+    @property
+    def show_id(self):
         """
         If true, the id of the points should be shown as well.
 
@@ -587,13 +602,12 @@ class Parameters(QObject):
         """
         return self._show_id
 
-    def _set_show_id(self, value):
+    @show_id.setter
+    def show_id(self, value):
         value = bool(value)
         if value != self._show_id:
             self._show_id = value
-            self.emit(SIGNAL("pointParameterChange"))
-
-    show_id = property(_get_show_id, _set_show_id)
+            self.pointParameterChange.emit()
 
     def _find_font(self):
         font = QFont()
@@ -605,7 +619,8 @@ class Parameters(QObject):
         self._font = font
         self._font_zoom = ratio
 
-    def _get_font(self):
+    @property
+    def font(self):
         """
         Font used to display the points id in the points.
 
@@ -613,9 +628,8 @@ class Parameters(QObject):
         """
         return self._font
 
-    font = property(_get_font)
-
-    def _get_font_zoom(self):
+    @property
+    def font_zoom(self):
         """
         Zoom used to display the points id in the points.
 
@@ -623,114 +637,113 @@ class Parameters(QObject):
         """
         return self._font_zoom
 
-    font_zoom = property(_get_font_zoom)
 #}
 #{ Search parameters
 
-    def _get_estimate(self):
+    @property
+    def estimate(self):
         """
         True if the copy functions estimate the position using normalized cross-correlation
         """
         return self._estimate
 
-    def _set_estimate(self, value):
+    @estimate.setter
+    def estimate(self, value):
         self._estimate = bool(value)
 
-    estimate = property(_get_estimate, _set_estimate)
-
-    def _get_template_size(self):
+    @property
+    def template_size(self):
         """
         Size of the template to search for (i.e. number of pixel around the position to extract)
         """
         return self._template_size
 
-    def _set_template_size(self, size):
+    @template_size.setter
+    def template_size(self, size):
         size = int(size)
         if size > 0 and size != self._template_size:
             self._template_size = size
             self.template_rect = QRectF(-size, -size, 2*size, 2*size)
             if 1.5*size > self._search_size:
                 self.search_size = int(ceil(1.5*size+0.1))
-            self.emit(SIGNAL("searchParameterChange"))
+            self.searchParameterChange.emit()
 
-    template_size = property(_get_template_size, _set_template_size)
-
-    def _get_search_size(self):
+    @property
+    def search_size(self):
         """
         Area around the point to look for the template
         """
         return self._search_size
 
-    def _set_search_size(self, size):
+    @search_size.setter
+    def search_size(self, size):
         size = int(size)
         if size > self._template_size and size != self._search_size:
             self._search_size = size
             self.search_rect = QRectF(-size, -size, 2*size, 2*size)
             if size < 1.5*self._template_size:
                 self.template_size = int(floor(2./3.*size-0.1))
-            self.emit(SIGNAL("searchParameterChange"))
+            self.searchParameterChange.emit()
 
-    search_size = property(_get_search_size, _set_search_size)
-
-    def _get_search_color(self):
+    @property
+    def search_color(self):
         """
         Color used to draw the searched area
         """
         return self._search_color
 
-    def _set_search_color(self, color):
+    @search_color.setter
+    def search_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._search_color:
             self._search_color = col
-            self.emit(SIGNAL("searchParameterChange"))
+            self.searchParameterChange.emit()
 
-    search_color = property(_get_search_color, _set_search_color)
-
-    def _get_template_color(self):
+    @property
+    def template_color(self):
         """
         Color used to draw the template around a point
         """
         return self._template_color
 
-    def _set_template_color(self, color):
+    @template_color.setter
+    def template_color(self, color):
         col = QColor(color)
         if col.isValid() and col != self._template_color:
             self._template_color = col
-            self.emit(SIGNAL("searchParameterChange"))
+            self.searchParameterChange.emit()
 
-    template_color = property(_get_template_color, _set_template_color)
-
-    def _get_filter_size_ratio(self):
+    @property
+    def filter_size_ratio(self):
         """Ratio of the template size used to create the filter"""
         return self._filter_size_ratio
 
-    def _set_filter_size_ratio(self, value):
+    @filter_size_ratio.setter
+    def filter_size_ratio(self, value):
         if value != self._filter_size_ratio:
             self._filter_size_ratio = value
-            self.emit(SIGNAL("searchParameterChange"))
+            self.searchParameterChange.emit()
 
-    filter_size_ratio = property(_get_filter_size_ratio, _set_filter_size_ratio)
-
-    def _get_filter_size_ratio_percent(self):
+    @property
+    def filter_size_ratio_percent(self):
         """Ratio of the template size used to create the filter in percent
 
         This property is garantied to return an integer"""
         return int(self._filter_size_ratio*100)
 
-    def _set_filter_size_ratio_percent(self, value):
+    @filter_size_ratio_percent.setter
+    def filter_size_ratio_percent(self, value):
         self.filter_size_ratio = int(value)/100.0
 
-    filter_size_ratio_percent = property(_get_filter_size_ratio_percent, _set_filter_size_ratio_percent)
-
-    def _get_filter_size(self):
+    @property
+    def filter_size(self):
         """
         Size of the filter to use for the images
         """
         return int(self._template_size * self._filter_size_ratio)
 
-    filter_size = property(_get_filter_size)
-
-    def _get_estimate_position(self):
+    @property
+    def estimate_position(self):
         """
         Boolean telling if the position of the points have to be estimated or just copied.
 
@@ -738,41 +751,43 @@ class Parameters(QObject):
         """
         return self._estimate_position
 
-    def _set_estimate_position(self, value):
+    @estimate_position.setter
+    def estimate_position(self, value):
         self._estimate_position = value
 
-    estimate_position = property(_get_estimate_position, _set_estimate_position, doc=_get_estimate_position.__doc__)
 #}
 #{ Main configuration
 
-    def _get_last_dir(self):
+    @property
+    def last_dir(self):
         """Last directory used in file dialog box"""
         return self._last_dir
 
-    def _set_last_dir(self, value):
+    @last_dir.setter
+    def last_dir(self, value):
         self._last_dir = value
 
-    last_dir = property(_get_last_dir, _set_last_dir, doc =_get_last_dir.__doc__)
-
-    def _get_cache_size(self):
+    @property
+    def cache_size(self):
         """Size of the image cache in MB"""
         return self._cache_size
 
-    def _set_cache_size(self, value):
+    @cache_size.setter
+    def cache_size(self, value):
         self._cache_size = value
         from . import image_cache
         image_cache.cache.max_size = value
 
-    cache_size = property(_get_cache_size, _set_cache_size, doc=_get_cache_size.__doc__)
-
-    def _get_recent_projects(self):
+    @property
+    def recent_projects(self):
         """List of the most recent projects loaded"""
         return self._recent_projects
 
+    @recent_projects.setter
     def _set_recent_projects(self, value):
         if self._recent_projects != value:
             self._recent_projects = value
-            self.emit(SIGNAL("recentProjectsChange"))
+            self.recentProjectsChange.emit()
 
     def add_recent_project(self, project):
         recent_projects = self._recent_projects
@@ -781,12 +796,13 @@ class Parameters(QObject):
         recent_projects.insert(0,  project)
         while len(recent_projects) > self._max_number_of_projects:
             recent_projects.pop()
-        self.emit(SIGNAL("recentProjectsChange"))
+        self.recentProjectsChange.emit()
 
-    recent_projects = property(_get_recent_projects, _set_recent_projects, doc=_get_recent_projects.__doc__)
 #}
 #{ User interaction parameters
-    def _get_point_editable(self):
+
+    @property
+    def is_point_editable(self):
         """
         True if the points can be edited.
 
@@ -794,15 +810,15 @@ class Parameters(QObject):
         """
         return self._point_editable
 
-    def _set_point_editable(self, value):
+    @is_point_editable.setter
+    def is_point_editable(self, value):
         value = bool(value)
         if value != self._point_editable:
             self._point_editable = value
-            self.emit(SIGNAL("pointParameterChange"))
+            self.pointParameterChange.emit()
 
-    is_point_editable = property(_get_point_editable, _set_point_editable)
-
-    def _get_point_selectable(self):
+    @property
+    def is_point_selectable(self):
         """
         True if the cells can be selected.
 
@@ -810,15 +826,15 @@ class Parameters(QObject):
         """
         return self._point_selectable
 
-    def _set_point_selectable(self, value):
+    @is_point_selectable.setter
+    def is_point_selectable(self, value):
         value = bool(value)
         if value != self._point_selectable:
             self._point_selectable = value
-            self.emit(SIGNAL("pointParameterChange"))
+            self.pointParameterChange.emit()
 
-    is_point_selectable = property(_get_point_selectable, _set_point_selectable)
-
-    def _get_cell_editable(self):
+    @property
+    def is_cell_editable(self):
         """
         True if the cells can be edited.
 
@@ -826,17 +842,19 @@ class Parameters(QObject):
         """
         return self._cell_editable
 
-    def _set_cell_editable(self, value):
+    @is_cell_editable.setter
+    def is_cell_editable(self, value):
         value = bool(value)
         if value != self._cell_editable:
             self._cell_editable = value
-            self.emit(SIGNAL("cellParameterChange"))
+            self.cellParameterChange.emit()
 
-    is_cell_editable = property(_get_cell_editable, _set_cell_editable)
 #}
 
 #{ Growth representation parameters
-    def _get_walls_coloring(self):
+
+    @property
+    def walls_coloring(self):
         """
         Mode used to color walls.
 
@@ -844,15 +862,15 @@ class Parameters(QObject):
         """
         return self._walls_coloring
 
-    def _set_walls_coloring(self, value):
+    @walls_coloring.setter
+    def walls_coloring(self, value):
         value = unicode(value)
         if value != self._walls_coloring:
             self._walls_coloring = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    walls_coloring = property(_get_walls_coloring, _set_walls_coloring)
-
-    def _get_walls_symetric_coloring(self):
+    @property
+    def walls_symetric_coloring(self):
         """
         True if the coloring scheme must be symetric around 0.
 
@@ -860,15 +878,15 @@ class Parameters(QObject):
         """
         return self._walls_symetric_coloring
 
-    def _set_walls_symetric_coloring(self, value):
+    @walls_symetric_coloring.setter
+    def walls_symetric_coloring(self, value):
         value = bool(value)
         if value != self._walls_symetric_coloring:
             self._walls_symetric_coloring = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    walls_symetric_coloring = property(_get_walls_symetric_coloring, _set_walls_symetric_coloring)
-
-    def _get_walls_cap_values(self):
+    @property
+    def walls_cap_values(self):
         '''
         True if the values used to color the walls must be caped.
 
@@ -876,14 +894,14 @@ class Parameters(QObject):
         '''
         return self._walls_cap_values
 
-    def _set_walls_cap_values(self, value):
+    @walls_cap_values.setter
+    def walls_cap_values(self, value):
         if self._walls_cap_values != value:
             self._walls_cap_values = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    walls_cap_values = property(_get_walls_cap_values, _set_walls_cap_values)
-
-    def _get_walls_values_min(self):
+    @property
+    def walls_values_min(self):
         '''
         Minimum cap.
 
@@ -891,15 +909,15 @@ class Parameters(QObject):
         '''
         return self._walls_values_min
 
-    def _set_walls_values_min(self, value):
+    @walls_values_min.setter
+    def walls_values_min(self, value):
         value = float(value)
         if self._walls_values_min != value:
             self._walls_values_min = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    walls_values_min = property(_get_walls_values_min, _set_walls_values_min)
-
-    def _get_walls_values_max(self):
+    @property
+    def walls_values_max(self):
         '''
         Maximum cap.
 
@@ -907,15 +925,15 @@ class Parameters(QObject):
         '''
         return self._walls_values_max
 
-    def _set_walls_values_max(self, value):
+    @walls_values_max.setter
+    def walls_values_max(self, value):
         value = float(value)
         if self._walls_values_max != value:
             self._walls_values_max = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    walls_values_max = property(_get_walls_values_max, _set_walls_values_max)
-
-    def _get_cells_coloring(self):
+    @property
+    def cells_coloring(self):
         """
         Mode used to color cells
 
@@ -923,15 +941,15 @@ class Parameters(QObject):
         """
         return self._cells_coloring
 
-    def _set_cells_coloring(self, value):
+    @cells_coloring.setter
+    def cells_coloring(self, value):
         value = unicode(value)
         if value != self._cells_coloring:
             self._cells_coloring = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    cells_coloring = property(_get_cells_coloring, _set_cells_coloring)
-
-    def _get_cells_symetric_coloring(self):
+    @property
+    def cells_symetric_coloring(self):
         """
         True if the coloring scheme must be symetric around 0.
 
@@ -939,15 +957,15 @@ class Parameters(QObject):
         """
         return self._cells_symetric_coloring
 
-    def _set_cells_symetric_coloring(self, value):
+    @cells_symetric_coloring.setter
+    def cells_symetric_coloring(self, value):
         value = bool(value)
         if value != self._cells_symetric_coloring:
             self._cells_symetric_coloring = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    cells_symetric_coloring = property(_get_cells_symetric_coloring, _set_cells_symetric_coloring)
-
-    def _get_cells_cap_values(self):
+    @property
+    def cells_cap_values(self):
         '''
         True if the values used to color the cells must be caped.
 
@@ -955,15 +973,15 @@ class Parameters(QObject):
         '''
         return self._cells_cap_values
 
-    def _set_cells_cap_values(self, value):
+    @cells_cap_values.setter
+    def cells_cap_values(self, value):
         value = bool(value)
         if self._cells_cap_values != value:
             self._cells_cap_values = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    cells_cap_values = property(_get_cells_cap_values, _set_cells_cap_values)
-
-    def _get_cells_values_min(self):
+    @property
+    def cells_values_min(self):
         '''
         Minimum cap.
 
@@ -971,15 +989,15 @@ class Parameters(QObject):
         '''
         return self._cells_values_min
 
-    def _set_cells_values_min(self, value):
+    @cells_values_min.setter
+    def cells_values_min(self, value):
         value = float(value)
         if self._cells_values_min != value:
             self._cells_values_min = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    cells_values_min = property(_get_cells_values_min, _set_cells_values_min)
-
-    def _get_cells_values_max(self):
+    @property
+    def cells_values_max(self):
         '''
         Maximum cap.
 
@@ -987,15 +1005,15 @@ class Parameters(QObject):
         '''
         return self._cells_values_max
 
-    def _set_cells_values_max(self, value):
+    @cells_values_max.setter
+    def cells_values_max(self, value):
         value = float(value)
         if self._cells_values_max != value:
             self._cells_values_max = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    cells_values_max = property(_get_cells_values_max, _set_cells_values_max)
-
-    def _get_ellipsis_scaling(self):
+    @property
+    def ellipsis_scaling(self):
         '''
         Scaling applied to the kmin and kmaj to plot the ellipsis
 
@@ -1003,15 +1021,15 @@ class Parameters(QObject):
         '''
         return self._ellipsis_scaling
 
-    def _set_ellipsis_scaling(self, value):
+    @ellipsis_scaling.setter
+    def ellipsis_scaling(self, value):
         value = float(value)
         if self._ellipsis_scaling != value:
             self._ellipsis_scaling = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    ellipsis_scaling = property(_get_ellipsis_scaling, _set_ellipsis_scaling)
-
-    def _get_ellipsis_color(self):
+    @property
+    def ellipsis_color(self):
         '''
         Color used to draw the ellipsis.
 
@@ -1019,15 +1037,15 @@ class Parameters(QObject):
         '''
         return self._ellipsis_color
 
-    def _set_ellipsis_color(self, value):
+    @ellipsis_color.setter
+    def ellipsis_color(self, value):
         value = QColor(value)
         if self._ellipsis_color != value:
             self._ellipsis_color = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    ellipsis_color = property(_get_ellipsis_color, _set_ellipsis_color)
-
-    def _get_ellipsis_thickness(self):
+    @property
+    def ellipsis_thickness(self):
         '''
         Thickness used to draw the growth tensor ellipsis
 
@@ -1035,15 +1053,15 @@ class Parameters(QObject):
         '''
         return self._ellipsis_thickness
 
-    def _set_ellipsis_thickness(self, value):
+    @ellipsis_thickness.setter
+    def ellipsis_thickness(self, value):
         value = int(value)
         if self._ellipsis_thickness != value:
             self._ellipsis_thickness = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    ellipsis_thickness = property(_get_ellipsis_thickness, _set_ellipsis_thickness)
-
-    def _get_ellipsis_min_anisotropy(self):
+    @property
+    def ellipsis_min_anisotropy(self):
         '''
         Minimum anisotropy required to draw axes of an ellipsis.
 
@@ -1051,15 +1069,15 @@ class Parameters(QObject):
         '''
         return self._ellipsis_min_anisotropy
 
-    def _set_ellipsis_min_anisotropy(self, value):
+    @ellipsis_min_anisotropy.setter
+    def ellipsis_min_anisotropy(self, value):
         value = float(value)
         if self._ellipsis_min_anisotropy != value:
             self._ellipsis_min_anisotropy = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    ellipsis_min_anisotropy = property(_get_ellipsis_min_anisotropy, _set_ellipsis_min_anisotropy)
-
-    def _get_ellipsis_positive_color(self):
+    @property
+    def ellipsis_positive_color(self):
         '''
         Color used to draw growth tensor ellipsis axis if the value is positive.
 
@@ -1067,15 +1085,15 @@ class Parameters(QObject):
         '''
         return self._ellipsis_positive_color
 
-    def _set_ellipsis_positive_color(self, value):
+    @ellipsis_positive_color.setter
+    def ellipsis_positive_color(self, value):
         value = QColor(value)
         if self._ellipsis_positive_color != value:
             self._ellipsis_positive_color = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    ellipsis_positive_color = property(_get_ellipsis_positive_color, _set_ellipsis_positive_color)
-
-    def _get_ellipsis_negative_color(self):
+    @property
+    def ellipsis_negative_color(self):
         '''
         Color used to draw growth tensor ellipsis axis if the value is negative.
 
@@ -1083,43 +1101,43 @@ class Parameters(QObject):
         '''
         return self._ellipsis_negative_color
 
-    def _set_ellipsis_negative_color(self, value):
+    @ellipsis_negative_color.setter
+    def ellipsis_negative_color(self, value):
         value = QColor(value)
         if self._ellipsis_negative_color != value:
             self._ellipsis_negative_color = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    ellipsis_negative_color = property(_get_ellipsis_negative_color, _set_ellipsis_negative_color)
-
-    def _get_ellipsis_plot(self):
+    @property
+    def ellipsis_plot(self):
         '''True if the ellipsis is to be plotted.
 
         :returntype: bool'''
         return self._ellipsis_plot
 
-    def _set_ellipsis_plot(self, value):
+    @ellipsis_plot.setter
+    def ellipsis_plot(self, value):
         value = bool(value)
         if self._ellipsis_plot != value:
             self._ellipsis_plot = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    ellipsis_plot = property(_get_ellipsis_plot, _set_ellipsis_plot)
-
-    def _get_ellipsis_scale_axis(self):
+    @property
+    def ellipsis_scale_axis(self):
         '''True if the ellipsis is to be plotted.
 
         :returntype: bool'''
         return self._ellipsis_scale_axis
 
-    def _set_ellipsis_scale_axis(self, value):
+    @ellipsis_scale_axis.setter
+    def ellipsis_scale_axis(self, value):
         value = bool(value)
         if self._ellipsis_scale_axis != value:
             self._ellipsis_scale_axis = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    ellipsis_scale_axis = property(_get_ellipsis_scale_axis, _set_ellipsis_scale_axis)
-
-    def _get_growth_cell_color(self):
+    @property
+    def growth_cell_color(self):
         '''
         Color used to draw cells without function.
 
@@ -1127,15 +1145,15 @@ class Parameters(QObject):
         '''
         return self._growth_cell_color
 
-    def _set_growth_cell_color(self, value):
+    @growth_cell_color.setter
+    def growth_cell_color(self, value):
         value = QColor(value)
         if self._growth_cell_color != value:
             self._growth_cell_color = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    growth_cell_color = property(_get_growth_cell_color, _set_growth_cell_color)
-
-    def _get_growth_wall_color(self):
+    @property
+    def growth_wall_color(self):
         '''
         Color used to draw walls without function.
 
@@ -1143,15 +1161,15 @@ class Parameters(QObject):
         '''
         return self._growth_wall_color
 
-    def _set_growth_wall_color(self, value):
+    @growth_wall_color.setter
+    def growth_wall_color(self, value):
         value = QColor(value)
         if self._growth_wall_color != value:
             self._growth_wall_color = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    growth_wall_color = property(_get_growth_wall_color, _set_growth_wall_color)
-
-    def _get_growth_cell_function(self):
+    @property
+    def growth_cell_function(self):
         '''
         Transfer function used to draw cells. This is actually the pickled form of the transfer function.
 
@@ -1159,14 +1177,14 @@ class Parameters(QObject):
         '''
         return self._growth_cell_function
 
-    def _set_growth_cell_function(self, value):
+    @growth_cell_function.setter
+    def growth_cell_function(self, value):
         if self._growth_cell_function != value:
             self._growth_cell_function = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    growth_cell_function = property(_get_growth_cell_function, _set_growth_cell_function)
-
-    def _get_growth_wall_function(self):
+    @property
+    def growth_wall_function(self):
         '''
         Transfer function used to draw walls. This is actually the pickled form of the transfer function.
 
@@ -1174,12 +1192,12 @@ class Parameters(QObject):
         '''
         return self._growth_wall_function
 
-    def _set_growth_wall_function(self, value):
+    @growth_wall_function.setter
+    def growth_wall_function(self, value):
         if self._growth_wall_function != value:
             self._growth_wall_function = value
-            self.emit(SIGNAL("plottingParameterChange"))
+            self.plottingParameterChange.emit()
 
-    growth_wall_function = property(_get_growth_wall_function, _set_growth_wall_function)
 #}
 
 def createParameters():

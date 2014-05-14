@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
-from PyQt4.QtCore import (QRectF, QSignalMapper, QObject, SIGNAL, SLOT, pyqtSignature)
+from PyQt4.QtCore import (QRectF, QSignalMapper, QObject, SLOT, pyqtSignature, QPointF)
 from PyQt4.QtGui import (QGraphicsView, QAction, QDialog,
         QMainWindow, QMessageBox, QUndoStack, QKeySequence, QWidget, QActionGroup, QInputDialog,
         QMenu, QLabel, QFileDialog, QImageReader, QImageWriter, QPolygonF)
@@ -141,14 +141,14 @@ class TrackingWindow(QMainWindow):
 
         self._previousScene = TrackingScene(self.undo_stack, self.ui.actionDelete_Previous, previous_sel_actions, self)
         self._currentScene = LinkedTrackingScene(self._previousScene, self.undo_stack, self.ui.actionDelete_Current, current_sel_actions, self)
-        QObject.connect(self._previousScene, SIGNAL("hasSelection(bool)"), self.previousSelAct, SLOT("setEnabled(bool)"))
-        QObject.connect(self._currentScene, SIGNAL("hasSelection(bool)"), self.currentSelAct, SLOT("setEnabled(bool)"))
-        QObject.connect(self._previousScene, SIGNAL("realSceneSizeChanged"), self.sceneSizeChanged)
-        QObject.connect(self._currentScene, SIGNAL("realSceneSizeChanged"), self.sceneSizeChanged)
-        QObject.connect(self._previousScene, SIGNAL("ZoomIn"), self.zoomIn)
-        QObject.connect(self._currentScene, SIGNAL("ZoomIn"), self.zoomIn)
-        QObject.connect(self._previousScene, SIGNAL("ZoomOut"), self.zoomOut)
-        QObject.connect(self._currentScene, SIGNAL("ZoomOut"), self.zoomOut)
+        self._previousScene.hasSelectionChanged.connect(self.previousSelAct.setEnabled)
+        self._currentScene.hasSelectionChanged.connect(self.currentSelAct.setEnabled)
+        self._previousScene.realSceneSizeChanged.connect(self.sceneSizeChanged)
+        self._currentScene.realSceneSizeChanged.connect(self.sceneSizeChanged)
+        self._previousScene.zoomIn[QPointF].connect(self.zoomIn)
+        self._currentScene.zoomIn.connect(self.zoomIn)
+        self._previousScene.zoomOut[QPointF].connect(self.zoomOut)
+        self._currentScene.zoomOut.connect(self.zoomOut)
         self.ui.previousData.setScene(self._previousScene)
         self.ui.currentData.setScene(self._currentScene)
         self.ui.previousData.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -166,13 +166,13 @@ class TrackingWindow(QMainWindow):
         self.ui.action_Previous_image.setShortcut(QKeySequence.Back)
 
 # Connecting undo stack signals
-        QObject.connect(self.ui.action_Undo, SIGNAL("triggered()"), self.undo)
-        QObject.connect(self.ui.action_Redo, SIGNAL("triggered()"), self.redo)
-        QObject.connect(self.undo_stack, SIGNAL("canRedoChanged(bool)"), self.ui.action_Redo, SLOT("setEnabled(bool)"))
-        QObject.connect(self.undo_stack, SIGNAL("canUndoChanged(bool)"), self.ui.action_Undo, SLOT("setEnabled(bool)"))
-        QObject.connect(self.undo_stack, SIGNAL("redoTextChanged(const QString&)"), self.changeRedoText)
-        QObject.connect(self.undo_stack, SIGNAL("undoTextChanged(const QString&)"), self.changeUndoText)
-        QObject.connect(self.undo_stack, SIGNAL("cleanChanged(bool)"), self.ui.action_Save, SLOT("setDisabled(bool)"))
+        self.ui.action_Undo.triggered.connect(self.undo)
+        self.ui.action_Redo.triggered.connect(self.redo)
+        self.undo_stack.canRedoChanged[bool].connect(self.ui.action_Redo.setEnabled)
+        self.undo_stack.canUndoChanged[bool].connect(self.ui.action_Undo.setEnabled)
+        self.undo_stack.redoTextChanged["const QString&"].connect(self.changeRedoText)
+        self.undo_stack.undoTextChanged["const QString&"].connect(self.changeUndoText)
+        self.undo_stack.cleanChanged[bool].connect(self.ui.action_Save.setDisabled)
 
 #        link_icon = QIcon()
 #        pix = QPixmap(":/icons/link.png")
@@ -188,7 +188,7 @@ class TrackingWindow(QMainWindow):
 
         self._recent_projects_act = []
         self._projects_mapper = QSignalMapper(self)
-        QObject.connect(self._projects_mapper, SIGNAL("mapped(int)"), self.loadRecentProject)
+        self._projects_mapper.mapped[int].connect(self.loadRecentProject)
 
         self.param_dlg = None
 
@@ -206,7 +206,7 @@ class TrackingWindow(QMainWindow):
 
         self.loadConfig()
 
-        QObject.connect(parameters.instance, SIGNAL("renderingChanged"), self.changeRendering)
+        parameters.instance.renderingChanged.connect(self.changeRendering)
         self.changeRendering()
 
     def changeRendering(self):
@@ -249,7 +249,7 @@ class TrackingWindow(QMainWindow):
         self.ui.actionShow_id.setChecked(parameters.instance.show_id)
         self.ui.action_Estimate_position.setChecked(parameters.instance.estimate)
         self.updateRecentFiles()
-        QObject.connect(params, SIGNAL("recentProjectsChange"), self.updateRecentFiles)
+        params.recentProjectsChange.connect(self.updateRecentFiles)
 
     def updateRecentFiles(self):
         for a in self._recent_projects_act:
@@ -262,7 +262,7 @@ class TrackingWindow(QMainWindow):
             act = QAction(self)
             act.setText("&%d %s"%(i+1,p))
             self._recent_projects_act.append(act)
-            QObject.connect(act, SIGNAL("triggered()"), self._projects_mapper, SLOT("map()"))
+            act.triggered.connect(self._projects_mapper.map)
             self._projects_mapper.setMapping(act, i)
             menu.addAction(act)
 
@@ -302,13 +302,13 @@ class TrackingWindow(QMainWindow):
         parameters.instance._last_dir = dir_
         if self._data is not None:
             _data = self._data
-            QObject.disconnect(_data, SIGNAL("saved"), self.undo_stack, SLOT("setClean()"))
+            _data.saved.disconnect(self.undo_stack.setClean)
         try:
             #self._project.load()
             self.load_data()
             _data = self._project.data
-            QObject.connect(_data, SIGNAL("saved"), self.undo_stack, SLOT("setClean()"))
-            QObject.connect(self._project, SIGNAL("changedDataFile"), self.dataFileChanged)
+            _data.saved.connect(self.undo_stack.setClean)
+            self._project.changedDataFile.connect(self.dataFileChanged)
             self._data = _data
             self._previousScene.changeDataManager(self._data)
             self._currentScene.changeDataManager(self._data)
@@ -492,7 +492,7 @@ class TrackingWindow(QMainWindow):
             self.ui.action_Change_data_file.setEnabled(False)
             self.ui.copyToCurrent.setEnabled(False)
             self.ui.copyToPrevious.setEnabled(False)
-            QObject.connect(self.param_dlg, SIGNAL("finished(int)"), self.closeParam)
+            self.param_dlg.finished[int].connect(self.closeParam)
             self.param_dlg.show()
         elif self.param_dlg:
             self.param_dlg.accept()
@@ -637,26 +637,26 @@ class TrackingWindow(QMainWindow):
         chor = self.ui.currentData.horizontalScrollBar()
         cver = self.ui.currentData.verticalScrollBar()
         if value:
-            QObject.connect(phor, SIGNAL("valueChanged(int)"), chor, SLOT("setValue(int)"))
-            QObject.connect(pver, SIGNAL("valueChanged(int)"), cver, SLOT("setValue(int)"))
-            QObject.connect(chor, SIGNAL("valueChanged(int)"), phor, SLOT("setValue(int)"))
-            QObject.connect(cver, SIGNAL("valueChanged(int)"), pver, SLOT("setValue(int)"))
-            QObject.connect(self._previousScene, SIGNAL("templatePosChange"), self._currentScene.setTemplatePos)
-            QObject.connect(self._currentScene, SIGNAL("templatePosChange"), self._previousScene.setTemplatePos)
+            phor.valueChanged[int].connect(chor.setValue)
+            pver.valueChanged[int].connect(cver.setValue)
+            chor.valueChanged[int].connect(phor.setValue)
+            cver.valueChanged[int].connect(pver.setValue)
+            self._previousScene.templatePosChange.connect(self._currentScene.setTemplatePos)
+            self._currentScene.templatePosChange.connect(self._previousScene.setTemplatePos)
             phor.setValue(chor.value())
             pver.setValue(cver.value())
         else:
-            QObject.disconnect(phor, SIGNAL("valueChanged(int)"), chor, SLOT("setValue(int)"))
-            QObject.disconnect(pver, SIGNAL("valueChanged(int)"), cver, SLOT("setValue(int)"))
-            QObject.disconnect(chor, SIGNAL("valueChanged(int)"), phor, SLOT("setValue(int)"))
-            QObject.disconnect(cver, SIGNAL("valueChanged(int)"), pver, SLOT("setValue(int)"))
-            QObject.disconnect(self._previousScene, SIGNAL("templatePosChange"), self._currentScene.setTemplatePos)
-            QObject.disconnect(self._currentScene, SIGNAL("templatePosChange"), self._previousScene.setTemplatePos)
+            phor.valueChanged[int].disconnect(chor.setValue)
+            pver.valueChanged[int].disconnect(cver.setValue)
+            chor.valueChanged[int].disconnect(phor.setValue)
+            cver.valueChanged[int].disconnect(pver.setValue)
+            self._previousScene.templatePosChange.disconnect(self._currentScene.setTemplatePos)
+            self._currentScene.templatePosChange.disconnect(self._previousScene.setTemplatePos)
 
     def copyFrom(self, start, items):
         if parameters.instance.estimate:
             dlg = createForm('copy_progress.ui', None)
-            QObject.connect(dlg.buttonBox, SIGNAL("clicked(QAbstractButton*)"), self.cancelCopy)
+            dlg.buttonBox.clicked["QAbstractButton*"].connect(self.cancelCopy)
             params = parameters.instance
             ts = params.template_size
             ss = params.search_size
@@ -672,7 +672,7 @@ class TrackingWindow(QMainWindow):
     def cancelCopy(self, *args):
         self.copy_thread.stop = True
         dlg = self.copy_dlg
-        QObject.disconnect(dlg.buttonBox, SIGNAL("clicked(QAbstractButton*)"), self.cancelCopy)
+        dlg.buttonBox.clicked['QAbstractButton*)'].disconnect(self.cancelCopy)
         self._previousScene.changeImage(None)
         self._currentScene.changeImage(None)
 

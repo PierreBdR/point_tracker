@@ -10,6 +10,7 @@ from PyQt4.QtCore import QSize, Qt, pyqtSignature
 from .ui_timeeditdlg import Ui_TimeEditDlg
 from . import image_cache
 from .timemodel import time2hours, TimeDelegate, TimedImageModel
+from .sys_utils import cleanQObject
 
 class TimeEditDlg(QDialog):
     def __init__(self, images, times, images_path, *args):
@@ -28,6 +29,9 @@ class TimeEditDlg(QDialog):
         self.ui.imagesTiming.resizeColumnToContents(1)
         self.delegate = TimeDelegate()
         self.ui.imagesTiming.setItemDelegate(self.delegate)
+
+    def __del__(self):
+        cleanQObject(self)
 
     def accept(self):
         if not self.model.isValid():

@@ -7,7 +7,7 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 
 from PyQt4.QtGui import (QColor, QDialog, QFontDialog, QFont, QDoubleValidator, QPicture,
                          QPainter, QFileDialog)
-from PyQt4.QtCore import QObject, SIGNAL, pyqtSignature, QTimer
+from PyQt4.QtCore import QObject, Slot, QTimer, Signal
 from ..transferfunction import TransferFunction
 from ..transferfunctiondlg import TransferFunctionDlg
 from ..scale_bar import ScaleBar as ScaleBarDrawer
@@ -18,7 +18,7 @@ from ..path import path
 from ..tracking_data import RetryTrackingDataException, TrackingData
 from ..growth_computation_methods import Result
 import sys
-from ..sys_utils import toBool
+from ..sys_utils import toBool, cleanQObject
 from ..debug import log_debug
 
 def make_cap_symetric(caps):
@@ -78,6 +78,8 @@ def transfer_fct_dlg():
 transfer_fct_dlg.instance = None
 
 class NoParametersObject(QObject):
+    changed = Signal()
+
     """
     Class handling parameters when none are needed.
 
@@ -125,6 +127,7 @@ class NoParametersObject(QObject):
         pass
 
 class ColoringObject(QObject):
+    changed = Signal()
     """
     Base class for all coloring object.
 
@@ -155,29 +158,29 @@ class ColoringObject(QObject):
         self._config = None
         self._update_parameters()
 
-#{ Private property methods
-    def _get_result(self):
+    def __del__(self):
+        cleanQObject(self)
+
+    @property
+    def result(self):
         '''Result object used for coloring'''
         return self._result
 
-    def _set_result(self, value):
+    @result.setter
+    def result(self, value):
         if self._result != value:
             self._result = value
             self._update_parameters()
 
-    def _get_parameters(self):
+    @property
+    def parameters(self):
         '''
         Parameter class as a singleton per instance
         '''
         if self._parameters is None:
             self._parameters = self.create_parameters()
-            QObject.connect(self._parameters, SIGNAL("changed"), self, SIGNAL("changed"))
+            self._parameters.changed.connect(self.changed)
         return self._parameters
-#}
-
-    result = property(_get_result, _set_result)
-
-    parameters = property(_get_parameters)
 
 #{ Main interface methods
     def init(self):
@@ -344,6 +347,7 @@ def ColoringClass(objects = None, base=ColoringObject):
     return coloring_baseclasses[ids]
 
 class ScaleBar(QObject):
+    changed = Signal()
     """
     The scale bar has to be inherited.
 
@@ -376,10 +380,10 @@ class ScaleBar(QObject):
         self._scale_config_param = config_params
 
         config.configuration.clicked.connect(self._showConfig)
-        config.scaleBar.toggled.connect(self._set_scale_show)
+        config.scaleBar.toggled.connect(self.set_scale_show)
         config_params.selectTextColor.clicked.connect(self._changeScaleTextColor)
         config_params.selectLineColor.clicked.connect(self._changeScaleLineColor)
-        config_params.selectPosition.highlighted['QString'].connect(self._set_scale_position)
+        config_params.selectPosition.highlighted['QString'].connect(self.set_scale_position)
         config_params.selectFont.clicked.connect(self._changeFont)
         config_params.lineThickness.valueChanged[int].connect(self._changeScaleLineThickness)
         config_params.outsideImage.toggled.connect(self._set_scaleBarOutsideImage)
@@ -401,7 +405,7 @@ class ScaleBar(QObject):
             config_params.selectPosition.setCurrentIndex(0)
         parent.layout().addWidget(config)
 
-    @pyqtSignature("")
+    @Slot()
     def _changeFont(self):
         fnt, ok = QFontDialog.getFont(self.scale_font, self._scale_config_param, "Font for the color scale bar")
         if ok:
@@ -411,25 +415,26 @@ class ScaleBar(QObject):
             scaled_font.setPointSizeF(normal_size)
             self._scale_config_param.selectFont.setFont(scaled_font)
 
-    @pyqtSignature("")
+    @Slot()
     def _changeScaleLineColor(self):
         if changeColor(self._scale_config_param.lineColor):
             self.scale_line = getColor(self._scale_config_param.lineColor)
 
-    @pyqtSignature("int")
+    @Slot(int)
     def _changeScaleLineThickness(self, value):
         self.scale_line_thickness = value
 
-    @pyqtSignature("bool")
+    @Slot(bool)
     def _set_scaleBarOutsideImage(self, value):
         self.scale_bar_outside_image = value
 
-    @pyqtSignature("")
+    @Slot()
     def _changeScaleTextColor(self):
         if changeColor(self._scale_config_param.textColor):
             self.scale_text = getColor(self._scale_config_param.textColor)
 
-    def _get_scale_text(self):
+    @property
+    def scale_text(self):
         """
         Color of the text on the scale bar
 
@@ -437,16 +442,16 @@ class ScaleBar(QObject):
         """
         return self._scale_text
 
-    def _set_scale_text(self, value):
+    @scale_text.setter
+    def scale_text(self, value):
         value = QColor(value)
         if self._scale_text != value:
             self._scale_text = value
             self._params.scale_text = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    scale_text = property(_get_scale_text, _set_scale_text)
-
-    def _get_scale_line(self):
+    @property
+    def scale_line(self):
         """
         Color of the line around the scale bar and the ticks of the scale bar.
 
@@ -454,16 +459,16 @@ class ScaleBar(QObject):
         """
         return self._scale_line
 
-    def _set_scale_line(self, value):
+    @scale_line.setter
+    def scale_line(self, value):
         value = QColor(value)
         if self._scale_line != value:
             self._scale_line = value
             self._params.scale_line = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    scale_line = property(_get_scale_line, _set_scale_line)
-
-    def _get_scale_line_thickness(self):
+    @property
+    def scale_line_thickness(self):
         """
         Thickness of the line around the scale bar and the ticks of the scale bar.
 
@@ -471,16 +476,16 @@ class ScaleBar(QObject):
         """
         return self._scale_line_thickness
 
-    def _set_scale_line_thickness(self, value):
+    @scale_line_thickness.setter
+    def scale_line_thickness(self, value):
         value = int(value)
         if self._scale_line_thickness != value:
             self._scale_line_thickness = value
             self._params.scale_line_thickness = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    scale_line_thickness = property(_get_scale_line_thickness, _set_scale_line_thickness)
-
-    def _get_scale_position(self):
+    @property
+    def scale_position(self):
         """
         Position of the scale bar with respect to the image. Must be one of "Top", "Right", "Bottom" or "Left".
 
@@ -488,16 +493,20 @@ class ScaleBar(QObject):
         """
         return self._scale_position
 
-    def _set_scale_position(self, value):
+    @scale_position.setter
+    def scale_position(self, value):
         value = str(value)
         if self._scale_position != value:
             self._scale_position = value
             self._params.scale_position = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    scale_position = property(_get_scale_position, _set_scale_position)
+    @Slot(str)
+    def set_scale_position(self, value):
+        self.scale_position = value
 
-    def _get_scale_show(self):
+    @property
+    def scale_show(self):
         """
         Wether or not to show the scale bar
 
@@ -505,16 +514,20 @@ class ScaleBar(QObject):
         """
         return self._scale_show
 
-    def _set_scale_show(self, value):
+    @scale_show.setter
+    def scale_show(self, value):
         value = bool(value)
         if self._scale_show != value:
             self._scale_show = value
             self._params.scale_show = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    scale_show = property(_get_scale_show, _set_scale_show)
+    @Slot(bool)
+    def set_scale_show(self, value):
+        self.scale_show = value
 
-    def _get_scale_bar_outside_image(self):
+    @property
+    def scale_bar_outside_image(self):
         """
         Wether or not to show the scale bar
 
@@ -522,16 +535,16 @@ class ScaleBar(QObject):
         """
         return self._scale_bar_outside_image
 
-    def _set_scale_bar_outside_image(self, value):
+    @scale_bar_outside_image.setter
+    def scale_bar_outside_image(self, value):
         value = bool(value)
         if self._scale_bar_outside_image != value:
             self._scale_bar_outside_image = value
             self._params.scale_bar_outside_image = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    scale_bar_outside_image = property(_get_scale_bar_outside_image, _set_scale_bar_outside_image)
-
-    def _get_scale_font(self):
+    @property
+    def scale_font(self):
         """
         Font used for the text of the scale bar.
 
@@ -539,14 +552,13 @@ class ScaleBar(QObject):
         """
         return self._scale_font
 
-    def _set_scale_font(self, value):
+    @scale_font.setter
+    def scale_font(self, value):
         value = QFont(value)
         if self._scale_font != value:
             self._scale_font = value
             self._params.scale_font = value
-            self.emit(SIGNAL("changed"))
-
-    scale_font = property(_get_scale_font, _set_scale_font)
+            self.changed.emit()
 
     def drawScaleBar(self, painter, value_range, unit = "", size = None):
         transform = painter.worldTransform()
@@ -620,47 +632,43 @@ def fixRangeParameters(m,M):
             self._transfer_function = params.transfer_function
             self._config = None
 
-        def _get_transfer_function(self):
+        @property
+        def transfer_function(self):
             '''Transfer function used to convert values into colors
 
             :returntype: `TransferFunction`'''
             return self._transfer_function
 
-        def _set_transfer_function(self, value):
+        @transfer_function.setter
+        def transfer_function(self, value):
             if self._transfer_function != value:
                 self._transfer_function = TransferFunction(value)
                 self._params.transfer_function = self._transfer_function
-                self.emit(SIGNAL("changed"))
+                self.changed.emit()
 
-        transfer_function = property(_get_transfer_function, _set_transfer_function)
-
-        def _get_value_capping(self):
+        @property
+        def value_capping(self):
             return None
 
-        def _set_value_capping(self, value):
+        @value_capping.setter
+        def value_capping(self, value):
             pass
 
-        value_capping = property(_get_value_capping, _set_value_capping)
-
-        def _get_symetric_coloring(self):
+        @property
+        def symetric_coloring(self):
             return False
-
-        def _set_symetric_coloring(self, value):
-            pass
-
-        symetric_coloring = property(_get_symetric_coloring, _set_symetric_coloring)
 
         def widget(self, parent):
             config = createForm("plot_param_theta.ui", parent)
             self._config = config
-            QObject.connect(config.changeColorMap, SIGNAL("clicked()"), self._changeColorMap)
+            config.changeColorMap.clicked.connect(self._changeColorMap)
             self.addScaleBarWidget(config)
             return self._config
 
         def drawScaleBar(self, painter, value_range, unit, size = None):
             return ScaleBar.drawScaleBar(self, painter, self.range, unit, size)
 
-        @pyqtSignature("")
+        @Slot()
         def _changeColorMap(self):
             dlg = transfer_fct_dlg()
             dlg.transfer_fct = self.transfer_function
@@ -695,21 +703,22 @@ class TransferFunctionParameters(ScaleBar):
         self._minmax_values = (-100.0, 100.0)
         self._config = None
 
-    def _get_transfer_function(self):
+    @property
+    def transfer_function(self):
         '''Transfer function used to convert values into colors
 
         :returntype: `TransferFunction`'''
         return self._transfer_function
 
-    def _set_transfer_function(self, value):
+    @transfer_function.setter
+    def transfer_function(self, value):
         if self._transfer_function != value:
             self._transfer_function = TransferFunction(value)
             self._params.transfer_function = self._transfer_function
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    transfer_function = property(_get_transfer_function, _set_transfer_function)
-
-    def _get_symetric_coloring(self):
+    @property
+    def symetric_coloring(self):
         '''
         If true, the color scheme is forced to be symetric. i.e. If all
         values are of the same sign, then 0 is forced into the range.
@@ -719,17 +728,20 @@ class TransferFunctionParameters(ScaleBar):
         '''
         return self._symetric_coloring
 
-    @pyqtSignature("bool")
-    def _set_symetric_coloring(self, value):
+    @symetric_coloring.setter
+    def symetric_coloring(self, value):
         value = bool(value)
         if self._symetric_coloring != value:
             self._symetric_coloring = value
             self._params.symetric_coloring = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    symetric_coloring = property(_get_symetric_coloring, _set_symetric_coloring)
+    @Slot(bool)
+    def set_symetric_coloring(self, value):
+        self.symetric_coloring = value
 
-    def _get_value_capping(self):
+    @property
+    def value_capping(self):
         """
         If not None, value_capping gives the min and max of the color used.
         If symetric_coloring is True, the actual capping will be adjusted
@@ -739,17 +751,17 @@ class TransferFunctionParameters(ScaleBar):
         """
         return self._value_capping
 
-    def _set_value_capping(self, value):
+    @value_capping.setter
+    def value_capping(self, value):
         if value is not None:
             value = (float(value[0]), float(value[1]))
         if self._value_capping != value:
             self._value_capping = value
             self._params.value_capping = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    value_capping = property(_get_value_capping, _set_value_capping)
-
-    def _get_minmax_values(self):
+    @property
+    def minmax_values(self):
         '''
         Get the min and max of the values for the capping
 
@@ -757,15 +769,14 @@ class TransferFunctionParameters(ScaleBar):
         '''
         return self._minmax_values
 
-    def _set_minmax_values(self, value):
+    @minmax_values.setter
+    def minmax_values(self, value):
         value = (float(value[0]), float(value[1]))
         if self._minmax_values != value:
             self._minmax_values = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
             if self._config is not None:
                 self.resetMinMax(value)
-
-    minmax_values = property(_get_minmax_values, _set_minmax_values)
 
     def resetMinMax(self, bounds):
         step = abs(bounds[1]-bounds[0])/20
@@ -773,13 +784,13 @@ class TransferFunctionParameters(ScaleBar):
     def widget(self, parent):
         config = createForm("plot_param_fct.ui", parent)
         self._config = config
-        QObject.connect(config.changeColorMap, SIGNAL("clicked()"), self._changeColorMap)
-        QObject.connect(config.symetricColoring, SIGNAL("toggled(bool)"), self._set_symetric_coloring)
-        QObject.connect(config.capping, SIGNAL("toggled(bool)"), self._cappingChanged)
+        config.changeColorMap.clicked.connect(self._changeColorMap)
+        config.symetricColoring.toggled[bool].connect(self.set_symetric_coloring)
+        config.capping.toggled[bool].connect(self._cappingChanged)
         config.minCap.setValidator(QDoubleValidator(config.minCap))
         config.maxCap.setValidator(QDoubleValidator(config.minCap))
-        QObject.connect(config.minCap, SIGNAL("textChanged(const QString&)"), self._minCapStringChanged)
-        QObject.connect(config.maxCap, SIGNAL("textChanged(const QString&)"), self._maxCapStringChanged)
+        config.minCap.textChanged["const QString&"].connect(self._minCapStringChanged)
+        config.maxCap.textChanged["const QString&"].connect(self._maxCapStringChanged)
         value = self.minmax_values
         self.resetMinMax(value)
         config.minCap.setText(unicode(value[0]))
@@ -792,7 +803,7 @@ class TransferFunctionParameters(ScaleBar):
         self.addScaleBarWidget(config)
         return self._config
 
-    @pyqtSignature("")
+    @Slot()
     def _changeColorMap(self):
         dlg = transfer_fct_dlg()
         if self._symetric_coloring:
@@ -803,14 +814,14 @@ class TransferFunctionParameters(ScaleBar):
         dlg.stickers = []
         dlg.saveSettings("")
 
-    @pyqtSignature("bool")
+    @Slot(bool)
     def _cappingChanged(self, value):
         if value:
             self.value_capping = (float(self._config.minCap.text()), float(self._config.maxCap.text()))
         else:
             self.value_capping = None
 
-    @pyqtSignature("const QString&")
+    @Slot("const QString&")
     def _minCapStringChanged(self, value):
         try:
             value_double = float(value)
@@ -822,7 +833,7 @@ class TransferFunctionParameters(ScaleBar):
                 cap = (value_double, cap[1])
                 self.value_capping = cap
 
-    @pyqtSignature("const QString&")
+    @Slot("const QString&")
     def _maxCapStringChanged(self, value):
         try:
             value_double = float(value)
@@ -896,18 +907,18 @@ class DirectionGrowthParameters(ScaleBar):
         self.edit_timer.setInterval(500)
         self.edit_timer.timeout.connect(self.loadEdit)
 
-    def _get_data_file(self):
+    @property
+    def data_file(self):
         """Data file holding the points for the direction"""
         return self._data_file
 
-    def _set_data_file(self, value):
+    @data_file.setter
+    def data_file(self, value):
         value = path(value)
         if self._data_file != value:
             self._data_file = value
             self.load_data()
-            self.emit(SIGNAL("changed"))
-
-    data_file = property(fget=_get_data_file,fset=_set_data_file,doc=_get_data_file.__doc__)
+            self.changed.emit()
 
     def load_data(self, **loading_arguments):
         try:
@@ -951,7 +962,7 @@ class DirectionGrowthParameters(ScaleBar):
         u /= norm(u.x(), u.y())
         return u
 
-    @pyqtSignature("const QString&")
+    @Slot("const QString&")
     def _changePoint1(self, value):
         try:
             value = int(value)
@@ -960,7 +971,7 @@ class DirectionGrowthParameters(ScaleBar):
         except ValueError as err:
             log_debug("Error while changing point1 = %s" % str(err))
 
-    @pyqtSignature("const QString&")
+    @Slot("const QString&")
     def _changePoint2(self, value):
         try:
             value = int(value)
@@ -969,33 +980,34 @@ class DirectionGrowthParameters(ScaleBar):
         except ValueError as err:
             log_debug("Error while changing point1 = %s" % str(err))
 
-    def _get_data_points(self):
+    @property
+    def data_points(self):
         """Ids of the data points defining the direction in the data file"""
         return self._data_points
 
-    def _set_data_points(self, value):
+    @data_points.setter
+    def data_points(self, value):
         value = (int(value[0]), int(value[1]))
         if self._data_points != value:
             self._data_points = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    data_points = property(fget=_get_data_points,fset= _set_data_points,doc=_get_data_points.__doc__)
-
-    def _get_transfer_function(self):
+    @property
+    def transfer_function(self):
         '''Transfer function used to convert values into colors
 
         :returntype: `TransferFunction`'''
         return self._transfer_function
 
-    def _set_transfer_function(self, value):
+    @transfer_function.setter
+    def transfer_function(self, value):
         if self._transfer_function != value:
             self._transfer_function = TransferFunction(value)
             self._params.transfer_function = self._transfer_function
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    transfer_function = property(_get_transfer_function, _set_transfer_function)
-
-    def _get_symetric_coloring(self):
+    @property
+    def symetric_coloring(self):
         '''
         If true, the color scheme is forced to be symetric. i.e. If all
         values are of the same sign, then 0 is forced into the range.
@@ -1005,72 +1017,71 @@ class DirectionGrowthParameters(ScaleBar):
         '''
         return self._symetric_coloring
 
-    @pyqtSignature("bool")
-    def _set_symetric_coloring(self, value):
+    @symetric_coloring.setter
+    def symetric_coloring(self, value):
         value = bool(value)
         if self._symetric_coloring != value:
             self._symetric_coloring = value
             self._params.symetric_coloring = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    symetric_coloring = property(_get_symetric_coloring, _set_symetric_coloring)
-
-    def _get_orthogonal(self):
+    @property
+    def orthogonal(self):
         """If true, the points mark the line orthogonal to the direction wanted"""
         return self._orthogonal
 
-    @pyqtSignature("bool")
-    def _set_orthogonal(self, value):
+    @orthogonal.setter
+    @Slot(bool)
+    def orthogonal(self, value):
         value = bool(value)
         if self._orthogonal != value:
             self._orthogonal = value
             self._params.orthogonal = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    orthogonal = property(fget=_get_orthogonal,fset= _set_orthogonal,doc=_get_orthogonal.__doc__)
-
-    def _get_draw_line(self):
+    @property
+    def draw_line(self):
         """If truem draw the line defining the direction"""
         return self._draw_line
 
-    @pyqtSignature("bool")
-    def _set_draw_line(self, value):
+    @draw_line.setter
+    @Slot(bool)
+    def draw_line(self, value):
         value = bool(value)
         if self._draw_line != value:
             self._draw_line = value
             self._params.draw_line = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    draw_line = property(fget=_get_draw_line,fset= _set_draw_line,doc=_get_draw_line.__doc__)
-
-    def _get_line_color(self):
+    @property
+    def line_color(self):
         """Color of the line defining the direction"""
         return self._line_color
 
-    def _set_line_color(self, value):
+    @line_color.setter
+    def line_color(self, value):
         value = QColor(value)
         if self._line_color != value:
             self._line_color = value
             self._params.line_color = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    line_color = property(fget=_get_line_color,fset= _set_line_color,doc=_get_line_color.__doc__)
-
-    def _get_line_width(self):
+    @property
+    def line_width(self):
         """Width of the line in pixels"""
         return self._line_width
 
-    @pyqtSignature("int")
-    def _set_line_width(self, value):
+    @line_width.setter
+    @Slot(int)
+    def line_width(self, value):
         value = int(value)
         if self._line_width != value:
             self._line_width = value
             self._params.line_width = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    line_width = property(fget=_get_line_width,fset= _set_line_width,doc=_get_line_width.__doc__)
-
-    def _get_value_capping(self):
+    @property
+    def value_capping(self):
         """
         If not None, value_capping gives the min and max of the color used.
         If symetric_coloring is True, the actual capping will be adjusted
@@ -1080,17 +1091,17 @@ class DirectionGrowthParameters(ScaleBar):
         """
         return self._value_capping
 
-    def _set_value_capping(self, value):
+    @value_capping.setter
+    def value_capping(self, value):
         if value is not None:
             value = (float(value[0]), float(value[1]))
         if self._value_capping != value:
             self._value_capping = value
             self._params.value_capping = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
 
-    value_capping = property(_get_value_capping, _set_value_capping)
-
-    def _get_minmax_values(self):
+    @property
+    def minmax_values(self):
         '''
         Get the min and max of the values for the capping
 
@@ -1098,20 +1109,19 @@ class DirectionGrowthParameters(ScaleBar):
         '''
         return self._minmax_values
 
-    def _set_minmax_values(self, value):
+    @minmax_values.setter
+    def minmax_values(self, value):
         value = (float(value[0]), float(value[1]))
         if self._minmax_values != value:
             self._minmax_values = value
-            self.emit(SIGNAL("changed"))
+            self.changed.emit()
             if self._config is not None:
                 self.resetMinMax(value)
-
-    minmax_values = property(_get_minmax_values, _set_minmax_values)
 
     def resetMinMax(self, bounds):
         step = abs(bounds[1]-bounds[0])/20
 
-    @pyqtSignature("")
+    @Slot()
     def _changeLineColor(self):
         if changeColor(self._config.lineColor):
             self.line_color = getColor(self._config.lineColor)
@@ -1161,14 +1171,14 @@ class DirectionGrowthParameters(ScaleBar):
         self.addScaleBarWidget(config)
         return self._config
 
-    @pyqtSignature("")
+    @Slot()
     def _selectDataFile(self):
         fn = QFileDialog.getOpenFileName(self._config, "Select the data file defining your line", self.data_file,
                                          "All data files (*.csv *.xls);;CSV Files (*.csv);;XLS files (*.xls);;All files (*.*)")
         if fn:
             self._config.dataFile.setText(fn)
 
-    @pyqtSignature("const QString&")
+    @Slot("const QString&")
     def _checkAndLoad(self, txt):
         pth = path(txt)
         if pth.exists() and pth.isfile():
@@ -1178,12 +1188,12 @@ class DirectionGrowthParameters(ScaleBar):
             self._next_data_file = None
             self.edit_timer.stop()
 
-    @pyqtSignature("")
+    @Slot()
     def loadEdit(self):
         if self._next_data_file is not None:
             self.data_file = self._next_data_file
 
-    @pyqtSignature("")
+    @Slot()
     def _changeColorMap(self):
         dlg = transfer_fct_dlg()
         if self._symetric_coloring:
@@ -1194,14 +1204,14 @@ class DirectionGrowthParameters(ScaleBar):
         dlg.stickers = []
         dlg.saveSettings("")
 
-    @pyqtSignature("bool")
+    @Slot(bool)
     def _cappingChanged(self, value):
         if value:
             self.value_capping = (float(self._config.minCap.text()), float(self._config.maxCap.text()))
         else:
             self.value_capping = None
 
-    @pyqtSignature("const QString&")
+    @Slot("const QString&")
     def _minCapStringChanged(self, value):
         try:
             value_double = float(value)
@@ -1213,7 +1223,7 @@ class DirectionGrowthParameters(ScaleBar):
                 cap = (value_double, cap[1])
                 self.value_capping = cap
 
-    @pyqtSignature("const QString&")
+    @Slot("const QString&")
     def _maxCapStringChanged(self, value):
         try:
             value_double = float(value)
@@ -1296,6 +1306,7 @@ class DirectionGrowthParameters(ScaleBar):
 
 
 class ColorParameters(QObject):
+    changed = Signal()
     """
     Parameters for continuous objects.
     """
@@ -1308,29 +1319,29 @@ class ColorParameters(QObject):
     def widget(self, parent):
         config = createForm("plot_param_color.ui", parent)
         setColor(config.color, self._color)
-        QObject.connect(config.selectColor, SIGNAL("clicked()"), self._changeColor)
+        config.selectColor.clicked.connect(self._changeColor)
         self._config = config
         return config
 
-    @pyqtSignature("")
+    @Slot()
     def _changeColor(self):
         if changeColor(self._config.color):
             self.color = getColor(self._config.color)
 
-    def _get_color(self):
+    @property
+    def color(self):
         '''Color used for the rendering of the property.
 
         :returntype: `QColor`'''
         return self._color
 
-    def _set_color(self, value):
+    @color.setter
+    def color(self, value):
         value = QColor(value)
         if self._color != value:
             self._color = value
             self._params.color = value
-            self.emit(SIGNAL("changed"))
-
-    color = property(_get_color, _set_color)
+            self.changed.emit()
 
     @staticmethod
     def load(params, settings):

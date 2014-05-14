@@ -79,13 +79,15 @@ class ImageCache(object):
         self._real_max_size = 0
         self.max_size = 0
 
-    def _get_max_size(self):
+    @property
+    def max_size(self):
         """
         Maximum size of the cache in MB.
         """
         return self._real_max_size/(1024*1024)
 
-    def _set_max_size(self, value):
+    @max_size.setter
+    def max_size(self, value):
         self._max_size = value
         value *= 1024*1024
         if value < self._real_max_size:
@@ -93,8 +95,6 @@ class ImageCache(object):
             self.clean()
         else:
             self._real_max_size = value
-
-    max_size = property(_get_max_size, _set_max_size)
 
     def __get(self, image_name, want_numpy, filter_size = None):
         #print "Asking for image: %s" % (image_name,)

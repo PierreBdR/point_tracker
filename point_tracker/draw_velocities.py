@@ -13,6 +13,7 @@ import parameters
 from plottingdlg import PlottingDlg
 import tracking as src_tracking
 from .debug import log_error
+from .sys_utils import cleanQObject
 
 class DrawVelocities(QObject):
     def __init__(self, result, result_type, forward = True):
@@ -53,6 +54,9 @@ class DrawVelocities(QObject):
         self.color = params.arrow_color
         self.head_size = params.arrow_head_size
         self.line_width = self.data.minScale()*params.arrow_line_size
+
+    def __del__(self):
+        cleanQObject(self)
 
     def startImage(self, painter, imageid):
         pass

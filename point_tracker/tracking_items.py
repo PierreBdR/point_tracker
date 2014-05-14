@@ -9,6 +9,7 @@ from math import cos, pi
 from math import hypot as norm
 from .geometry import dist, distToPolyLine,  inf
 from .debug import log_debug
+from .sys_utils import cleanQObject
 
 class OldPointItem(QGraphicsItem):
     def __init__(self, scale, pt_id, parent = None):
@@ -25,6 +26,9 @@ class OldPointItem(QGraphicsItem):
         self.hover_template = False
         self.hover = False
         self.setGeometry()
+
+    def __del__(self):
+        cleanQObject(self)
 
     def setGeometry(self):
         """
@@ -126,6 +130,9 @@ class PointItem(QGraphicsItem):
         self.cells = tuple(cells)
         self.setGeometry()
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+
+    def __del__(self):
+        cleanQObject(self)
 
     def setEditable(self, value=True):
         self.setFlag(QGraphicsItem.ItemIsMovable, value)
@@ -262,6 +269,9 @@ class TemplateItem(QGraphicsItem):
         self.setGeometry()
         #self.setFlag(QGraphicsItem.ItemIgnoresTransformations, True)
 
+    def __del__(self):
+        cleanQObject(self)
+
     def setGeometry(self):
         params = parameters.instance
         self.prepareGeometryChange()
@@ -283,7 +293,7 @@ class TemplateItem(QGraphicsItem):
             scene = self.scene()
             if not self.changing and scene is not None:
                 self.changing = True
-                scene.templatePosChange(pos)
+                scene.templatePosChange.emit(pos)
                 self.changing = False
         return QGraphicsItem.itemChange(self, change, value)
 
@@ -407,6 +417,9 @@ class ArrowItem(QGraphicsItem):
         self.updateShape()
         self.setZValue(2)
         #self.setFlag(QGraphicsItem.ItemIgnoresTransformations, True)
+
+    def __del__(self):
+        cleanQObject(self)
 
     def setGeometry(self):
         self.prepareGeometryChange()
@@ -536,6 +549,9 @@ class CellItem(QGraphicsItem):
         self.p1 = None
         self.p2 = None
         self.setGeometry()
+
+    def __del__(self):
+        cleanQObject(self)
 
     def setCurrent(self, value = True):
         """

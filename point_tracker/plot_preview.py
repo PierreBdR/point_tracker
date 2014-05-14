@@ -3,12 +3,13 @@ __author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtGui import (QDialog, QPushButton, QGraphicsView, QTransform, QMessageBox, QIcon,
         QDialogButtonBox, QPixmap, QGraphicsScene, QLabel)
-from PyQt4.QtCore import SIGNAL, QObject, pyqtSignature, QRectF, Qt, QTimer
+from PyQt4.QtCore import QObject, pyqtSignature, QRectF, Qt, QTimer
 from PyQt4.QtOpenGL import QGLWidget, QGLFormat, QGL
 
 from .ui_plot_preview import Ui_PlotPreview
 from . import parameters
 from .debug import log_debug
+from .sys_utils import cleanQObject
 
 class PlotPreview(QDialog):
     def __init__(self, thread, parent):
@@ -20,7 +21,7 @@ class PlotPreview(QDialog):
         icon.addPixmap(QPixmap(":/icons/reload.png"), QIcon.Normal, QIcon.Off)
         self.update_btn = QPushButton(icon, "Update")
         self.ui.buttonBox.addButton(self.update_btn, QDialogButtonBox.ApplyRole)
-        QObject.connect(self.update_btn, SIGNAL("clicked()"), self.render_image)
+        self.update_btn.clicked.connect(self.render_image)
         self._pix = None
         self._image_list = None
         self._thread = thread
@@ -39,25 +40,13 @@ class PlotPreview(QDialog):
         timer.setSingleShot(True)
         timer.setInterval(500)
         self.timer = timer
-        QObject.connect(timer, SIGNAL("timeout()"), self.render_image)
+        timer.timeout.connect(self.render_image)
         if parameters.instance.use_OpenGL:
             self.ui.imageView.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
 
     def __del__(self):
-        QObject.disconnect(self.timer, SIGNAL("timeout()"), self.render_image)
-        self.scene = None
         self.ui.imageView.setScene(None)
-        self.show_pix_c = None
-        self.show_pix_w = None
-        self.pix_item = None
-        self.pic_w = None
-        self.pic_c = None
-        self._pix = None
-        self.pix_item = None
-        self.timer = None
-        self._thread = None
-        self.parent = None
-        self.ui = None
+        cleanQObject(self)
 
     @property
     def thread(self):

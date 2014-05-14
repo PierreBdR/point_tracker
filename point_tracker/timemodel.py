@@ -6,8 +6,9 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import QItemDelegate, QLineEdit, QBrush, QColor, QPalette
-from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, SIGNAL
+from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex
 from math import floor
+from .sys_utils import cleanQObject
 
 def time2hours(time_str):
     time_str = str(time_str)
@@ -27,6 +28,9 @@ def hours2time(hours):
 class TimeDelegate(QItemDelegate):
     def __init__(self, parent = None):
         QItemDelegate.__init__(self, parent)
+
+    def __del__(self):
+        cleanQObject(self)
 
     def createEditor(self, parent, option, index):
         editor = QLineEdit(parent)
@@ -66,6 +70,9 @@ class TimedImageModel(QAbstractTableModel):
             self.createIndex(idx, 0, root)
             self.createIndex(idx, 1, root)
         self.root = root
+
+    def __del__(self):
+        cleanQObject(self)
 
     def rowCount(self, parent):
         if parent == self.root:
@@ -137,7 +144,7 @@ class TimedImageModel(QAbstractTableModel):
             next_row_changed = False
             self.times[row] = time
             self._updateValids()
-            self.emit(SIGNAL("dataChanged(const QModelIndex&,const QModelIndex&)"), index, index)
+            self.dataChanged['const QModelIndex&','const QModelIndex&'].emit(index, index)
             return True
         return False
 

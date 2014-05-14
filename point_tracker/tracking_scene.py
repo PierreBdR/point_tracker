@@ -4,7 +4,7 @@ __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import (QGraphicsScene, QPixmap, QKeySequence, QPainterPath, QDialog,
         QColor, QProgressDialog, QCursor, QGraphicsView, QTransform, QMenu, QBrush)
-from PyQt4.QtCore import QPointF, QObject, SIGNAL, QRectF, Qt, pyqtSignature
+from PyQt4.QtCore import QPointF, QObject, Signal, QRectF, Qt, Slot
 from .algo import findTemplate
 from . import image_cache
 from .tracking_undo import (AddPoints, RemovePoints, MovePoints, RemovePointsInAllImages, RemovePointsFromImage,
@@ -14,7 +14,7 @@ from . import parameters
 from .tracking_items import PointItem, OldPointItem, ArrowItem, TemplateItem, CellItem
 from .geometry import makeStarShaped
 from .debug import log_debug
-from .sys_utils import createForm
+from .sys_utils import createForm, cleanQObject
 from .tracking_data import EndOfTime
 
 current_id = -1
@@ -25,6 +25,12 @@ class TrackingScene(QGraphicsScene):
       - hasSelection(bool)
       - realSceneSizeChanged
     """
+
+    hasSelectionChanged = Signal(bool)
+    realSceneSizeChanged = Signal()
+    zoomIn = Signal([], [QPointF])
+    zoomOut = Signal([], [QPointF])
+    templatePosChange = Signal(QPointF)
 
     Pan = "Pan"
     Add = "Add"
@@ -57,11 +63,11 @@ class TrackingScene(QGraphicsScene):
         self.points = {}
         self.cells = {}
         self._real_scene_rect = QRectF()
-        QObject.connect(params, SIGNAL("pointParameterChange"), self.updatePoints)
-        QObject.connect(params, SIGNAL("cellParameterChange"), self.updateCells)
-        QObject.connect(params, SIGNAL("searchParameterChange"), self.updateTemplate)
+        params.pointParameterChange.connect(self.updatePoints)
+        params.cellParameterChange.connect(self.updateCells)
+        params.searchParameterChange.connect(self.updateTemplate)
         self.had_selection = None
-        QObject.connect(self, SIGNAL("selectionChanged()"), self.updateSelectionActions)
+        self.selectionChanged.connect(self.updateSelectionActions)
         self.current_data = None
         self.back_matrix = QTransform()
         self.invert_back_matrix = QTransform()
@@ -91,7 +97,7 @@ class TrackingScene(QGraphicsScene):
         self.mode = TrackingScene.Pan
 
     def __del__(self):
-        QObject.disconnect(self, SIGNAL("selectionChanged()"), self.updateSelectionActions)
+        cleanQObject(self)
 
     def hasSelection(self):
         """
@@ -110,45 +116,57 @@ class TrackingScene(QGraphicsScene):
             value = self.hasSelection()
             if value != self.had_selection:
                 self.had_selection = value
-                self.emit(SIGNAL("hasSelection(bool)"), value)
+                self.hasSelectionChanged.emit(value)
         except:
             pass
 
-    def _has_current_cell(self):
+    @property
+    def has_current_cell(self):
         return self._current_cell is not None
 
-    has_current_cell = property(_has_current_cell)
-
-    def _get_current_cell(self):
+    @property
+    def current_cell(self):
         """
-        Get the current edited cell.
+        Currently edited cell.
 
-        If needed the cell will be created when accessed
+        If needed the cell will be created when accessed.
         """
-        if self._current_cell is None:
+        if self.selected_cell is None:
             self._current_cell = self.data_manager.createNewCell()
         return self._current_cell
 
-    def _set_current_cell(self, value):
+    @current_cell.setter
+    def current_cell(self, value):
         if value != self._current_cell and self._current_cell in self.cells:
             self.cells[self._current_cell].setCurrent(False)
         if value in self.cells:
             self._current_cell = value
             self.cells[value].setCurrent()
 
-    def _del_current_cell(self):
+    @current_cell.deleter
+    def current_cell(self):
         if self._current_cell in self.cells:
             self.cells[self._current_cell].setCurrent(False)
         self._current_cell = None
 
-    current_cell = property(_get_current_cell, _set_current_cell, _del_current_cell)
+    @property
+    def selected_cell(self):
+        """
+        Currently selected cell.
 
-    def _get_selected_cell(self):
+        This is the same as the current cell, but doesn't create one if requested.
+        """
         if self._current_cell is not None and self._current_cell not in self.cells:
             self._current_cell = None
         return self._current_cell
 
-    selected_cell = property(_get_selected_cell, _set_current_cell, _del_current_cell)
+    @selected_cell.setter
+    def selected_cell(self, value):
+        self.current_cell = value
+
+    @selected_cell.deleter
+    def selected_cell(self):
+        del self.current_cell
 
     def updatePoints(self):
         for p in self.items():
@@ -179,10 +197,10 @@ class TrackingScene(QGraphicsScene):
                     self.planAddPoints(None, [pos])
             elif self.mode == TrackingScene.ZoomOut:
                 event.accept()
-                self.emit(SIGNAL("ZoomOut"), event.scenePos())
+                self.zoomOut[QPointF].emit(event.scenePos())
             elif self.mode == TrackingScene.ZoomIn:
                 event.accept()
-                self.emit(SIGNAL("ZoomIn"), event.scenePos())
+                self.zoomIn[QPointF].emit(event.scenePos())
             elif self.mode == TrackingScene.AddCell:
                 for item in self.items(event.scenePos()):
                     if isinstance(item, CellItem):
@@ -347,8 +365,8 @@ class TrackingScene(QGraphicsScene):
             dlg.endImages.setCurrentIndex(dlg.end_index)
         else:
             dlg.endImages.setCurrentIndex(dlg.endImages.count()-1)
-        dlg.connect(dlg.startImages, SIGNAL("currentIndexChanged(int)"), self.updateLifepsanEndImages)
-        dlg.connect(dlg.endImages, SIGNAL("currentIndexChanged(int)"), self.updateLifepsanStartImages)
+        dlg.startImages.currentIndexChanged[int].connect(self.updateLifepsanEndImages)
+        dlg.endImages.currentIndexChanged[int].connect(self.updateLifepsanStartImages)
         if ls.parent is not None:
             dlg.created.setChecked(True)
         if ls.daughters is not None:
@@ -363,12 +381,12 @@ class TrackingScene(QGraphicsScene):
             log_debug("Change lifespan of cell %d to %s" % (cid, new_ls))
             self.planChangeCell(cid, self.data_manager.cells[cid], new_ls)
 
-    @pyqtSignature("int")
+    @Slot(int)
     def updateLifepsanEndImages(self, new_idx):
         dlg = self.lifespan_dlg
         start_idx = dlg.start_index
         if start_idx != new_idx:
-            dlg.disconnect(dlg.endImages, SIGNAL("currentIndexChanged(int)"), self.updateLifepsanStartImages)
+            dlg.endImages.currentIndexChanged[int].disconnect(self.updateLifepsanStartImages)
             dlg.endImages.clear()
             dlg.endImages.addItems(dlg.images[new_idx:])
             if dlg.end_index != -1:
@@ -377,9 +395,9 @@ class TrackingScene(QGraphicsScene):
             else:
                 dlg.endImages.setCurrentIndex(dlg.endImages.count()-1)
             dlg.start_index = new_idx
-            dlg.connect(dlg.endImages, SIGNAL("currentIndexChanged(int)"), self.updateLifepsanStartImages)
+            dlg.endImages.currentIndexChanged[int].connect(self.updateLifepsanStartImages)
 
-    @pyqtSignature("int")
+    @Slot(int)
     def updateLifepsanStartImages(self, new_idx):
         dlg = self.lifespan_dlg
         start_idx = dlg.start_index
@@ -387,7 +405,7 @@ class TrackingScene(QGraphicsScene):
         if end_idx == -1:
             end_idx = dlg.endImages.count()-1
         if new_idx != end_idx:
-            dlg.disconnect(dlg.startImages, SIGNAL("currentIndexChanged(int)"), self.updateLifepsanEndImages)
+            dlg.startImages.currentIndexChanged[int].disconnect(self.updateLifepsanEndImages)
             dlg.startImages.clear()
             dlg.startImages.addItems(dlg.images[:new_idx+start_idx])
             dlg.startImages.setCurrentIndex(dlg.start_index)
@@ -395,7 +413,7 @@ class TrackingScene(QGraphicsScene):
                 dlg.end_index = -1
             else:
                 dlg.end_index = new_idx
-            dlg.connect(dlg.startImages, SIGNAL("currentIndexChanged(int)"), self.updateLifepsanEndImages)
+            dlg.startImages.currentIndexChanged[int].connect(self.updateLifepsanEndImages)
 
     def makeCellStarshaped(self):
         cid = self._cell_under
@@ -444,14 +462,14 @@ class TrackingScene(QGraphicsScene):
         self.clearItems()
         if self.data_manager is not None:
             data_manager = self.data_manager
-            QObject.disconnect(data_manager, SIGNAL("pointsAdded"), self.addPoints)
-            QObject.disconnect(data_manager, SIGNAL("pointsMoved"), self.movePoints)
-            QObject.disconnect(data_manager, SIGNAL("pointsDeleted"), self.delPoints)
-            QObject.disconnect(data_manager, SIGNAL("imageMoved"), self.moveImage)
-            QObject.disconnect(data_manager, SIGNAL("dataChanged"), self.dataChanged)
-            QObject.disconnect(data_manager, SIGNAL("cellsAdded"), self.addCells)
-            QObject.disconnect(data_manager, SIGNAL("cellsRemoved"), self.removeCells)
-            QObject.disconnect(data_manager, SIGNAL("cellsChanged"), self.changeCells)
+            data_manager.pointsAdded.disconnect(self.addPoints)
+            data_manager.pointsMoved.disconnect(self.movePoints)
+            data_manager.pointsDeleted.disconnect(self.delPoints)
+            data_manager.imageMoved.disconnect(self.moveImage)
+            data_manager.dataChanged.disconnect(self.dataChanged)
+            data_manager.cellsAdded.disconnect(self.addCells)
+            data_manager.cellsRemoved.disconnect(self.removeCells)
+            data_manager.cellsChanged.disconnect(self.changeCells)
         self.current_data = None
         self.data_manager = None
         self.image_path = None
@@ -461,14 +479,14 @@ class TrackingScene(QGraphicsScene):
         self.data_manager = data_manager
         self.min_scale = 1.0
         self.scale = (1.0, 1.0)
-        QObject.connect(data_manager, SIGNAL("pointsAdded"), self.addPoints)
-        QObject.connect(data_manager, SIGNAL("pointsMoved"), self.movePoints)
-        QObject.connect(data_manager, SIGNAL("pointsDeleted"), self.delPoints)
-        QObject.connect(data_manager, SIGNAL("dataChanged"), self.dataChanged)
-        QObject.connect(data_manager, SIGNAL("imageMoved"), self.moveImage)
-        QObject.connect(data_manager, SIGNAL("cellsAdded"), self.addCells)
-        QObject.connect(data_manager, SIGNAL("cellsRemoved"), self.removeCells)
-        QObject.connect(data_manager, SIGNAL("cellsChanged"), self.changeCells)
+        data_manager.pointsAdded.connect(self.addPoints)
+        data_manager.pointsMoved.connect(self.movePoints)
+        data_manager.pointsDeleted.connect(self.delPoints)
+        data_manager.dataChanged.connect(self.dataChanged)
+        data_manager.imageMoved.connect(self.moveImage)
+        data_manager.cellsAdded.connect(self.addCells)
+        data_manager.cellsRemoved.connect(self.removeCells)
+        data_manager.cellsChanged.connect(self.changeCells)
 
     def moveImage(self, image_name, scale, pos, angle):
         if image_name == self.image_name:
@@ -499,16 +517,16 @@ class TrackingScene(QGraphicsScene):
         self.invert_back_matrix = inv
         self.real_scene_rect = rect
 
-    def _get_real_scene_rect(self):
+    @property
+    def real_scene_rect(self):
         '''Real size of the scene'''
         return self._real_scene_rect
 
-    def _set_real_scene_rect(self, value):
+    @real_scene_rect.setter
+    def real_scene_rect(self, value):
         if self._real_scene_rect != value:
             self._real_scene_rect = value
-            self.emit(SIGNAL("realSceneSizeChanged"))
-
-    real_scene_rect = property(_get_real_scene_rect, _set_real_scene_rect)
+            self.realSceneSizeChanged.emit()
 
     def changeImage(self, image_path):
         log_debug("Changed image to {0}".format(image_path))
@@ -761,12 +779,6 @@ class TrackingScene(QGraphicsScene):
     def getAllIds(self):
         return self.points.keys()
 
-    def _get_mode(self):
-        """
-        Mouse interaction mode
-        """
-        return self._mode
-
     def _set_pan_view(self, view):
         view.setInteractive(True)
         view.setCursor(Qt.ArrowCursor)
@@ -836,7 +848,15 @@ class TrackingScene(QGraphicsScene):
                    ZoomIn: (_set_zoomin_view, _set_normal),
                    ZoomOut: (_set_zoomout_view, _set_normal) }
 
-    def _set_mode(self, new_mode):
+    @property
+    def mode(self):
+        """
+        Mouse interaction mode
+        """
+        return self._mode
+
+    @mode.setter
+    def mode(self, new_mode):
         if new_mode in TrackingScene.modes:
             if new_mode != self._mode:
                 log_debug("Changed mode to %s" % new_mode)
@@ -845,8 +865,6 @@ class TrackingScene(QGraphicsScene):
                 fct(self)
                 for v in self.views():
                     fct_view(self, v)
-
-    mode = property(_get_mode, _set_mode)
 
     def validateCell(self):
         del self.current_cell
@@ -868,9 +886,9 @@ class TrackingScene(QGraphicsScene):
         elif event.key() == Qt.Key_Delete and event.modifiers() | Qt.ShiftModifier:
             self.delete_act.trigger()
         elif event.matches(QKeySequence.ZoomIn):
-            self.emit(SIGNAL("ZoomIn"))
+            self.zoomIn.emit()
         elif event.matches(QKeySequence.ZoomOut):
-            self.emit(SIGNAL("ZoomOut"))
+            self.zoomOut.emit()
         elif event.matches(QKeySequence.SelectAll):
             path = QPainterPath()
             path.addRect(self.sceneRect())
@@ -1022,9 +1040,6 @@ class TrackingScene(QGraphicsScene):
             self.template.setVisible(False)
         self.update()
 
-    def templatePosChange(self, pos):
-        self.emit(SIGNAL("templatePosChange"), pos)
-
     def resetNewPoints(self):
         for items in self.points.values():
             items.new = False
@@ -1037,8 +1052,8 @@ class LinkedTrackingScene(TrackingScene):
         self.link = link
         self.link.link = self
         params = parameters.instance
-        QObject.connect(params, SIGNAL("oldPointParameterChange"), self.updateOldPoints)
-        QObject.connect(params, SIGNAL("arrowParameterChange"), self.updateArrows)
+        params.oldPointParameterChange.connect(self.updateOldPoints)
+        params.arrowParameterChange.connect(self.updateArrows)
 
     def linkPoint(self, link, point):
         if point.arrow is None:
