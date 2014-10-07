@@ -3,7 +3,7 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from . import parameters
 from PyQt4.QtGui import (QPainterPath, QColor, QGraphicsItem, QPen, QPolygonF, QCursor,
-        QTransform, QPainterPathStroker)
+                         QTransform, QPainterPathStroker)
 from PyQt4.QtCore import QPointF, QRectF, Qt, QLineF
 from math import cos, pi
 from math import hypot as norm
@@ -11,8 +11,9 @@ from .geometry import dist, distToPolyLine,  inf
 from .debug import log_debug
 from .sys_utils import cleanQObject
 
+
 class OldPointItem(QGraphicsItem):
-    def __init__(self, scale, pt_id, parent = None):
+    def __init__(self, scale, pt_id, parent=None):
         QGraphicsItem.__init__(self, parent)
         self.pt_id = pt_id
         self.scale = scale
@@ -22,7 +23,7 @@ class OldPointItem(QGraphicsItem):
         self.link = None
         self.back_link = None
         self.arrow = None
-        self._show_template = False # Are we showing the template *now* ?
+        self._show_template = False  # Are we showing the template *now* ?
         self.hover_template = False
         self.hover = False
         self.setGeometry()
@@ -78,7 +79,7 @@ class OldPointItem(QGraphicsItem):
         path.moveTo(0, -half_size*scale[1])
         path.lineTo(0,  half_size*scale[1])
         path.moveTo(-half_size*scale[0], 0)
-        path.lineTo( half_size*scale[0], 0)
+        path.lineTo(half_size*scale[0], 0)
         return path
 
     def paint(self, painter, option, widget):
@@ -92,7 +93,7 @@ class OldPointItem(QGraphicsItem):
             saved = True
             dx = tr.dx()
             dy = tr.dy()
-            painter.setWorldTransform(QTransform(1/scale[0],0,0,1/scale[1],dx,dy))
+            painter.setWorldTransform(QTransform(1 / scale[0], 0, 0, 1 / scale[1], dx, dy))
         if self.hover:
             pen_color = params.old_point_matching_color
         else:
@@ -110,8 +111,9 @@ class OldPointItem(QGraphicsItem):
         self.setFlag(QGraphicsItem.ItemIsSelectable, False)
         self.setFlag(QGraphicsItem.ItemIsMovable, False)
 
+
 class PointItem(QGraphicsItem):
-    def __init__(self, scale, pt_id, new = False, cells = (), parent = None):
+    def __init__(self, scale, pt_id, new=False, cells=(), parent=None):
         QGraphicsItem.__init__(self, parent)
         self.remove_in_all = False
         self.new = new
@@ -123,7 +125,7 @@ class PointItem(QGraphicsItem):
         self.link = None
         self.back_link = None
         self.arrow = None
-        self._show_template = False # Are we showing the template *now* ?
+        self._show_template = False  # Are we showing the template *now* ?
         self.hover_template = False
         self.hover = False
         self.setToolTip(unicode(pt_id))
@@ -229,7 +231,7 @@ class PointItem(QGraphicsItem):
             painter.save()
             dx = tr.dx()
             dy = tr.dy()
-            painter.setWorldTransform(QTransform(1/scale[0],0,0,1/scale[1],dx,dy))
+            painter.setWorldTransform(QTransform(1 / scale[0], 0, 0, 1 / scale[1], dx, dy))
         pen = QPen(QColor(Qt.black))
         pen.setWidth(params.point_thickness)
         painter.setPen(pen)
@@ -256,8 +258,9 @@ class PointItem(QGraphicsItem):
         if saved:
             painter.restore()
 
+
 class TemplateItem(QGraphicsItem):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         QGraphicsItem.__init__(self, parent)
         self.setZValue(5)
         self.setFlags(QGraphicsItem.ItemIsMovable)
@@ -285,7 +288,7 @@ class TemplateItem(QGraphicsItem):
         if 2*ssi > ss-ts:
             ssi = (ss-ts)/2.
         self.sensitive_size = ssi
-        self.sensitive_rect = self.search_rect.adjusted(-ssi,-ssi,ssi,ssi)
+        self.sensitive_rect = self.search_rect.adjusted(-ssi, -ssi, ssi, ssi)
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionChange:
@@ -334,12 +337,12 @@ class TemplateItem(QGraphicsItem):
         self.on_search = False
         if diff < ssi:
             self.on_search = True
-            self.updateCursor(x,y,True)
+            self.updateCursor(x, y, True)
             return
         diff = min(abs(abs(x)-ts), abs(abs(y)-ts))
         if diff < ssi:
             self.on_template = True
-            self.updateCursor(x,y,False)
+            self.updateCursor(x, y, False)
             return
         self.resetCursor()
 
@@ -348,11 +351,11 @@ class TemplateItem(QGraphicsItem):
         x = pos.x()
         y = pos.y()
         if self.on_search:
-            self.updateCursor(x,y,True)
+            self.updateCursor(x, y, True)
             event.accept()
             return
         elif self.on_template:
-            self.updateCursor(x,y,False)
+            self.updateCursor(x, y, False)
             event.accept()
             return
         QGraphicsItem.mousePressEvent(self, event)
@@ -363,15 +366,15 @@ class TemplateItem(QGraphicsItem):
         x = pos.x()
         y = pos.y()
         if self.on_search:
-            ns = norm(x,y)
+            ns = norm(x, y)
             params.search_size = ns
-            self.updateCursor(x,y,True)
+            self.updateCursor(x, y, True)
             event.accept()
             return
         elif self.on_template:
             ns = max(abs(x), abs(y))
             params.template_size = ns
-            self.updateCursor(x,y,False)
+            self.updateCursor(x, y, False)
             event.accept()
             return
         QGraphicsItem.mouseMoveEvent(self, event)
@@ -381,11 +384,11 @@ class TemplateItem(QGraphicsItem):
         x = pos.x()
         y = pos.y()
         if self.on_search:
-            self.updateCursor(x,y,True)
+            self.updateCursor(x, y, True)
             event.accept()
             return
         elif self.on_template:
-            self.updateCursor(x,y,False)
+            self.updateCursor(x, y, False)
             event.accept()
             return
         QGraphicsItem.mouseReleaseEvent(self, event)
@@ -408,8 +411,9 @@ class TemplateItem(QGraphicsItem):
         painter.setBrush(params.template_color)
         painter.drawRect(params.template_rect)
 
+
 class ArrowItem(QGraphicsItem):
-    def __init__(self, scale, source, target, parent = None):
+    def __init__(self, scale, source, target, parent=None):
         QGraphicsItem.__init__(self, parent)
         self.source = source
         self.target = target
@@ -425,7 +429,7 @@ class ArrowItem(QGraphicsItem):
         self.prepareGeometryChange()
         self.updateShape()
 
-    def updateShape(self, point = None, pos = None):
+    def updateShape(self, point=None, pos=None):
 # Main arrow direction
         params = parameters.instance
         scale = self.scale
@@ -494,10 +498,11 @@ class ArrowItem(QGraphicsItem):
         painter.setBrush(col)
         painter.drawPath(self.path)
 
+
 class CellItem(QGraphicsItem):
     """
     Class representing a cell on the screen.
-    
+
     :IVariables:
         cell_id : int
             Identifier of the cell
@@ -525,7 +530,7 @@ class CellItem(QGraphicsItem):
             End of a division line
     """
 
-    def __init__(self, scale, glob_scale, cell_id, polygon, points, walls, parent = None):
+    def __init__(self, scale, glob_scale, cell_id, polygon, points, walls, parent=None):
         QGraphicsItem.__init__(self, parent)
         self.cell_id = cell_id
         self.setZValue(2.5)
@@ -553,7 +558,7 @@ class CellItem(QGraphicsItem):
     def __del__(self):
         cleanQObject(self)
 
-    def setCurrent(self, value = True):
+    def setCurrent(self, value=True):
         """
         Set this cell as the current one (i.e. on top and different color)
         """
@@ -580,7 +585,7 @@ class CellItem(QGraphicsItem):
         self.setEditable(params.is_cell_editable)
         points = self.points
         polygon_id = self.polygon_id
-        polygon = [points[pt].pos() if pt in points else None for pt in polygon_id ]
+        polygon = [points[pt].pos() if pt in points else None for pt in polygon_id]
         non_none_cnt = len([p for p in polygon if p is not None])
         if non_none_cnt == 0:
             self.rect = QRectF()
@@ -590,19 +595,19 @@ class CellItem(QGraphicsItem):
         self.setVisible(True)
 # First, check if this is a "simple" cell
         walls = self.walls
-        real_polygon = [ pid for pid in polygon_id if pid in points ]
+        real_polygon = [pid for pid in polygon_id if pid in points]
         #sides = [ walls[real_polygon[i], real_polygon[(i+1)%len(real_polygon)]] for i in range(len(real_polygon)) ]
         sides = [None] * len(polygon)
         self.sides = sides
         real_scale_x = self.scale[0]/self.glob_scale
         real_scale_y = self.scale[1]/self.glob_scale
         for i in range(len(polygon)):
-            if polygon[i] is not None: # Find the next
+            if polygon[i] is not None:  # Find the next
                 j = (i+1) % len(polygon)
                 while polygon[j] is None:
                     j = (j+1) % len(polygon)
-                w = [ QPointF(p.x()*real_scale_x, p.y()*real_scale_y) for p in walls[polygon_id[i], polygon_id[j]] ]
-                sides[i] = [ polygon[i] ] + w + [ polygon[j] ]
+                w = [QPointF(p.x()*real_scale_x, p.y()*real_scale_y) for p in walls[polygon_id[i], polygon_id[j]]]
+                sides[i] = [polygon[i]] + w + [polygon[j]]
         prev = real_polygon[-1]
         polygon_shape = []
         for i in range(len(polygon)):
@@ -611,7 +616,6 @@ class CellItem(QGraphicsItem):
                 polygon_shape.extend(sides[i])
 # Now add the dummy points .. starts at the first non-None point
         if non_none_cnt > 2:
-            #print "List of points: [%s]" % ','.join("(%f,%f)"%(p.x(),p.y()) if p is not None else "None" for p in polygon)
             start = None
             for i in range(len(polygon)):
                 if polygon[i] is not None:
@@ -619,7 +623,8 @@ class CellItem(QGraphicsItem):
                     break
             prev = start
             cur = start+1 if start+1 < len(polygon) else 0
-            log_debug("Polygon before: [%s]" % ",".join("(%f,%f)" % (p.x(), p.y()) if p is not None else "None" for p in polygon))
+            log_debug("Polygon before: [%s]" % ",".join("(%f,%f)" % (p.x(), p.y()) if p is not None else "None"
+                                                        for p in polygon))
             while cur != start:
                 if polygon[cur] is None:
                     cnt = 1
@@ -638,7 +643,7 @@ class CellItem(QGraphicsItem):
                     side = sides[prev]
                     for i in range(len(side)-1):
                         length += dist(side[i], side[i+1])
-                    diff = length/(cnt+1) # Distance between two points
+                    diff = length/(cnt+1)  # Distance between two points
                     i = cur
                     p = side[0]
                     for j in range(cnt):
@@ -647,8 +652,8 @@ class CellItem(QGraphicsItem):
                         for k in range(len(side)-1):
                             dl = dist(side[k], side[k+1])
                             l += dl
-                            if l > diff*(1+1e-5): # Account for accumulation of small errors
-                                c = (i+j)%len(polygon)
+                            if l > diff*(1+1e-5):  # Account for accumulation of small errors
+                                c = (i + j) % len(polygon)
                                 delta = diff-l+dl
                                 p = side[k] + (side[k+1]-side[k])*delta/dl
                                 s1 = side[:k+1] + [p]
@@ -670,10 +675,9 @@ class CellItem(QGraphicsItem):
                 if cur >= len(polygon):
                     cur = 0
             assert None not in polygon, "Error, some dummy points were not added"
-            #print "New list of points: [%s]" % ','.join("(%f,%f)"%(p.x(),p.y()) if p is not None else "None" for p in polygon)
         else:
-            polygon = [ p for p in polygon if p is not None ]
-        center = sum(polygon, QPointF(0,0)) / float(len(polygon))
+            polygon = [p for p in polygon if p is not None]
+        center = sum(polygon, QPointF(0, 0)) / float(len(polygon))
         self.center = center
         if len(polygon) > 2:
             polygon = QPolygonF(polygon+[polygon[0]])
@@ -682,7 +686,7 @@ class CellItem(QGraphicsItem):
             self.polygon_shape = polygon_shape
             polygon_shape.translate(-center)
             # Translate the sides too
-            sides = [ [p-center for p in s] for s in sides ]
+            sides = [[p-center for p in s] for s in sides]
             self.sides = sides
             assert len(sides) == len(polygon)-1
         elif len(polygon) == 2:
@@ -712,7 +716,7 @@ class CellItem(QGraphicsItem):
         else:
             self.division_line = None
         self.hexagon = QPolygonF([QPointF(-width, 0), QPointF(-pos_x, height), QPointF(pos_x, height),
-            QPointF(width, 0), QPointF(pos_x, -height), QPointF(-pos_x, -height)])
+                                  QPointF(width, 0), QPointF(pos_x, -height), QPointF(-pos_x, -height)])
         self.hexagon_path = QPainterPath()
         self.hexagon_path.addPolygon(self.hexagon)
         s1 = QPainterPath()
@@ -825,7 +829,7 @@ class CellItem(QGraphicsItem):
             for i in range(len(polygon)-1):
                 side = sides[i]
                 d = distToPolyLine(pos,  side)
-                if d <min_dist:
+                if d < min_dist:
                     min_dist = d
                     min_side = i
         #print "Closest side found = %d, with distance = %f"%(min_side,  min_dist)

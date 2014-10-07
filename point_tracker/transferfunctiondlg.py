@@ -1,5 +1,5 @@
 from __future__ import print_function, division, absolute_import
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4 import QtCore, QtGui
 from .ui_transferfunctiondlg import Ui_TransferFunctionDlg

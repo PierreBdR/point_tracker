@@ -1,9 +1,10 @@
 from __future__ import print_function, division, absolute_import
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtGui import QDialog
 from .ui_alignmentdlg import Ui_AlignmentDlg
 from .sys_utils import cleanQObject
+
 
 class AlignmentDlg(QDialog):
     def __init__(self, nb_pts, *args):
@@ -21,4 +22,3 @@ class AlignmentDlg(QDialog):
 
     def __del__(self):
         cleanQObject(self)
-

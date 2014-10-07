@@ -2,11 +2,10 @@ from __future__ import print_function, division, absolute_import
 """
 :newfield signal: Signal, Signals
 """
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
-from PyQt4.QtGui import (QDialog, QPixmap, QIcon, QMessageBox, QTreeWidgetItem,
-                         QDoubleValidator, QItemEditorFactory, QDoubleSpinBox,
+from PyQt4.QtGui import (QDialog, QPixmap, QIcon, QDoubleValidator, QItemEditorFactory, QDoubleSpinBox,
                          QItemDelegate)
 from PyQt4.QtCore import QSize, Qt, QVariant, pyqtSignature
 from .ui_editresdlg import Ui_EditResDlg
@@ -14,6 +13,7 @@ from . import image_cache
 from numpy import inf
 from .scalemodel import ScaleModel
 from .sys_utils import cleanQObject
+
 
 class ScaleEditorFactory(QItemEditorFactory):
     def __init__(self):
@@ -31,6 +31,7 @@ class ScaleEditorFactory(QItemEditorFactory):
         w.setMaximum(10000)
         return w
 
+
 class EditResDlg(QDialog):
     def __init__(self, images, scales, images_path, *args):
         QDialog.__init__(self, *args)
@@ -39,7 +40,7 @@ class EditResDlg(QDialog):
         self.ui.setupUi(self)
         icons = []
         for pth in images_path:
-            ico = QIcon(QPixmap.fromImage(cache.image(pth).scaled(QSize(64,64), Qt.KeepAspectRatio)))
+            ico = QIcon(QPixmap.fromImage(cache.image(pth).scaled(QSize(64, 64), Qt.KeepAspectRatio)))
             icons.append(ico)
         self.model = ScaleModel(icons, images, scales)
         self.ui.pixelSizes.setModel(self.model)

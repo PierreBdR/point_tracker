@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 __docformat__ = "restructuredtext"
-import scipy
+
 from scipy import nonzero, array, concatenate
 from scipy import misc
 import sys

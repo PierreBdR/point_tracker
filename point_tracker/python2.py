@@ -9,4 +9,3 @@ if sys.version_info.major < 3:
 else:
     import builtins
     builtins.unicode = str
-

@@ -6,6 +6,7 @@ from .sys_utils import cleanQObject
 from PyQt4.QtCore import pyqtSignature
 from PyQt4 import QtGui
 
+
 class EditMarkersDlg(QtGui.QDialog):
     def __init__(self, fct, parent):
         QtGui.QDialog.__init__(self, parent)
@@ -30,7 +31,8 @@ class EditMarkersDlg(QtGui.QDialog):
 
     @property
     def point_list(self):
-        return [ (m, (col.redF(), col.greenF(), col.blueF(), col.alphaF())) for (m,col) in zip(self.markers, self.colors)]
+        return [(m, (col.redF(), col.greenF(), col.blueF(), col.alphaF()))
+                for (m, col) in zip(self.markers, self.colors)]
 
     @pyqtSignature("")
     def on_addMarker_clicked(self):

@@ -3,13 +3,14 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import (QGraphicsScene, QPixmap, QKeySequence, QPainterPath, QDialog,
-        QColor, QProgressDialog, QCursor, QGraphicsView, QTransform, QMenu, QBrush)
-from PyQt4.QtCore import QPointF, QObject, Signal, QRectF, Qt, Slot
+                         QColor, QProgressDialog, QCursor, QGraphicsView, QTransform,
+                         QMenu, QBrush)
+from PyQt4.QtCore import QPointF, Signal, QRectF, Qt, Slot
 from .algo import findTemplate
 from . import image_cache
 from .tracking_undo import (AddPoints, RemovePoints, MovePoints, RemovePointsInAllImages, RemovePointsFromImage,
-        RemovePointsToImage, AddCellCommand, RemoveCellsCommand, ChangeCellCommand, DivideCellCommand,
-        InsertPointInWallCommand)
+                            RemovePointsToImage, AddCellCommand, RemoveCellsCommand, ChangeCellCommand,
+                            DivideCellCommand, InsertPointInWallCommand)
 from . import parameters
 from .tracking_items import PointItem, OldPointItem, ArrowItem, TemplateItem, CellItem
 from .geometry import makeStarShaped
@@ -18,6 +19,7 @@ from .sys_utils import createForm, cleanQObject
 from .tracking_data import EndOfTime
 
 current_id = -1
+
 
 class TrackingScene(QGraphicsScene):
     """
@@ -57,7 +59,7 @@ class TrackingScene(QGraphicsScene):
         self.image_name = None
         self.background_image = None
         self.template = TemplateItem()
-        self.template.setPos(QPointF(0,0))
+        self.template.setPos(QPointF(0, 0))
         self.template.setVisible(params.show_template)
         self.show_template = False
         self.points = {}
@@ -181,10 +183,10 @@ class TrackingScene(QGraphicsScene):
         self.update()
 
     def selectedPoints(self):
-        return [ it for it in self.selectedItems() if isinstance(it, PointItem) ]
+        return [it for it in self.selectedItems() if isinstance(it, PointItem)]
 
     def selectedCells(self):
-        return [ it for it in self.selectedItems() if isinstance(it, CellItem) ]
+        return [it for it in self.selectedItems() if isinstance(it, CellItem)]
 
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
@@ -244,7 +246,7 @@ class TrackingScene(QGraphicsScene):
         self.undo_stack.push(AddPoints(self.data_manager, self.image_name, pt_ids, poss))
 
     def planMovePoints(self, pt_ids, new_poss, starts=None):
-        self.undo_stack.push(MovePoints(self.data_manager, self.image_name, pt_ids, new_poss, starts = starts))
+        self.undo_stack.push(MovePoints(self.data_manager, self.image_name, pt_ids, new_poss, starts=starts))
 
     def planRemovePoints(self, pt_ids):
         self.undo_stack.push(RemovePoints(self.data_manager, self.image_name, pt_ids))
@@ -253,7 +255,7 @@ class TrackingScene(QGraphicsScene):
         log_debug("Planning adding cell %d" % cell_id)
         self.undo_stack.push(AddCellCommand(self.data_manager, cell_id, pt_ids))
 
-    def planChangeCell(self, cell_id, pt_ids, lifespan = None):
+    def planChangeCell(self, cell_id, pt_ids, lifespan=None):
         log_debug("Planning change cell %d" % cell_id)
         self.undo_stack.push(ChangeCellCommand(self.data_manager, cell_id, pt_ids, lifespan))
 
@@ -266,7 +268,7 @@ class TrackingScene(QGraphicsScene):
         self.undo_stack.push(DivideCellCommand(self.data_manager, self.image_name, cell_id, cid1, cid2, p1, p2))
 
     def planRemoveCells(self, cell_ids):
-        log_debug("Planning remove cells %s" % ", ".join("%d"%c for c in cell_ids))
+        log_debug("Planning remove cells %s" % ", ".join("%d" % c for c in cell_ids))
         self.undo_stack.push(RemoveCellsCommand(self.data_manager, cell_ids))
 
     def mouseReleaseEvent(self, event):
@@ -315,7 +317,7 @@ class TrackingScene(QGraphicsScene):
     def setPointCellSelection(self, region):
         add_pts = []
         remove_pts = []
-        items = [ p.pt_id for p in self.items(region) if isinstance(p, PointItem) ]
+        items = [p.pt_id for p in self.items(region) if isinstance(p, PointItem)]
         if items:
             #print "New cell with: %s" % (items,)
             cells = self.current_data.cells
@@ -349,7 +351,7 @@ class TrackingScene(QGraphicsScene):
         ls = self.data_manager.lifespan(cid)
         dlg = createForm("lifespan.ui", None)
         self.lifespan_dlg = dlg
-        images = QStringList(self.data_manager.images_name)
+        images = list(self.data_manager.images_name)
         images << "End Of Time"
         dlg.images = images
         assert ls.end < len(images) or ls.end == EndOfTime()
@@ -436,7 +438,7 @@ class TrackingScene(QGraphicsScene):
     #        return pts
 
     def addPointToCell(self, cid, side, pt):
-        pts = [ p.pt_id for p in self.items(pt) if isinstance(p, PointItem) ]
+        pts = [p.pt_id for p in self.items(pt) if isinstance(p, PointItem)]
         if pts:
             data = self.data_manager
             pt_id = pts[0]
@@ -562,7 +564,7 @@ class TrackingScene(QGraphicsScene):
             self.current_data = self.data_manager[image_name]
 
     def drawBackground(self, painter, rect):
-        painter.fillRect(rect, QBrush(QColor(0,0,0)))
+        painter.fillRect(rect, QBrush(QColor(0, 0, 0)))
         if self.background_image:
             #bm = self.back_matrix
             #log_debug("m = [%g %g ; %g %g ]" % (bm.m11(), bm.m12(), bm.m21(), bm.m22()))
@@ -570,7 +572,7 @@ class TrackingScene(QGraphicsScene):
             #real_rect = self.invert_back_matrix.mapRect(rect)
             #rect = self.back_matrix.mapRect(real_rect)
             #painter.drawImage(rect,self.background_image, real_rect)
-            painter.drawImage(QPointF(0,0), self.background_image)
+            painter.drawImage(QPointF(0, 0), self.background_image)
 
     def drawForeground(self, painter, rect):
         QGraphicsScene.drawForeground(self, painter, rect)
@@ -589,7 +591,7 @@ class TrackingScene(QGraphicsScene):
             self.link.linkPoint(point, self.link.points[pt_id])
         cell_points = self.data_manager.cell_points
         cells = self.cells
-        cs = [ cells[cid] for cid in cell_points[pt_id] if cid in cells ]
+        cs = [cells[cid] for cid in cell_points[pt_id] if cid in cells]
         point.setCells(cs)
         return point
 
@@ -643,7 +645,7 @@ class TrackingScene(QGraphicsScene):
                     if cell is not None and cell.isVisible():
                         cell.setGeometry()
 
-    def addCells(self, cell_ids, image_list = None):
+    def addCells(self, cell_ids, image_list=None):
         log_debug("addCell signal with images: (%s,%s)" % (cell_ids, image_list))
         if image_list is not None:
             used_ids = []
@@ -660,7 +662,7 @@ class TrackingScene(QGraphicsScene):
         log_debug("Adding cells %s to image %s" % (','.join("%d" % c for c in cell_ids), self.image_name))
         data = self.data_manager
         current_data = self.current_data
-        cell_ids = [ cid for cid in cell_ids if cid in current_data.cells ]
+        cell_ids = [cid for cid in cell_ids if cid in current_data.cells]
         log_debug("cell_ids = %s" % (cell_ids,))
         points = self.points
         cells = self.cells
@@ -687,7 +689,7 @@ class TrackingScene(QGraphicsScene):
                     pt = points[pid]
                     pt.setCells(cells[i] for i in cell_points[pid] if i in cells)
 
-    def removeCells(self, cell_ids, image_list = None):
+    def removeCells(self, cell_ids, image_list=None):
         log_debug("removeCells signal with images: (%s,%s)" % (cell_ids, image_list))
         if image_list is not None:
             used_ids = []
@@ -716,7 +718,7 @@ class TrackingScene(QGraphicsScene):
         log_debug("Change cells %s in image %s" % (','.join("%d" % c for c in cell_ids), self.image_name))
         data = self.data_manager
         current_data = self.current_data
-        cell_ids = [ cid for cid in cell_ids if cid in current_data.cells ]
+        cell_ids = [cid for cid in cell_ids if cid in current_data.cells]
         points = self.points
         cells = self.cells
         for cid in cell_ids:
@@ -735,10 +737,10 @@ class TrackingScene(QGraphicsScene):
                         ci.setDivisionLine(div_line[0], div_line[1])
 
     def pointMoved(self, pt_id, start_pos, end_pos):
-        self.planMovePoints([pt_id], [end_pos], starts = [start_pos])
+        self.planMovePoints([pt_id], [end_pos], starts=[start_pos])
 
     def selectNew(self):
-        for it in self.points.es():
+        for it in self.points.values():
             it.setSelected(it.new)
 
     def selectAll(self):
@@ -768,10 +770,10 @@ class TrackingScene(QGraphicsScene):
                 it.setSelected(True)
 
     def getSelected(self):
-        return [ pt for pt in self.points.values() if pt.isSelected() ]
+        return [pt for pt in self.points.values() if pt.isSelected()]
 
     def getSelectedIds(self):
-        return [ pt.pt_id for pt in self.points.values() if pt.isSelected() ]
+        return [pt.pt_id for pt in self.points.values() if pt.isSelected()]
 
     def getAllItems(self):
         return self.points.values()
@@ -840,13 +842,15 @@ class TrackingScene(QGraphicsScene):
         params.is_point_editable = False
         params.is_cell_editable = False
 
-    _init_view = { Pan: (_set_pan_view, _set_pan),
-                   Move: (_set_select_view, _set_normal),
-                   Add: (_set_add_view, _set_normal),
-                   AddCell: (_set_cell_view, _set_add_cell),
-                   RemoveCell: (_set_cell_view, _set_remove_cell),
-                   ZoomIn: (_set_zoomin_view, _set_normal),
-                   ZoomOut: (_set_zoomout_view, _set_normal) }
+    _init_view = {
+        Pan: (_set_pan_view, _set_pan),
+        Move: (_set_select_view, _set_normal),
+        Add: (_set_add_view, _set_normal),
+        AddCell: (_set_cell_view, _set_add_cell),
+        RemoveCell: (_set_cell_view, _set_remove_cell),
+        ZoomIn: (_set_zoomin_view, _set_normal),
+        ZoomOut: (_set_zoomout_view, _set_normal)
+    }
 
     @property
     def mode(self):
@@ -956,7 +960,7 @@ class TrackingScene(QGraphicsScene):
         new_pos, value = findTemplate(im1, pos, size, npos, search_size, im2)
         if value < 0.5:
             return ppos
-        p = QPointF(new_pos[0],new_pos[1])*self.min_scale
+        p = QPointF(new_pos[0], new_pos[1])*self.min_scale
         return other.back_matrix.map(p)
 
     def transferPoints(self, other):
@@ -964,7 +968,7 @@ class TrackingScene(QGraphicsScene):
         current_data = self.current_data
         items = self.selectedItems()
         if len(items) == 0:
-            items = [ it for it in self.points.values() if it.arrow is None and it.link is None ]
+            items = [it for it in self.points.values() if it.arrow is None and it.link is None]
         new_pt_ids = []
         new_pt_pos = []
         move_pt_ids = []
@@ -972,7 +976,7 @@ class TrackingScene(QGraphicsScene):
         if params.estimate:
             progress = QProgressDialog("Estimating position of the points...", "Abort", 0, len(items), self.parent())
             progress.setMinimumDuration(1)
-            size = (params.filter_size,params.filter_size)
+            size = (params.filter_size, params.filter_size)
             im1 = image_cache.cache.numpy_array(self.image_path, size)
             im2 = image_cache.cache.numpy_array(other.image_path, size)
             for i, it in enumerate(items):
@@ -1009,7 +1013,7 @@ class TrackingScene(QGraphicsScene):
     def copyToLinked(self, linked):
         self.transferPoints(linked)
 
-    def setTemplatePos(self, pos = None):
+    def setTemplatePos(self, pos=None):
         if pos is None:
             views = self.views()
             if len(views) > 0:
@@ -1018,7 +1022,7 @@ class TrackingScene(QGraphicsScene):
         if pos is not None:
             self.template.setPos(pos)
 
-    def showTemplates(self, value = True):
+    def showTemplates(self, value=True):
         params = parameters.instance
         self.show_template = value
         if not params.show_template:
@@ -1044,6 +1048,7 @@ class TrackingScene(QGraphicsScene):
         for items in self.points.values():
             items.new = False
         self.update()
+
 
 class LinkedTrackingScene(TrackingScene):
     def __init__(self, link, *args):
@@ -1096,4 +1101,3 @@ class LinkedTrackingScene(TrackingScene):
             if isinstance(a, ArrowItem):
                 a.updateShape()
         self.update()
-

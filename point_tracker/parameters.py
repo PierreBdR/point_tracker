@@ -2,11 +2,12 @@ from __future__ import print_function, division, absolute_import
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtCore import (QCoreApplication, QObject, QSettings, QRectF,
-        Qt, Signal)
+                          Qt, Signal)
 from PyQt4.QtGui import QColor, QFontMetricsF, QFont
 from .path import path
 from math import floor, ceil
-from .sys_utils import toBool, cleanQObject
+from .sys_utils import toBool  # , cleanQObject
+
 
 class Parameters(QObject):
 
@@ -102,7 +103,7 @@ class Parameters(QObject):
         self._division_wall_color = None
         _division_wall_color = QColor(settings.value("DivisionWallColor"))
         if not _division_wall_color.isValid():
-            _division_wall_color = QColor(255,85,0)
+            _division_wall_color = QColor(255, 85, 0)
             _division_wall_color.setAlphaF(0.8)
         self.division_wall_color = _division_wall_color
 
@@ -139,10 +140,10 @@ class Parameters(QObject):
         self._show_template = toBool(settings.value("ShowTemplate", 'false'))
         self._template_color = QColor(settings.value("TemplateColor"))
         if not self._template_color.isValid():
-            self._template_color = QColor(255,0,0,100)
+            self._template_color = QColor(255, 0, 0, 100)
         self._search_color = QColor(settings.value("SearchColor"))
         if not self._search_color.isValid():
-            self._search_color = QColor(255,0,255,100)
+            self._search_color = QColor(255, 0, 255, 100)
         settings.endGroup()
 
 # The search parameters
@@ -170,7 +171,7 @@ class Parameters(QObject):
         self._show_vectors = toBool(settings.value("ShowVectors", 'true'))
         self._link_views = toBool(settings.value("LinkViews", 'true'))
         try:
-          cache_size = int(settings.value("CacheSize"))
+            cache_size = int(settings.value("CacheSize"))
         except (ValueError, TypeError):
             cache_size = 200
         self.cache_size = cache_size
@@ -178,7 +179,7 @@ class Parameters(QObject):
         self._use_OpenGL = toBool(settings.value("UseOpenGL", 'false'))
         settings.beginGroup("RecentProjects")
         try:
-          numproj = int(settings.value("NumberOfProjects"))
+            numproj = int(settings.value("NumberOfProjects"))
         except (ValueError, TypeError):
             numproj = 0
         self._recent_projects = []
@@ -188,7 +189,7 @@ class Parameters(QObject):
                 value = path(settings.value(name))
                 self._recent_projects.append(value)
         try:
-          self._max_number_of_projects = int(settings.value("MaxNumberOfProjects"))
+            self._max_number_of_projects = int(settings.value("MaxNumberOfProjects"))
         except (ValueError, TypeError):
             self._max_number_of_projects = 5
         settings.endGroup()
@@ -198,26 +199,26 @@ class Parameters(QObject):
         settings.beginGroup("PlottingParameters")
         settings.beginGroup("Ellipsis")
         try:
-          self._ellipsis_scaling = float(settings.value("Scaling", 1.0))
+            self._ellipsis_scaling = float(settings.value("Scaling", 1.0))
         except (ValueError, TypeError):
             self._ellipsis_scaling = 1.0
         self._ellipsis_color = QColor(settings.value("Color"))
         if not self._ellipsis_color.isValid():
-            self._ellipsis_color = QColor(0,0,0)
+            self._ellipsis_color = QColor(0, 0, 0)
         try:
-          self._ellipsis_thickness = int(settings.value("Thickness", 0))
+            self._ellipsis_thickness = int(settings.value("Thickness", 0))
         except (ValueError, TypeError):
             self._ellipsis_thickness = 0
         try:
-          self._ellipsis_min_anisotropy = float(settings.value("MinAnisotropy", 1e-3))
+            self._ellipsis_min_anisotropy = float(settings.value("MinAnisotropy", 1e-3))
         except (ValueError, TypeError):
             self._ellipsis_min_anisotropy = 1e-3
         self._ellipsis_positive_color = QColor(settings.value("PositiveColor"))
         if not self._ellipsis_positive_color.isValid():
-            self._ellipsis_positive_color = QColor(0,0,255)
+            self._ellipsis_positive_color = QColor(0, 0, 255)
         self._ellipsis_negative_color = QColor(settings.value("NegativeColor"))
         if not self._ellipsis_negative_color.isValid():
-            self._ellipsis_negative_color = QColor(255,0,0)
+            self._ellipsis_negative_color = QColor(255, 0, 0)
         self._ellipsis_plot = toBool(settings.value("Plot", 'false'))
         self._ellipsis_scale_axis = toBool(settings.value("ScaleAxis", 'false'))
         settings.endGroup()
@@ -269,7 +270,7 @@ class Parameters(QObject):
         settings.beginGroup("RecentProjects")
         settings.setValue("MaxNumberOfProjects", self._max_number_of_projects)
         settings.setValue("NumberOfProjects", len(self._recent_projects))
-        for i,p in enumerate(self._recent_projects):
+        for i, p in enumerate(self._recent_projects):
             name = "Project%d" % i
             settings.setValue(name, unicode(p))
         settings.endGroup()
@@ -474,7 +475,7 @@ class Parameters(QObject):
 
     @arrow_line_size.setter
     def arrow_line_size(self, size):
-        if size>0 and size != self._arrow_line_size:
+        if size > 0 and size != self._arrow_line_size:
             self._arrow_line_size = size
             self.arrowParameterChange.emit()
 
@@ -541,7 +542,7 @@ class Parameters(QObject):
     def point_thickness(self, value):
         value = int(value)
         if value >= 0 and self._point_thickness != value:
-            self._point_thickness= value
+            self._point_thickness = value
             self.pointParameterChange.emit()
 
     @point_thickness.deleter
@@ -612,7 +613,7 @@ class Parameters(QObject):
     def _find_font(self):
         font = QFont()
         wanted_size = self._point_size
-        font.setStyleStrategy(QFont.StyleStrategy(QFont.OpenGLCompatible|QFont.PreferAntialias))
+        font.setStyleStrategy(QFont.StyleStrategy(QFont.OpenGLCompatible | QFont.PreferAntialias))
         fm = QFontMetricsF(font)
         width = fm.width("888")
         ratio = 1.8*wanted_size/max(width, fm.ascent())
@@ -1200,6 +1201,7 @@ class Parameters(QObject):
 
 #}
 
+
 def createParameters():
     if QCoreApplication.startingUp():
         raise ImportError("The parameters module has been loaded before the creation of a Qt application")
@@ -1209,6 +1211,7 @@ def createParameters():
     else:
         instance.load()
 
+
 def saveParameters():
     global instance
     instance.save()
@@ -1216,5 +1219,3 @@ def saveParameters():
 # To be instantiated after Qt has been initialized
 instance = None
 #createParameters()
-
-

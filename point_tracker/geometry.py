@@ -5,28 +5,32 @@ from PyQt4.QtCore import QPointF, QRectF
 from math import atan2, sqrt
 from numpy import inf
 
+
 def angle(ref, pt):
     x = ref.x()*pt.x() + ref.y()*pt.y()
     y = ref.x()*pt.y() - ref.y()*pt.x()
-    return atan2(y,x)
+    return atan2(y, x)
+
 
 def cross(p1, p2):
     return p1.x()*p2.y()-p1.y()*p2.x()
 
+
 def makeStarShaped(pts, pts2coords):
     if len(pts) > 2:
-        coords = [ pts2coords[pt_id] for pt_id in pts ]
+        coords = [pts2coords[pt_id] for pt_id in pts]
         center = sum(coords, QPointF())/len(coords)
         ref = coords[0] - center
-        angles = [ angle(ref, p-center) for p in coords ]
+        angles = [angle(ref, p-center) for p in coords]
         to_sort = list(range(len(angles)))
-        to_sort.sort(key=lambda k:angles[k])
-        return [ pts[i] for i in to_sort ]
+        to_sort.sort(key=lambda k: angles[k])
+        return [pts[i] for i in to_sort]
     else:
         return pts
 
+
 def boundingBox(pts, pts2coords):
-    coords = [ pts2coords[pt_id] for pt_id in pts if pt_id in pts2coords ]
+    coords = [pts2coords[pt_id] for pt_id in pts if pt_id in pts2coords]
     if coords:
         xmin = min(p.x() for p in coords)
         ymin = min(p.y() for p in coords)
@@ -35,6 +39,7 @@ def boundingBox(pts, pts2coords):
         return QRectF(QPointF(xmin, ymin), QPointF(xmax, ymax))
     else:
         return QRectF()
+
 
 def gravityCenter(polygon):
     """
@@ -47,10 +52,6 @@ def gravityCenter(polygon):
     elif len(polygon) == 2:
         return (polygon[0]+polygon[1])/2
     else:
-        #poly = polygon + [polygon[0]]
-        #a = sum(poly[i].x()*poly[i+1].y() - poly[i+1].x()*poly[i].y() for i in range(len(polygon)))/2.0
-        #cx = sum((poly[i].x()+poly[i+1].x())*(poly[i].x()*poly[i+1].y()-poly[i+1].x()*poly[i].y()) for i in range(len(polygon)))
-        #cy = sum((poly[i].y()+poly[i+1].y())*(poly[i].x()*poly[i+1].y()-poly[i+1].x()*poly[i].y()) for i in range(len(polygon)))
         a = 0
         cx = cy = 0
         for i in range(len(polygon)):
@@ -63,10 +64,12 @@ def gravityCenter(polygon):
         a /= 2
         cx /= 6*a
         cy /= 6*a
-        return QPointF(cx,cy)
+        return QPointF(cx, cy)
+
 
 def pointListToStr(lst):
-    return "[%s]"%(",".join("(%f,%f)"%(p.x(), p.y()) for p in lst))
+    return "[%s]" % (",".join("(%f,%f)" % (p.x(), p.y()) for p in lst))
+
 
 def polygonArea(polygon):
     a = 0
@@ -77,18 +80,22 @@ def polygonArea(polygon):
         a += cross(polygon[i-1], polygon[i])
     return abs(a/2)
 
+
 def length(v):
     return sqrt(v.x()*v.x() + v.y()*v.y())
+
 
 def dist(p1, p2):
     dx = p2.x() - p1.x()
     dy = p2.y() - p1.y()
     return sqrt(dx*dx+dy*dy)
 
+
 def dist_sq(p1, p2):
     dx = p2.x() - p1.x()
     dy = p2.y() - p1.y()
     return dx*dx+dy*dy
+
 
 def distToLine(pt,  p1,  p2):
     """
@@ -109,10 +116,11 @@ def distToLine(pt,  p1,  p2):
     else:
         return dist(pt,  p2)
 
+
 def distToPolyLine(pt,  line):
     """
     Compute the distance from the point pt to the polygin line.
-    
+
     Line is a list of positions.
     """
     if not line:
@@ -124,5 +132,6 @@ def distToPolyLine(pt,  line):
         p1 = line[i]
         p2 = line[i+1]
         d1 = distToLine(pt,  p1,  p2)
-        if d1 < d: d = d1
+        if d1 < d:
+            d = d1
     return d

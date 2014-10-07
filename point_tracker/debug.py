@@ -3,15 +3,13 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 import traceback
 import sys
-import __main__
-import os.path
 import logging
-from logging import handlers
 from PyQt4 import QtGui
 from .path import path
 from functools import partial
 
 log = None
+
 
 def init():
     """
@@ -30,8 +28,10 @@ def init():
     log.addHandler(directReport)
 
     global restore_io
+
     def restore_io():
         logging.shutdown()
+
 
 def calling_class():
     """
@@ -45,11 +45,11 @@ def calling_class():
         >>> def fct(a,b,c):
         ...   cls = debug.calling_class()
         ...   return cls
-        ... 
+        ...
         >>> class C(object):
         ...   def f(self):
         ...     return fct(1,2,3)
-        ... 
+        ...
         >>> C().f()
         <class '__main__.C'>
 
@@ -69,6 +69,7 @@ def calling_class():
                 return cls
         return None
 
+
 def caller():
     """
     Return the element of the stack corresponding to the calling function.
@@ -76,12 +77,14 @@ def caller():
     stack = traceback.extract_stack()
     return stack[-3][:]
 
+
 def print_simple(msg, level):
     """
     Simply print the message in the log file.
     """
     log.log(level, msg)
     #print(msg) #, file=log)
+
 
 def print_calling_class(msg, level):
     """
@@ -102,6 +105,7 @@ log_warning = partial(print_calling_class, level=logging.WARNING)
 log_error = partial(print_calling_class, level=logging.ERROR)
 log_critical = partial(print_calling_class, level=logging.CRITICAL)
 
+
 class debug_type(type):
     """
     Metaclass used to debug usage of a class.
@@ -113,17 +117,21 @@ class debug_type(type):
         Redefine the initialization of the class
         '''
         type.__init__(cls, name, bases, dct)
+
         def debug_del(self):
-            log_debug( "Deleted object %s of class '%s'" % (id(self), type(self).__name__))
+            log_debug("Deleted object %s of class '%s'" % (id(self), type(self).__name__))
+
         def debug_init(self):
-            log_debug( "Creating object %s of class '%s'" % (id(self), type(self).__name__))
+            log_debug("Creating object %s of class '%s'" % (id(self), type(self).__name__))
 
         if not hasattr(cls, "__debug_class__") or not cls.__debug_class__:
             if hasattr(cls, '__del__'):
                 old_del = cls.__del__
+
                 def chained_del(self):
                     old_del(self)
                     debug_del(self)
+
                 chained_del.__doc__ = old_del.__doc__
                 cls.__del__ = chained_del
             else:
@@ -131,9 +139,11 @@ class debug_type(type):
 
         if hasattr(cls, '__init__'):
             old_init = cls.__init__
+
             def chained_init(self, *args):
                 old_init(self, *args)
                 debug_init(self)
+
             chained_init.__doc__ = old_init.__doc__
             cls.__init__ = chained_init
         else:
@@ -141,9 +151,9 @@ class debug_type(type):
 
         cls.__debug_class__ = True
 
+
 class debug_object(object):
     """
     Base class for an object having debug_type as metaclass.
     """
     __metaclass__ = debug_type
-

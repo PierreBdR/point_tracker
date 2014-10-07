@@ -1,9 +1,9 @@
 from __future__ import print_function, division, absolute_import
-__author__ = "Pierre Barbier de Reuille <pbdr@uea.ac.uk>"
+__author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 from PyQt4.QtGui import (QDialog, QPushButton, QGraphicsView, QTransform, QMessageBox, QIcon,
         QDialogButtonBox, QPixmap, QGraphicsScene, QLabel)
-from PyQt4.QtCore import QObject, pyqtSignature, QRectF, Qt, QTimer
+from PyQt4.QtCore import pyqtSignature, QRectF, Qt, QTimer
 from PyQt4.QtOpenGL import QGLWidget, QGLFormat, QGL
 
 from .ui_plot_preview import Ui_PlotPreview

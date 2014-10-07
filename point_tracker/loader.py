@@ -48,5 +48,5 @@ def load(find_functions, search_path=None):
                 fcts.update(find_functions(mod))
             except ImportError as ex:
                 log_error("Cannot import module '{0}' from {1}: {2}"
-                      .format(module_name, caller_module.__name__, ex), file=sys.stderr)
+                          .format(module_name, caller_module.__name__, ex), file=sys.stderr)
     return fcts

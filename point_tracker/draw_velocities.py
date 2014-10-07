@@ -5,9 +5,8 @@ from __future__ import print_function, division, absolute_import
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
-from PyQt4.QtCore import QObject, Qt, QPointF
+from PyQt4.QtCore import QObject, QPointF
 from PyQt4.QtGui import QPen, QBrush, QColor, QPolygonF
-from math import sqrt
 from geometry import length
 import parameters
 from plottingdlg import PlottingDlg
@@ -15,8 +14,9 @@ import tracking as src_tracking
 from .debug import log_error
 from .sys_utils import cleanQObject
 
+
 class DrawVelocities(QObject):
-    def __init__(self, result, result_type, forward = True):
+    def __init__(self, result, result_type, forward=True):
         QObject.__init__(self)
         self.result = result
         self.result_type = result_type
@@ -37,7 +37,7 @@ class DrawVelocities(QObject):
         image_list = self.image_list
         data = self.data
         max_v = 0
-        for i,image_id in enumerate(image_list[:-1]):
+        for i, image_id in enumerate(image_list[:-1]):
             next_image_id = image_list[i+1]
             d1 = data[image_id]
             d2 = data[next_image_id]
@@ -71,7 +71,6 @@ class DrawVelocities(QObject):
         color = self.color
         line_width = self.line_width
         max_velocity = self.max_velocity
-        forward = self.forward
         img1 = self.image_list[imageid]
         img2 = self.image_list[imageid+1]
         d1 = self.data[img1]
@@ -107,7 +106,8 @@ class DrawVelocities(QObject):
 
         painter.drawPolygon(QPolygonF([base_center, base1, tip, base2]))
 
-def draw_velocities(color = None, head_size = None, factor = None):
+
+def draw_velocities(color=None, head_size=None, factor=None):
     main_window = src_tracking.main_window
     dlg = main_window.current_dlg
     if not isinstance(dlg, PlottingDlg):
@@ -124,10 +124,9 @@ def draw_velocities(color = None, head_size = None, factor = None):
     if factor is not None:
         dv.factor = factor
     extraDrawing = dlg.thread.extraDrawing
-    for i,ed in enumerate(extraDrawing):
+    for i, ed in enumerate(extraDrawing):
         if isinstance(ed, DrawVelocities):
             extraDrawing[i] = dv
             break
     else:
         extraDrawing.append(dv)
-

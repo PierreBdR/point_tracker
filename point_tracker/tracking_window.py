@@ -3,17 +3,18 @@ from __future__ import print_function, division, absolute_import
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
-from PyQt4.QtCore import (QRectF, QSignalMapper, QObject, SLOT, pyqtSignature, QPointF)
+from PyQt4.QtCore import (QRectF, QSignalMapper, pyqtSignature, QPointF)
 from PyQt4.QtGui import (QGraphicsView, QAction, QDialog,
-        QMainWindow, QMessageBox, QUndoStack, QKeySequence, QWidget, QActionGroup, QInputDialog,
-        QMenu, QLabel, QFileDialog, QImageReader, QImageWriter, QPolygonF)
+                         QMainWindow, QMessageBox, QUndoStack, QKeySequence, QWidget, QActionGroup,
+                         QInputDialog, QMenu, QLabel, QFileDialog, QImageReader, QImageWriter,
+                         QPolygonF)
 from PyQt4.QtOpenGL import QGLWidget, QGLFormat, QGL
 from .path import path
 from .project import Project
 from .tracking_data import TrackingDataException, RetryTrackingDataException
 from .tracking_scene import TrackingScene, LinkedTrackingScene
-from .tracking_undo import (ChangePointsId, ChangeTiming, CleanCells, ResetAlignment, AlignImages, SplitPointsId,
-                           MergeCells, SplitCells, ChangeScales)
+from .tracking_undo import (ChangePointsId, ChangeTiming, CleanCells, ResetAlignment, AlignImages,
+                            SplitPointsId, MergeCells, SplitCells, ChangeScales)
 import sys
 if sys.platform == "darwin":
     from .ui_tracking_window_macos import Ui_TrackingWindow
@@ -29,6 +30,7 @@ from .plottingdlg import PlottingDlg
 from .sys_utils import createForm, showException, retryException
 from .debug import log_debug
 from .__init__ import __version__, __revision__
+
 
 class TrackingWindow(QMainWindow):
     """
@@ -139,8 +141,11 @@ class TrackingWindow(QMainWindow):
                                 self.ui.actionCopy_selection_from_Current
                                 ]
 
-        self._previousScene = TrackingScene(self.undo_stack, self.ui.actionDelete_Previous, previous_sel_actions, self)
-        self._currentScene = LinkedTrackingScene(self._previousScene, self.undo_stack, self.ui.actionDelete_Current, current_sel_actions, self)
+        self._previousScene = TrackingScene(self.undo_stack, self.ui.actionDelete_Previous,
+                                            previous_sel_actions, self)
+        self._currentScene = LinkedTrackingScene(self._previousScene, self.undo_stack,
+                                                 self.ui.actionDelete_Current, current_sel_actions,
+                                                 self)
         self._previousScene.hasSelectionChanged.connect(self.previousSelAct.setEnabled)
         self._currentScene.hasSelectionChanged.connect(self.currentSelAct.setEnabled)
         self._previousScene.realSceneSizeChanged.connect(self.sceneSizeChanged)
@@ -235,7 +240,9 @@ class TrackingWindow(QMainWindow):
 
     def closeEvent(self, event):
         self.saveConfig()
-        if not self.ensure_save_data("Exiting whith unsaved data", "The last modifications you made were not saved. Are you sure you want to exit?"):
+        if not self.ensure_save_data("Exiting whith unsaved data",
+                                     "The last modifications you made were not saved."
+                                     " Are you sure you want to exit?"):
             event.ignore()
             return
         QMainWindow.closeEvent(self, event)
@@ -258,9 +265,9 @@ class TrackingWindow(QMainWindow):
         menu = self._recent_projects_menu
         menu.clear()
         recent_projects = parameters.instance.recent_projects
-        for i,p in enumerate(recent_projects):
+        for i, p in enumerate(recent_projects):
             act = QAction(self)
-            act.setText("&%d %s"%(i+1,p))
+            act.setText("&{0:d} {1}".format(i + 1, p))
             self._recent_projects_act.append(act)
             act.triggered.connect(self._projects_mapper.map)
             self._projects_mapper.setMapping(act, i)
@@ -271,18 +278,24 @@ class TrackingWindow(QMainWindow):
 
     def check_for_data(self):
         if self._project is None:
-            QMessageBox.critical(self, "No project loaded", "You have to load a project before performing this operation")
+            QMessageBox.critical(self, "No project loaded",
+                                 "You have to load a project before performing this operation")
             return False
         return True
 
     def loadRecentProject(self, i):
-        if self.ensure_save_data("Leaving unsaved data", "The last modifications you made were not saved. Are you sure you want to change project?"):
+        if self.ensure_save_data("Leaving unsaved data",
+                                 "The last modifications you made were not saved."
+                                 " Are you sure you want to change project?"):
             self.loadProject(parameters.instance.recent_projects[i])
 
     @pyqtSignature("")
     def on_action_Open_project_triggered(self):
-        if self.ensure_save_data("Leaving unsaved data", "The last modifications you made were not saved. Are you sure you want to change project?"):
-            dir_ = QFileDialog.getExistingDirectory(self, "Select a project directory", parameters.instance._last_dir)
+        if self.ensure_save_data("Leaving unsaved data",
+                                 "The last modifications you made were not saved."
+                                 " Are you sure you want to change project?"):
+            dir_ = QFileDialog.getExistingDirectory(self, "Select a project directory",
+                                                    parameters.instance._last_dir)
             if dir_:
                 self.loadProject(dir_)
 
@@ -292,7 +305,9 @@ class TrackingWindow(QMainWindow):
         if project.valid:
             self._project = project
         else:
-            create = QMessageBox.question(self, "Invalid project directory", "This directory does not contain a valid project. Turn into a directory?", QMessageBox.No, QMessageBox.Yes)
+            create = QMessageBox.question(self, "Invalid project directory",
+                                          "This directory does not contain a valid project. Turn into a directory?",
+                                          QMessageBox.No, QMessageBox.Yes)
             if create == QMessageBox.No:
                 return
             project.create()
@@ -347,7 +362,7 @@ class TrackingWindow(QMainWindow):
     @pyqtSignature("int")
     def on_currentState_currentIndexChanged(self, index):
         #print "Current image loaded: %s" % self._data.images[index]
-        self.changeScene(self._currentScene,index)
+        self.changeScene(self._currentScene, index)
 
     def changeScene(self, scene, index):
         """
@@ -366,7 +381,7 @@ class TrackingWindow(QMainWindow):
         if fn:
             self.save_data(path(fn))
 
-    def save_data(self, data_file = None):
+    def save_data(self, data_file=None):
         if self._data is None:
             raise TrackingDataException("Trying to save data when none have been loaded")
         try:
@@ -409,7 +424,8 @@ class TrackingWindow(QMainWindow):
 
     @pyqtSignature("")
     def on_action_Change_data_file_triggered(self):
-        if self.ensure_save_data("Leaving unsaved data", "The last modifications you made were not saved. Are you sure you want to change the current data file?"):
+        if self.ensure_save_data("Leaving unsaved data", "The last modifications you made were not saved."
+                                 " Are you sure you want to change the current data file?"):
             fn = QFileDialog.getOpenFileName(self, "Select a data file to load", self._project.data_dir,
                                                    "CSV Files (*.csv);;All files (*.*)")
             if fn:
@@ -477,7 +493,7 @@ class TrackingWindow(QMainWindow):
             #tracking_scene.saveParameters()
             parameters.instance.save()
             max_size = max(self._currentScene.width(), self._currentScene.height(),
-                    self._previousScene.width(), self._previousScene.height(), 400)
+                           self._previousScene.width(), self._previousScene.height(), 400)
             self.param_dlg = ParametersDlg(max_size, self)
             self.param_dlg.setModal(False)
             self.ui.action_Pan.setChecked(True)
@@ -567,9 +583,9 @@ class TrackingWindow(QMainWindow):
         s = max(prev_sw, prev_sh, cur_sw, cur_sh)
 
         self.ui.previousData.resetMatrix()
-        self.ui.previousData.scale(s,s)
+        self.ui.previousData.scale(s, s)
         self.ui.currentData.resetMatrix()
-        self.ui.currentData.scale(s,s)
+        self.ui.currentData.scale(s, s)
         self.changeZoom(s)
 
     def zoomOut(self, point=None):
@@ -582,13 +598,12 @@ class TrackingWindow(QMainWindow):
         #self.ensureZoomFit()
 
     def zoomIn(self, point=None):
-        self.ui.currentData.scale(2,2)
-        self.ui.previousData.scale(2,2)
+        self.ui.currentData.scale(2, 2)
+        self.ui.previousData.scale(2, 2)
         self.changeZoom(self.ui.previousData.matrix().m11())
         if point is not None:
             self.ui.previousData.centerOn(point)
             self.ui.currentData.centerOn(point)
-
 
     def changeZoom(self, zoom):
         self._zoom_label.setText("Zoom: %.5g%%" % (100*zoom))
@@ -701,12 +716,15 @@ class TrackingWindow(QMainWindow):
                 self.cancelCopy()
                 dlg.accept()
             return True
-        return QMainWindow.event(self,event)
+        return QMainWindow.event(self, event)
 
     def itemsToCopy(self, scene):
         items = scene.getSelectedIds()
         if items:
-            answer = QMessageBox.question(self, "Copy of points", "Some points were selected in the previous data window. Do you want to copy only these point on the successive images?", QMessageBox.Yes, QMessageBox.No)
+            answer = QMessageBox.question(self, "Copy of points",
+                                          "Some points were selected in the previous data window."
+                                          " Do you want to copy only these point on the successive images?",
+                                          QMessageBox.Yes, QMessageBox.No)
             if answer == QMessageBox.Yes:
                 return items
         return scene.getAllIds()
@@ -802,7 +820,9 @@ class TrackingWindow(QMainWindow):
             old_cell = self._previousScene.selected_cell
             new_cell = self._currentScene.selected_cell
             if old_cell is None or new_cell is None:
-                QMessageBox.critical(self, "Cannot merge cells", "You have to select exactly one cell in the old state and one in the new state to merge them.")
+                QMessageBox.critical(self, "Cannot merge cells",
+                                     "You have to select exactly one cell in the old state "
+                                     "and one in the new state to merge them.")
                 return
             try:
                 if old_cell != new_cell:
@@ -815,7 +835,9 @@ class TrackingWindow(QMainWindow):
             old_pts = self._previousScene.getSelectedIds()
             new_pts = self._currentScene.getSelectedIds()
             if len(old_pts) != 1 or len(new_pts) != 1:
-                QMessageBox.critical(self, "Cannot merge points", "You have to select exactly one point in the old state and one in the new state to link them.")
+                QMessageBox.critical(self, "Cannot merge points",
+                                     "You have to select exactly one point in the old state "
+                                     "and one in the new state to link them.")
                 return
             try:
                 if old_pts != new_pts:
@@ -838,13 +860,16 @@ class TrackingWindow(QMainWindow):
 
     @pyqtSignature("")
     def on_actionNew_data_file_triggered(self):
-        if self.ensure_save_data("Leaving unsaved data", "The last modifications you made were not saved. Are you sure you want to change the current data file?"):
+        if self.ensure_save_data("Leaving unsaved data", "The last modifications you made were not saved."
+                                 " Are you sure you want to change the current data file?"):
             fn = QFileDialog.getSaveFileName(self, "Select a new data file to create", self._project.data_dir,
                                                    "CSV Files (*.csv);;All files (*.*)")
             if fn:
                 fn = path(fn)
                 if fn.exists():
-                    button = QMessageBox.question(self, "Erasing existing file", "Are you sure yo want to empty the file '%s' ?" % fn, QMessageBox.Yes, QMessageBox.No)
+                    button = QMessageBox.question(self, "Erasing existing file",
+                                                  "Are you sure yo want to empty the file '%s' ?" % fn,
+                                                  QMessageBox.Yes, QMessageBox.No)
                     if button == QMessageBox.No:
                         return
                     fn.remove()
@@ -859,11 +884,11 @@ class TrackingWindow(QMainWindow):
     def on_actionAbout_triggered(self):
         dlg = QMessageBox(self)
         dlg.setWindowTitle("About Point Tracker")
-        dlg.setIconPixmap(self.windowIcon().pixmap(64,64))
+        dlg.setIconPixmap(self.windowIcon().pixmap(64, 64))
         #dlg.setTextFormat(Qt.RichText)
 
         dlg.setText("""Point Tracker Tool version %s rev %s
-Developper: Pierre Barbier de Reuille <pierre.barbier-de-reuille@cmp.uea.ac.uk>
+Developper: Pierre Barbier de Reuille <pierre@barbierdereuille.net>
 Copyright 2008
 """ % (__version__, __revision__))
 
@@ -897,9 +922,6 @@ Copyright 2008
             except TrackingDataException as ex:
                 showException(self, "Error while loading data file", ex)
                 return
-            #points = [str(i) for i in range(d._last_pt_id+1)]
-            #points.insert(0, "Barycenter")
-            #ref, ok = QInputDialog.getItem(self, "Alignment data parameter", "Choose the reference point", points, 0, False)
             if d._last_pt_id > 0:
                 dlg = AlignmentDlg(d._last_pt_id+1, self)
                 if dlg.exec_():
@@ -938,7 +960,7 @@ Copyright 2008
         dlg = TimeEditDlg(data.images_name, data.images_time, [data.image_path(n) for n in data.images_name], self)
         self.current_dlg = dlg
         if dlg.exec_() == QDialog.Accepted:
-            self.undo_stack.push(ChangeTiming(data, [t for n,t in dlg.model]))
+            self.undo_stack.push(ChangeTiming(data, [t for n, t in dlg.model]))
         del self.current_dlg
 
     @pyqtSignature("")
@@ -947,7 +969,7 @@ Copyright 2008
         dlg = EditResDlg(data.images_name, data.images_scale, [data.image_path(n) for n in data.images_name], self)
         self.current_dlg = dlg
         if dlg.exec_() == QDialog.Accepted:
-            self.undo_stack.push(ChangeScales(data, [sc for n,sc in dlg.model]))
+            self.undo_stack.push(ChangeScales(data, [sc for n, sc in dlg.model]))
         del self.current_dlg
 
     @pyqtSignature("")
@@ -972,7 +994,7 @@ Copyright 2008
 
     @pyqtSignature("")
     def on_actionGotoCell_triggered(self):
-        cells = [ str(cid) for cid in self._data.cells ]
+        cells = [str(cid) for cid in self._data.cells]
         selected, ok = QInputDialog.getItem(self, "Goto cell", "Select the cell to go to", cells, 0)
         if ok:
             cid = int(selected)
@@ -984,11 +1006,11 @@ Copyright 2008
             prev_pos = self._previousScene.current_data._current_index
             cur_pos = self._currentScene.current_data._current_index
             full_poly = data.cells[cid]
-            poly = [ pid for pid in full_poly if pid in data[prev_pos] ]
+            poly = [pid for pid in full_poly if pid in data[prev_pos]]
             #log_debug("Cell %d on time %d: %s" % (cid, prev_pos, poly))
             if prev_pos < ls.start or prev_pos >= ls.end or not poly:
                 for i in range(*ls.slice().indices(len(data))):
-                    poly = [ pid for pid in full_poly if pid in data[i] ]
+                    poly = [pid for pid in full_poly if pid in data[i]]
                     if poly:
                         log_debug("Found cell %d on image %d with polygon %s" % (cid, i, poly))
                         new_prev_pos = i
@@ -1006,13 +1028,14 @@ Copyright 2008
             poly = data.cells[cid]
             prev_poly = QPolygonF([prev_data[ptid] for ptid in poly if ptid in prev_data])
             prev_bbox = prev_poly.boundingRect()
-            log_debug("Previous bounding box = %dx%d+%d+%d" % (prev_bbox.width(), prev_bbox.height(), prev_bbox.left(), prev_bbox.top()))
+            log_debug("Previous bounding box = %dx%d+%d+%d" % (prev_bbox.width(), prev_bbox.height(),
+                                                               prev_bbox.left(), prev_bbox.top()))
             self.ui.previousData.ensureVisible(prev_bbox)
 
     @pyqtSignature("")
     def on_actionGotoPoint_triggered(self):
         data = self._data
-        points = [ str(pid) for pid in data.cell_points ]
+        points = [str(pid) for pid in data.cell_points]
         selected, ok = QInputDialog.getItem(self, "Goto point", "Select the point to go to", points, 0)
         if ok:
             pid = int(selected)
@@ -1040,4 +1063,3 @@ Copyright 2008
             self._previousScene.setSelectedIds([pid])
             self._currentScene.setSelectedIds([pid])
             self.ui.previousData.centerOn(self._previousScene.current_data[pid])
-
