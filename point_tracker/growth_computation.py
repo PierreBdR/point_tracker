@@ -6,7 +6,7 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 __docformat__ = "restructuredtext"
 
 from PyQt4.QtGui import (QDialog, QIcon, QPixmap, QMenu, QItemSelectionModel, QItemSelection,
-        QFileDialog, QMessageBox, QProgressDialog, QDialogButtonBox)
+                         QFileDialog, QMessageBox, QProgressDialog, QDialogButtonBox)
 from PyQt4.QtCore import pyqtSignature, Qt, QSize, QThread, QEvent, QMutex, QCoreApplication
 from .ui_growth_computation import Ui_GrowthComputationDlg
 from .timemodel import TimedImageModel
@@ -26,17 +26,17 @@ class GrowthComputationDlg(QDialog):
 
         images = data.images_name
         times = data.images_time
-        images_path = [ data.image_path(img) for img in images ]
+        images_path = [data.image_path(img) for img in images]
         self.data = data
 
         icons = []
-        for img,pth in zip(images, images_path):
-            ico = QIcon(QPixmap.fromImage(cache.image(pth).scaled(QSize(64,64), Qt.KeepAspectRatio)))
+        for img, pth in zip(images, images_path):
+            ico = QIcon(QPixmap.fromImage(cache.image(pth).scaled(QSize(64, 64), Qt.KeepAspectRatio)))
             icons.append(ico)
 
         self.allimages_model = TimedImageModel(icons, images, times)
         self.ui.allImages.setModel(self.allimages_model)
-        self.selectedimages_model = TimedImageModel([],[],[])
+        self.selectedimages_model = TimedImageModel([], [], [])
         self.ui.selectedImages.setModel(self.selectedimages_model)
         self.ui.allImages.resizeColumnToContents(0)
         self.ui.allImages.resizeColumnToContents(1)
@@ -428,7 +428,7 @@ class GrowthComputationThread(QThread):
         return stop
 
     def nbOutputImages(self):
-        return  self.method.nbOutputImages(self.list_img, self.data)
+        return self.method.nbOutputImages(self.list_img, self.data)
 
     def abort(self):
         QCoreApplication.postEvent(self.parent, AbortImageGrowthEvent())
@@ -438,5 +438,3 @@ class GrowthComputationThread(QThread):
 
     def finished(self):
         QCoreApplication.postEvent(self.parent, FinishImageGrowthEvent())
-
-

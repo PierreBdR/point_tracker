@@ -31,6 +31,7 @@ class GrowthResultException(Exception):
         Exception.__init__(self, text)
         self.others = others
 
+
 class Result(object):
     """
     :Ivariables:
@@ -51,7 +52,7 @@ class Result(object):
         data : `TrackingData`
             Data used to calculate growth
     """
-    def __init__(self, data, images_used = []):
+    def __init__(self, data, images_used=[]):
         self.clear()
         self.data = data
         self.images_used = images_used
@@ -78,7 +79,7 @@ class Result(object):
         self.walls.append({})
         self.cells_area.append({})
         self.cells_shapes.append({})
-        return len(self.images)-1
+        return len(self.images) - 1
 
     def __len__(self):
         return len(self.images)
@@ -109,7 +110,7 @@ class Result(object):
         self.data = data
 
     def get_data(self):
-        return [] # Put the data at the end of the file
+        return []  # Put the data at the end of the file
         data_file = self.data.data_file
         main_dir = self.data.project.main_dir
         if data_file.startswith(main_dir):
@@ -138,9 +139,9 @@ class Result(object):
         return self.images_used
 
     header_fields = {"Data file": (get_data, set_data),
-            "List of the images used": (get_images_used, set_images_used),
-            "Estimation method": (get_estimation, set_estimation),
-            "Cell selection": (get_cell_selection, set_cell_selection) }
+                     "List of the images used": (get_images_used, set_images_used),
+                     "Estimation method": (get_estimation, set_estimation),
+                     "Cell selection": (get_cell_selection, set_cell_selection)}
 
     header_order = ["Data file", "List of the images used", "Estimation method", "Cell selection"]
 
@@ -155,12 +156,12 @@ class Result(object):
                   "theta": 5,
                   "phi"  : 6,
                   "wall" : 8,
-                  "kwall": 9 }
+                  "kwall": 9}
 
-    growth_num = { "kmax" : 0,
-                   "kmin" : 1,
-                   "theta": 2,
-                   "phi"  : 3 }
+    growth_num = {"kmax" : 0,
+                  "kmin" : 1,
+                  "theta": 2,
+                  "phi"  : 3}
 
     def save(self, filename):
         growth_num = Result.growth_num
@@ -184,14 +185,15 @@ class Result(object):
             walls = self.walls[img_id]
             rows = []
             for c in sorted(cells.keys()):
-                row = ["","Cell %d" % invert_cells[c], cells_area[c], cells[c][growth_num["kmax"]],
-                        cells[c][growth_num["kmin"]], cells[c][growth_num["theta"]]*180/pi, cells[c][growth_num["phi"]]]
+                row = ["", "Cell %d" % invert_cells[c], cells_area[c], cells[c][growth_num["kmax"]],
+                       cells[c][growth_num["kmin"]], cells[c][growth_num["theta"]] * 180 / pi,
+                       cells[c][growth_num["phi"]]]
                 rows.append(row)
             lr = len(rows)
-            for i,ws in enumerate(sorted(walls.keys())):
-                wll = [ "", "Wall %d-%d"%(invert_pts[ws[0]], invert_pts[ws[1]]), walls[ws] ]
+            for i, ws in enumerate(sorted(walls.keys())):
+                wll = ["", "Wall %d-%d" % (invert_pts[ws[0]], invert_pts[ws[1]]), walls[ws]]
                 if i >= lr:
-                    rows.append([""]*7)
+                    rows.append([""] * 7)
                 rows[i] += wll
             w.writerows(rows)
         w.writerow(["Actual cell shapes"])
@@ -204,7 +206,7 @@ class Result(object):
             for c in sorted(cells_shapes.keys()):
                 sh = cells_shapes[c]
                 row1 = ["", "Cell %d" % invert_cells[c], "Begin"] + list(sh[0].flatten())
-                row2 = ["", "Cell %d" % invert_cells[c], "End"]+ list(sh[1].flatten())
+                row2 = ["", "Cell %d" % invert_cells[c], "End"] + list(sh[1].flatten())
                 rows.append(row1)
                 rows.append(row2)
             w.writerows(rows)
@@ -228,8 +230,8 @@ class Result(object):
                 break
             if l[0] in header_fields:
                 header_fields[l[0]][1](self, l)
-        next(r) # "Growth per image"
-        next(r) # header ...
+        next(r)  # "Growth per image"
+        next(r)  # header ...
         split_wall_re = re.compile('[ -]')
         for l in r:
             if len(l) == 0:
@@ -240,24 +242,27 @@ class Result(object):
                 cells_area = self.cells_area[img]
                 walls = self.walls[img]
             else:
-                if l[1]: # There is a cell
+                if l[1]:  # There is a cell
                     cid = int(l[fields_num["cell"]].split(' ')[1])
                     cells_area[cid] = float(l[fields_num["karea"]])
                     cells[cid] = (float(l[fields_num["kmaj"]]), float(l[fields_num["kmin"]]),
-                                  float(l[fields_num["theta"]])*pi/180, float(l[fields_num["phi"]]))
-                if len(l) > 7: # The is a wall
-                    p1,p2 = (int(i) for i in split_wall_re.split(l[fields_num["wall"]])[1:3])
+                                  float(l[fields_num["theta"]]) * pi / 180, float(l[fields_num["phi"]]))
+                if len(l) > 7:  # The is a wall
+                    p1, p2 = (int(i) for i in split_wall_re.split(l[fields_num["wall"]])[1:3])
                     k = float(l[fields_num["kwall"]])
-                    walls[p1,p2] = k
+                    walls[p1, p2] = k
         l = next(r)
         if len(l) == 1 and l[0] == "Data":
-            self.data.load(f = f, **opts)
+            self.data.load(f=f, **opts)
 
     def load_version02(self, filename, **opts):
         if "force_load" in opts and opts["force_load"]:
             return self.load_version03(filename, **opts)
         else:
-            raise RetryTrackingDataException("Warning, this file was generated with a version of the point tracker that doesn't growth orientation and vorticity correctly. You should recompute the growth for this data set. Do you still want to load that file?", "force_load")
+            raise RetryTrackingDataException("Warning, this file was generated with a version of the point tracker "
+                                             "that doesn't growth orientation and vorticity correctly. "
+                                             "You should recompute the growth for this data set. "
+                                             "Do you still want to load that file?", "force_load")
 
     def load_version03(self, filename, **opts):
         fields_num = Result.fields_num
@@ -283,8 +288,8 @@ class Result(object):
                 break
             if l[0] in header_fields:
                 header_fields[l[0]][1](self, l)
-        next(r) # "Growth per image"
-        next(r) # header ...
+        next(r)  # "Growth per image"
+        next(r)  # header ...
         split_wall_re = re.compile('[ -]')
         for l in r:
             if len(l) == 0:
@@ -295,19 +300,19 @@ class Result(object):
                 cells_area = self.cells_area[img]
                 walls = self.walls[img]
             else:
-                if l[1]: # There is a cell
+                if l[1]:  # There is a cell
                     cid = int(l[fields_num["cell"]].split(' ')[1])
                     cells_area[cid] = float(l[fields_num["karea"]])
                     cells[cid] = (float(l[fields_num["kmaj"]]), float(l[fields_num["kmin"]]),
-                                  float(l[fields_num["theta"]])*pi/180, float(l[fields_num["phi"]]))
-                if len(l) > 7: # The is a wall
-                    p1,p2 = (int(i) for i in split_wall_re.split(l[fields_num["wall"]])[1:3])
+                                  float(l[fields_num["theta"]]) * pi / 180, float(l[fields_num["phi"]]))
+                if len(l) > 7:  # The is a wall
+                    p1, p2 = (int(i) for i in split_wall_re.split(l[fields_num["wall"]])[1:3])
                     k = float(l[fields_num["kwall"]])
-                    walls[p1,p2] = k
+                    walls[p1, p2] = k
         l = next(r)
         if len(l) == 1 and l[0] == "Data":
             if "no_data" not in opts or not opts["no_data"]:
-                self.data.load(f = f, **opts)
+                self.data.load(f=f, **opts)
 
     def load_version04(self, filename, **opts):
         fields_num = Result.fields_num
@@ -333,8 +338,8 @@ class Result(object):
                 break
             if l[0] in header_fields:
                 header_fields[l[0]][1](self, l)
-        next(r) # "Growth per image"
-        next(r) # header ...
+        next(r)  # "Growth per image"
+        next(r)  # header ...
         split_wall_re = re.compile('[ -]')
         found_cell_shapes = False
         for l in r:
@@ -349,17 +354,17 @@ class Result(object):
                 cells_area = self.cells_area[img]
                 walls = self.walls[img]
             else:
-                if l[1]: # There is a cell
+                if l[1]:  # There is a cell
                     cid = int(l[fields_num["cell"]].split(' ')[1])
                     cells_area[cid] = float(l[fields_num["karea"]])
                     cells[cid] = (float(l[fields_num["kmaj"]]), float(l[fields_num["kmin"]]),
-                                  float(l[fields_num["theta"]])*pi/180, float(l[fields_num["phi"]]))
-                if len(l) > 7: # The is a wall
-                    p1,p2 = (int(i) for i in split_wall_re.split(l[fields_num["wall"]])[1:3])
+                                  float(l[fields_num["theta"]]) * pi / 180, float(l[fields_num["phi"]]))
+                if len(l) > 7:  # The is a wall
+                    p1, p2 = (int(i) for i in split_wall_re.split(l[fields_num["wall"]])[1:3])
                     k = float(l[fields_num["kwall"]])
-                    walls[p1,p2] = k
+                    walls[p1, p2] = k
         if found_cell_shapes:
-            next(r) # Skip header description
+            next(r)  # Skip header description
             for l in r:
                 if len(l) == 0:
                     break
@@ -372,7 +377,7 @@ class Result(object):
                         begin = l[2] == "Begin"
                         shape = array([float(fl) for fl in l[3:]])
                         assert shape.shape[0] % 2 == 0, "A cell shape needs an even number of values (x,y)"
-                        shape.shape = (shape.shape[0]/2, 2)
+                        shape.shape = (shape.shape[0] / 2, 2)
                         if cell_id in cells_shapes:
                             if begin:
                                 cells_shapes[cell_id] = (shape, cells_shapes[cell_id][1])
@@ -386,14 +391,14 @@ class Result(object):
         l = next(r)
         if len(l) == 1 and l[0] == "Data":
             if "no_data" not in opts or not opts["no_data"]:
-                self.data.load(f = f, **opts)
+                self.data.load(f=f, **opts)
 
     versions_loader = {
-            "0.1": load_version01,
-            "0.2": load_version02,
-            "0.3": load_version03,
-            "0.4": load_version04
-            }
+        "0.1": load_version01,
+        "0.2": load_version02,
+        "0.3": load_version03,
+        "0.4": load_version04
+    }
     """
     Which function load which version of the result
     """
@@ -422,14 +427,14 @@ class Result(object):
 
 def wall(p1, p2):
     if p1 < p2:
-        return (p1,p2)
-    return (p2,p1)
+        return (p1, p2)
+    return (p2, p1)
 
 def polygonToCoordinates(poly, img_data):
-    return array([ [img_data[p].x(), img_data[p].y()] for p in poly if p in img_data])
+    return array([[img_data[p].x(), img_data[p].y()] for p in poly if p in img_data])
 
 def polygonToPointList(poly, img_data):
-    return [ img_data[p] for p in poly if p in img_data]
+    return [img_data[p] for p in poly if p in img_data]
 
 def cellToPointList(cid, img_data):
     return polygonToPointList(img_data.cells[cid], img_data)
@@ -464,10 +469,10 @@ class ForwardMethod(GrowthMethod):
         return ["Forward"]
 
     def nbOutputImages(self, inputImages, data):
-        return len(inputImages)-1
+        return len(inputImages) - 1
 
     def computeFromImages(self, list_img, i):
-        return list_img[i:i+2]
+        return list_img[i:i + 2]
 
     def usedImages(self, list_img):
         return list_img[:-1]
@@ -495,14 +500,14 @@ class ForwardMethod(GrowthMethod):
                 walls = set()
                 for c in sorted(cells_pts.keys()):
                     #print "Processing cell %d" % c
-                    pts = [ pid for pid in cells_pts[c] if pid in img_data and pid in next_img_data ]
+                    pts = [pid for pid in cells_pts[c] if pid in img_data and pid in next_img_data]
                     if not pts:
                         continue
                     lp = len(pts)
-                    if lp < 3: # Cannot have growth of less than three points
+                    if lp < 3:  # Cannot have growth of less than three points
                         continue
                     for i in range(lp):
-                        walls.add(wall(pts[i], pts[(i+1)%lp]))
+                        walls.add(wall(pts[i], pts[(i + 1) % lp]))
                     ps = polygonToCoordinates(pts, img_data)
                     qs = polygonToCoordinates(pts, next_img_data)
                     dt = next_img_data.time - img_data.time
@@ -512,13 +517,13 @@ class ForwardMethod(GrowthMethod):
                         if c in next_img_data.cells:
                             a2 = polygonArea(cellToPointList(c, next_img_data))
                         else:
-                            ds = [ c2 for c2 in data.daughterCells(c) if c2 in next_img_data.cells ]
+                            ds = [c2 for c2 in data.daughterCells(c) if c2 in next_img_data.cells]
                             a2 = 0
                             for c2 in ds:
                                 a2 += polygonArea(cellToPointList(c2, next_img_data))
-                        if a2/(a2+a1) < 1e-15:
+                        if a2 / (a2 + a1) < 1e-15:
                             continue
-                        r = log(a2/a1)/dt
+                        r = log(a2 / a1) / dt
                         if isnan(r) or isinf(r) or isnan(gp).any():
                             #print "  Invalid growth:\n %s" % (gp,)
                             continue
@@ -536,8 +541,8 @@ class ForwardMethod(GrowthMethod):
                         pos22 = next_img_data[p2]
                         d1 = dist(pos11, pos12)
                         d2 = dist(pos21, pos22)
-                        k = (d2-d1)/(d1*dt)
-                        wall_result[p1,p2] = k
+                        k = (d2 - d1) / (d1 * dt)
+                        wall_result[p1, p2] = k
             if thread.stopped():
                 return
             thread.nextImage()
@@ -548,7 +553,7 @@ class BackwardMethod(ForwardMethod):
         return list_img[1:]
 
     def computeFromImages(self, list_img, i):
-        return list_img[i:i+2]
+        return list_img[i:i + 2]
 
     def growthParams(self, ps, qs, dt):
         return growthParams(ps, qs, dt, at_start=False)
@@ -559,15 +564,15 @@ class BackwardMethod(ForwardMethod):
 # Functions needes for the ForwardDenseMethod
 
 def length_polyline(w):
-    vects = [w[i+1] - w[i] for i in range(len(w)-1)]
-    return sum(sqrt(pos.x()*pos.x() + pos.y()*pos.y()) for pos in vects)
+    vects = [w[i + 1] - w[i] for i in range(len(w) - 1)]
+    return sum(sqrt(pos.x() * pos.x() + pos.y() * pos.y()) for pos in vects)
 
 def length_segment(s, data):
     total_length = 0
     lengths = [0]
-    for p1,p2 in zip(s[:-1],s[1:]):
-        w = data.walls[p1,p2]
-        w.insert(0,data[p1])
+    for p1, p2 in zip(s[:-1], s[1:]):
+        w = data.walls[p1, p2]
+        w.insert(0, data[p1])
         w.append(data[p2])
         l = length_polyline(w)
         total_length += l

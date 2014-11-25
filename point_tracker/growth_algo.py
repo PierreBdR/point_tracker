@@ -4,48 +4,48 @@ __docformat__ = "restructuredtext"
 
 from numpy import array, eye, argsort, cross, dot, asarray, asmatrix, diag, matrix, exp, log, cos, sin, pi, arctan2
 from numpy.linalg import norm, eig, cond, svd, det, eigh
-from math import atan2, asin
+from math import atan2
 
 def linear2exponential_growth(value, dt):
     """
-    Correct a (list of) value(s) for growth estimated using linear-growth 
+    Correct a (list of) value(s) for growth estimated using linear-growth
     hypothesis into value(s) corresponding to an exponential growth hypothesis.
 
-    :Note: You should convert growth rate and vorticity but not the direction. 
+    :Note: You should convert growth rate and vorticity but not the direction.
     i.e. Do not convert directly the full tensor as it would not work.
     """
-    return log(asarray(value)*dt+1)/dt
+    return log(asarray(value) * dt + 1) / dt
 
 def exponential2linear_growth(value, dt):
-    return (exp(asarray(value)*dt) - 1)/dt
+    return (exp(asarray(value) * dt) - 1) / dt
 
 def linear2exponential_strain(t, dt):
     t = asarray(t)
-    w,v = eigh(t)
+    w, v = eigh(t)
     w = linear2exponential_growth(w, dt)
     t = dot(dot(v, diag(w)), v.T)
     return t
 
 def exponential2linear_strain(t, dt):
     t = asarray(t)
-    w,v = eigh(t)
+    w, v = eigh(t)
     w = exponential2linear_growth(w, dt)
     t = dot(dot(v, diag(w)), v.T)
     return t
 
 def linear2exponential_tensor(t, dt):
-    s = (t+t.T)/2
-    v = (t-t.T)/2
+    s = (t + t.T) / 2
+    v = (t - t.T) / 2
     nt = v + linear2exponential_strain(s, dt)
     return nt
 
 def exponential2linear_tensor(t, dt):
-    s = (t+t.T)/2
-    v = (t-t.T)/2
+    s = (t + t.T) / 2
+    v = (t - t.T) / 2
     nt = v + exponential2linear_strain(s, dt)
     return nt
 
-def fitmat(p,q):
+def fitmat(p, q):
     """
     Compute the best transformation to map p onto q without translation.
 
@@ -61,15 +61,15 @@ def fitmat(p,q):
         q : array(M,2)
             List of points q, one point per line, first column for x, second for y
     """
-    pc = p.sum(0)/p.shape[0]
-    qc = q.sum(0)/q.shape[0]
+    pc = p.sum(0) / p.shape[0]
+    qc = q.sum(0) / q.shape[0]
     p = asmatrix(p - pc)
     q = asmatrix(q - qc)
-    A = p.T*p
+    A = p.T * p
     if cond(A) > 1e15:
         return
-    V = p.T*q
-    M = (A.I*V).A
+    V = p.T * q
+    M = (A.I * V).A
     return M.T
 
 # Needs redoing
@@ -120,63 +120,62 @@ def polarDecomposition(M, at_start=True):
 
     If at_start is True, then the scaling is performed first (i.e. M = R*S).
     '''
-    w,s,vh = svd(M)
+    w, s, vh = svd(M)
     W = matrix(w)
     V = matrix(vh).H
-    U = W*V.H
-    if det(U) < 0: # Is the unit matrix not a rotation (i.e. direct)
+    U = W * V.H
+    if det(U) < 0:  # Is the unit matrix not a rotation (i.e. direct)
         s[-1] *= -1
-        V[:,-1] *= -1
-        U = W*V.H
+        V[:, -1] *= -1
+        U = W * V.H
     S = matrix(diag(s))
     if at_start:
-        P = V*S*V.H
+        P = V * S * V.H
     else:
-        P = W*S*W.H
-    return P,U
+        P = W * S * W.H
+    return P, U
 
 def rotation2Vorticity(r, dt):
-    if r.shape == (1,1):
-        return [0] # there is no rotation ...
-    elif r.shape == (2,2):
-        a = arctan2(r[1,0], r[0,0])
-        r = matrix([[0, -a],[a,0]])
-        return a, r/dt
-    elif r.shape == (3,3):
+    if r.shape == (1, 1):
+        return [0]  # there is no rotation ...
+    elif r.shape == (2, 2):
+        a = arctan2(r[1, 0], r[0, 0])
+        r = matrix([[0, -a], [a, 0]])
+        return a, r / dt
+    elif r.shape == (3, 3):
         r = asarray(r)
         ev, ec = eig(r)
-        axis = (ec[:,abs(ev - 1) < 1e-10].real).squeeze()
-        if abs(axis[2])/norm(axis) > 1e-8:
-            naxis = cross(axis,[1.,0,0])
+        axis = (ec[:, abs(ev - 1) < 1e-10].real).squeeze()
+        if abs(axis[2]) / norm(axis) > 1e-8:
+            naxis = cross(axis, [1., 0, 0])
         else:
-            naxis = cross(axis,[0,0,1.])
-        tn = dot(r,naxis) # i.e. matrix multiplication
-        ca = dot(tn,naxis)
-        sa = dot(cross(tn, naxis),axis)
+            naxis = cross(axis, [0, 0, 1.])
+        tn = dot(r, naxis)  # i.e. matrix multiplication
+        ca = dot(tn, naxis)
+        sa = dot(cross(tn, naxis), axis)
         a = arctan2(sa, ca)
-        saxis = axis*a
+        saxis = axis * a
         vm = matrix([[0, saxis[2], -saxis[1]],
                      [-saxis[2], 0, saxis[0]],
                      [saxis[1], -saxis[0], 0]], dtype=float)
-        return saxis, vm/dt
+        return saxis, vm / dt
     raise ValueError("Cannot extract vorticity from a rotation in dimension greater than 3")
 
-def transformation2Tensor(t, dt, at_start = True, exp_correction = True):
+def transformation2Tensor(t, dt, at_start=True, exp_correction=True):
     if t.shape[0] != t.shape[1]:
         raise ValueError("Error, the transformation is not an endomorphism")
     if t.shape[0] > 3:
         raise ValueError("Error, this function doesn't work in more than 3 dimensions")
-    tr,R = polarDecomposition(t, at_start)
-    _,r = rotation2Vorticity(R, dt)
+    tr, R = polarDecomposition(t, at_start)
+    _, r = rotation2Vorticity(R, dt)
     tr -= eye(tr.shape[0])
     tr /= dt
     if exp_correction:
         tr = linear2exponential_strain(tr, dt)
-    T = tr+r
+    T = tr + r
     return T
 
-
-def growthTensor(p, q, dt, at_start = True, exp_correction = True, want_transform = False):
+def growthTensor(p, q, dt, at_start=True, exp_correction=True, want_transform=False):
     """
     Growth tensor transforming points p into points q with dt.
 
@@ -184,17 +183,17 @@ def growthTensor(p, q, dt, at_start = True, exp_correction = True, want_transfor
     """
     p = asarray(p)
     q = asarray(q)
-    t = fitmat(p,q)
+    t = fitmat(p, q)
     if t is None:
         return
     T = transformation2Tensor(t, dt, at_start, exp_correction)
     if want_transform:
-        return T,t
+        return T, t
     return T
 
 def growthParams(p, q, dt, exp_correction=True, at_start=True):
     """
-    Return the growth parameters corresponding to the transformation of points 
+    Return the growth parameters corresponding to the transformation of points
     p into points q with dt.
 
     :Parameters:
@@ -207,7 +206,7 @@ def growthParams(p, q, dt, exp_correction=True, at_start=True):
         exp_correction : bool
             If True, the result is corrected for exponential growth instead of linear
 
-    :returns: The growth parameters as (kmaj, kmin, theta, phi) if 2D and 
+    :returns: The growth parameters as (kmaj, kmin, theta, phi) if 2D and
         (kmaj, kmed, kmin, theta_maj_xy, theta_maj_z, theta_med, psi_x, psi_y, psi_z) if 3D
     :returntype: (float,)*4|(float,)*9
     """
@@ -232,7 +231,7 @@ def growthParams(p, q, dt, exp_correction=True, at_start=True):
 
 def tensor2Params(tensor):
     """
-    :returns: The growth parameters as (kmaj, kmin, theta, phi) if 2D and 
+    :returns: The growth parameters as (kmaj, kmin, theta, phi) if 2D and
     (kmaj, kmed, kmin, theta_maj_xy, theta_maj_z, theta_med, psi_x, psi_y, psi_z) if 3D
     :returntype: (float,)*4|(float,)*9
     """
@@ -240,38 +239,38 @@ def tensor2Params(tensor):
     tensor = asarray(tensor)
     assert len(tensor.shape) == 2, "tensor must be a 2d array"
     assert tensor.shape[0] == tensor.shape[1], "tensor must be square"
-    assert tensor.shape[0] in [2,3], "this function can only compute parameters for 2D and 3D tensors"
-    ts = (tensor+tensor.T)/2
-    ta = (tensor-tensor.T)/2
+    assert tensor.shape[0] in [2, 3], "this function can only compute parameters for 2D and 3D tensors"
+    ts = (tensor + tensor.T) / 2
+    ta = (tensor - tensor.T) / 2
     values, vectors = eigh(ts)
     abs_values = abs(values)
     order = argsort(abs_values)
     values = values[order]
-    vectors = vectors[:,order]
+    vectors = vectors[:, order]
     if tensor.shape[0] == 2:
         kmaj = values[1]
         kmin = values[0]
-        theta = atan2(vectors[1,1], vectors[0,1])
+        theta = atan2(vectors[1, 1], vectors[0, 1])
         # Wrap over pi
-        if theta < pi/2:
+        if theta < pi / 2:
             theta += pi
-        elif theta > pi/2:
+        elif theta > pi / 2:
             theta -= pi
         #theta = asin(vectors[1,1]/sum(vectors[:,1]*vectors[:,1]))
         #if theta < 0:
         #    theta += pi
         #theta *= 180/pi
-        psi = ta[0,1]
+        psi = ta[0, 1]
         return (kmaj, kmin, theta, psi)
     else:
         kmaj = values[2]
         kmed = values[1]
         kmin = values[0]
-        theta_maj_xy = atan2(vectors[1,2], vectors[0,2])
-        theta_maj_xyz = atan2(vectors[2,2], norm(vectors[:2,2]))
-        theta_med = atan2(norm(cross(vectors[:,1], vectors[:,2])), dot(vectors[:,1], vectors[:,2]))
+        theta_maj_xy = atan2(vectors[1, 2], vectors[0, 2])
+        theta_maj_xyz = atan2(vectors[2, 2], norm(vectors[:2, 2]))
+        theta_med = atan2(norm(cross(vectors[:, 1], vectors[:, 2])), dot(vectors[:, 1], vectors[:, 2]))
         # ta[i,j] = vorticity over vector i x j
-        psi = (ta[1,2], -ta[0,2], ta[0,1])
+        psi = (ta[1, 2], -ta[0, 2], ta[0, 1])
         return (kmaj, kmed, kmin, theta_maj_xy, theta_maj_xyz, theta_med) + psi
 
 def params2Tensor(*params):
@@ -283,11 +282,10 @@ def params2Tensor(*params):
         #theta *= pi/180
         vx = cos(theta)
         vy = sin(theta)
-        V = matrix([[vx, vy],[-vy, vx]])
+        V = matrix([[vx, vy], [-vy, vx]])
         D = matrix(diag([kmaj, kmin]))
-        return (V.I*D*V).A + array([[0, psi],[-psi,0]])
+        return (V.I * D * V).A + array([[0, psi], [-psi, 0]])
     elif len(params) == 9:
         raise NotImplementedError("The params2Tensor is not yet implemented for 3D tensors")
     else:
         raise TypeError("params2Tensor() takes 4 or 9 arguments (%d given)" % len(params))
-

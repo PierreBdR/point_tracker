@@ -1,11 +1,11 @@
 from __future__ import print_function, division, absolute_import
 
-from .tracking_plot import (ColoringClass, TransferFunctionParameters, fixRangeParameters, make_cap_symetric, DirectionGrowthParameters)
+from .tracking_plot import (ColoringClass, TransferFunctionParameters, fixRangeParameters, make_cap_symetric,
+                            DirectionGrowthParameters)
 from PyQt4.QtGui import QColor, QPen
-from PyQt4.QtCore import Qt
 from numpy import inf, log, pi, dot
 from ..growth_algo import params2Tensor
-from ..debug import log_debug
+#from ..debug import log_debug
 
 class CellAreaGrowth(ColoringClass('cell')):
     coloring_name = u"Area growth rate"
@@ -13,7 +13,7 @@ class CellAreaGrowth(ColoringClass('cell')):
     parameter_class = TransferFunctionParameters
     unit = u"1/h"
 
-    def __init__(self, result, doubling_time = False):
+    def __init__(self, result, doubling_time=False):
         self.doubling_time = doubling_time
         ColoringClass('cell').__init__(self, result)
 
@@ -24,24 +24,24 @@ class CellAreaGrowth(ColoringClass('cell')):
             if self.parameters.symetric_coloring:
                 caps = make_cap_symetric(caps)
         self.caps = caps
-        self.dc = 1/(caps[1]-caps[0])
+        self.dc = 1 / (caps[1] - caps[0])
         self.shiftc = caps[0]
 
-    def finalizeImage(self, painter, imageid, image_transform, size = None):
+    def finalizeImage(self, painter, imageid, image_transform, size=None):
         caps = self.caps
         if self.doubling_time:
-            caps = (caps[0]/log(2), caps[1]/log(2))
+            caps = (caps[0] / log(2), caps[1] / log(2))
         return self.parameters.drawScaleBar(painter, caps, u"1/h", size)
 
     def _update_parameters(self):
         caps = self.value_range()
         if self.doubling_time:
-            caps = (caps[0]/log(2), caps[1]/log(2))
+            caps = (caps[0] / log(2), caps[1] / log(2))
         self.parameters.minmax_values = caps
 
     def value_range(self):
         result = self.result
-        caps = [inf,-inf]
+        caps = [inf, -inf]
         for i in range(len(result)):
             if result.cells_area[i]:
                 caps[0] = min(caps[0], min(result.cells_area[i].values()))
@@ -54,7 +54,7 @@ class CellAreaGrowth(ColoringClass('cell')):
             return QColor()
         value = self.result.cells_area[imageid][uid]
         col = QColor()
-        col.setRgbF(*fct.rgba((value-self.shiftc)*self.dc))
+        col.setRgbF(*fct.rgba((value - self.shiftc) * self.dc))
         return col
 
     @staticmethod
@@ -71,14 +71,13 @@ class CellGrowthAlongDirection(ColoringClass('cell')):
         ColoringClass('cell').__init__(self, result)
 
     def init(self):
-        f = self.parameters.data_file
         caps = self.parameters.value_capping
         if caps is None:
             caps = self.value_range()
             if self.parameters.symetric_coloring:
                 caps = make_cap_symetric(caps)
         self.caps = caps
-        self.dc = 1/(caps[1]-caps[0])
+        self.dc = 1 / (caps[1] - caps[0])
         self.shiftc = caps[0]
         if self.parameters.orthogonal:
             self.unit = u"Orthogonal (1/h)"
@@ -101,9 +100,8 @@ class CellGrowthAlongDirection(ColoringClass('cell')):
             u = [u.x(), u.y()]
         self.direction = u
 
-    def finalizeImage(self, painter, imageid, image_transform, size = None):
+    def finalizeImage(self, painter, imageid, image_transform, size=None):
         caps = self.caps
-        image_name = self.result.images[imageid]
         params = self.parameters
         if params.draw_line:
             pt1, pt2 = self.pts
@@ -131,7 +129,7 @@ class CellGrowthAlongDirection(ColoringClass('cell')):
 
     def value_range(self):
         result = self.result
-        caps = [inf,-inf]
+        caps = [inf, -inf]
         for i in range(len(result)):
             if result.cells[i]:
                 caps[0] = min(caps[0], min(min(v[0:2]) for v in result.cells[i].values()))
@@ -142,13 +140,12 @@ class CellGrowthAlongDirection(ColoringClass('cell')):
         fct = self.parameters.transfer_function
         if fct is None:
             return QColor()
-        image_name = self.current_image
         params = self.result.cells[imageid][uid]
         T = params2Tensor(*params)
         u = self.direction
         value = dot(dot(T, u), u)
         col = QColor()
-        col.setRgbF(*fct.rgba((value-self.shiftc)*self.dc))
+        col.setRgbF(*fct.rgba((value - self.shiftc) * self.dc))
         return col
 
     @staticmethod
@@ -166,14 +163,12 @@ class CellGrowthAlongDirection(ColoringClass('cell')):
 class CellGrowthAnisotropy(ColoringClass('cell')):
     coloring_name = u"Growth anisotropy"
     settings_name = u"GrowthAnisotropy"
-    parameter_class = fixRangeParameters(0,1)
+    parameter_class = fixRangeParameters(0, 2)
     unit = u""
-    
+
     def __init__(self, result):
         ColoringClass('cell').__init__(self, result)
-        self.parameters.symetric_coloring = False
-        self.parameters.value_capping = None
-    
+
     def finalizeImage(self, painter, imageid, image_transform, size=None):
         return self.parameters.drawScaleBar(painter, None, self.unit, size)
 
@@ -185,7 +180,7 @@ class CellGrowthAnisotropy(ColoringClass('cell')):
         if values[0] == 0:
             value = 0
         else:
-            value = 1 - values[1]/values[0]
+            value = 1 - values[1] / values[0]
         col = QColor()
         col.setRgbF(*fct.rgba(value))
         return col
@@ -197,7 +192,7 @@ class CellGrowthAnisotropy(ColoringClass('cell')):
 class CellGrowth(ColoringClass('cell')):
     parameter_class = TransferFunctionParameters
 
-    def __init__(self, result, info_pos, doubling_time = False, ratio=1):
+    def __init__(self, result, info_pos, doubling_time=False, ratio=1):
         self.info_pos = info_pos
         self.doubling_time = doubling_time
         self.ratio = ratio
@@ -210,31 +205,31 @@ class CellGrowth(ColoringClass('cell')):
             caps = self.value_range()
             if self.parameters.symetric_coloring:
                 caps = make_cap_symetric(caps)
-        self.dc = 1/(caps[1]-caps[0])
+        self.dc = 1 / (caps[1] - caps[0])
         self.shiftc = caps[0]
         self.caps = caps
 
     def finalizeImage(self, painter, imageid, image_transform, size=None):
         caps = self.caps
         if self.doubling_time:
-            caps = (caps[0]/log(2), caps[1]/log(2))
+            caps = (caps[0] / log(2), caps[1] / log(2))
         return self.parameters.drawScaleBar(painter, caps, self.unit, size)
 
     def _update_parameters(self):
         caps = self.value_range()
         if self.doubling_time:
-            caps = (caps[0]/log(2), caps[1]/log(2))
+            caps = (caps[0] / log(2), caps[1] / log(2))
         self.parameters.minmax_values = caps
 
     def value_range(self):
         info_pos = self.info_pos
         result = self.result
-        caps = [inf,-inf]
+        caps = [inf, -inf]
         ratio = self.ratio
         for i in range(len(result)):
             if result.cells[i]:
-                caps[0] = min(caps[0], min(ratio*v[info_pos] for v in result.cells[i].values()))
-                caps[1] = max(caps[1], max(ratio*v[info_pos] for v in result.cells[i].values()))
+                caps[0] = min(caps[0], min(ratio * v[info_pos] for v in result.cells[i].values()))
+                caps[1] = max(caps[1], max(ratio * v[info_pos] for v in result.cells[i].values()))
         return caps
 
     def __call__(self, imageid, cid):
@@ -242,9 +237,9 @@ class CellGrowth(ColoringClass('cell')):
         fct = self.parameters.transfer_function
         if fct is None:
             return QColor()
-        value = self.ratio*self.result.cells[imageid][cid][info_pos]
+        value = self.ratio * self.result.cells[imageid][cid][info_pos]
         col = QColor()
-        col.setRgbF(*fct.rgba((value-self.shiftc)*self.dc))
+        col.setRgbF(*fct.rgba((value - self.shiftc) * self.dc))
         return col
 
     @staticmethod
@@ -290,7 +285,7 @@ class CellTheta(CellGrowth):
     unit = u""
 
     def __init__(self, result):
-        CellGrowth.__init__(self, result, 2, ratio=180/pi)
+        CellGrowth.__init__(self, result, 2, ratio=180 / pi)
         self.parameters.symetric_coloring = True
         self.parameters.value_capping = None
 
@@ -301,5 +296,3 @@ class CellPhi(CellGrowth):
 
     def __init__(self, result):
         CellGrowth.__init__(self, result, 3)
-
-

@@ -17,13 +17,11 @@ from math import hypot as norm
 from ..path import path
 from ..tracking_data import RetryTrackingDataException, TrackingData
 from ..growth_computation_methods import Result
-import sys
 from ..sys_utils import toBool, cleanQObject
-from ..debug import log_debug
 
 def make_cap_symetric(caps):
     caps = list(caps)
-    if caps[0]*caps[1] < 0:
+    if caps[0] * caps[1] < 0:
         caps[1] = max(abs(caps[0]), abs(caps[1]))
         caps[0] = -caps[1]
     elif caps[1] > 0:
@@ -89,7 +87,7 @@ class NoParametersObject(QObject):
         params : struct
             Structure holding the parameters for this class
     """
-    def __init__(self, params, parent = None):
+    def __init__(self, params, parent=None):
         QObject.__init__(self, parent)
         pass
 
@@ -151,7 +149,7 @@ class ColoringObject(QObject):
     Name used to store in the settings
     """
 
-    def __init__(self, result, parent = None):
+    def __init__(self, result, parent=None):
         QObject.__init__(self, parent)
         self._result = result
         self._parameters = None
@@ -197,7 +195,7 @@ class ColoringObject(QObject):
         """
         pass
 
-    def finalizeImage(self, painter, imageid, image_transform, size = None):
+    def finalizeImage(self, painter, imageid, image_transform, size=None):
         """
         This method is called after all cells and walls are drawn.
 
@@ -219,7 +217,7 @@ class ColoringObject(QObject):
         """
         raise NotImplemented("This is an abstract method.")
 
-    def config_widget(self,parent):
+    def config_widget(self, parent):
         """
         Default implementation returns `_config` if it exists, otherwise,
         call `_config_widget` and store the result in `_config` for
@@ -229,7 +227,7 @@ class ColoringObject(QObject):
         :returntype: `QWidget`
         """
         if self._config is None:
-            log_debug( "Creating config widget")
+            log_debug("Creating config widget")
             self._config = self._config_widget(parent)
             self._update_parameters()
         return self._config
@@ -242,9 +240,10 @@ class ColoringObject(QObject):
 
         Default implementation accept nothing.
 
-        :Parameters
-            result_type : str
-                For now, it is one of "Data" and "Growth" depending if the object is a growth result object or a data object.
+        :Parameters:
+        result_type: str
+            For now, it is one of "Data" and "Growth" depending if the object is a growth
+            result object or a data object.
         """
         return False
 
@@ -269,7 +268,8 @@ class ColoringObject(QObject):
         """
         Load the parameters from settings.
 
-        Default implementation uses the class defined in the `parameter_class` class member with the name `settings_name`.
+        Default implementation uses the class defined in the `parameter_class`
+        class member with the name `settings_name`.
         """
         from ..parameters import instance
         params = instance.plotting
@@ -285,7 +285,8 @@ class ColoringObject(QObject):
         """
         Save the parameters into a settings object.
 
-        Default implementation uses the class defined in the `parameter_class` class member with the name `settings_name`.
+        Default implementation uses the class defined in the `parameter_class`
+        class member with the name `settings_name`.
         """
         from ..parameters import instance
         params = instance.plotting
@@ -310,9 +311,9 @@ class ColoringObject(QObject):
 
 coloring_baseclasses = {}
 
-coloring_classes = { 'cell': cell_colorings_cls,
-                     'wall': wall_colorings_cls,
-                     'point': point_colorings_cls }
+coloring_classes = {'cell': cell_colorings_cls,
+                    'wall': wall_colorings_cls,
+                    'point': point_colorings_cls}
 
 coloring_metaclasses = {}
 
@@ -323,6 +324,7 @@ def ColoringObjectType(*objects):
     global coloring_metaclasses
     if objects not in coloring_metaclasses:
         colorings_cls = tuple(coloring_classes[obj] for obj in objects)
+
         class ObjectColoringObjectType(type(QObject)):
             def __init__(cls, name, bases, dct):
                 #print("Adding coloring object {0} for objects {1}".format(cls, ", ".join(objects)))
@@ -333,7 +335,7 @@ def ColoringObjectType(*objects):
         coloring_metaclasses[objects] = ObjectColoringObjectType
     return coloring_metaclasses[objects]
 
-def ColoringClass(objects = None, base=ColoringObject):
+def ColoringClass(objects=None, base=ColoringObject):
     if objects is None:
         objects = ('cell', 'wall', 'point')
     elif not isinstance(objects, tuple):
@@ -357,7 +359,7 @@ class ScaleBar(QObject):
 
     :signal: ``changed``
     """
-    def __init__(self, params, parent = None):
+    def __init__(self, params, parent=None):
         QObject.__init__(self, parent)
         self._scale_config = None
         self._scale_config_param = None
@@ -560,23 +562,22 @@ class ScaleBar(QObject):
             self._params.scale_font = value
             self.changed.emit()
 
-    def drawScaleBar(self, painter, value_range, unit = "", size = None):
-        transform = painter.worldTransform()
+    def drawScaleBar(self, painter, value_range, unit="", size=None):
         if self.scale_show:
-            sc = ScaleBarDrawer(position = self.scale_position,
-                                transfer_function = self.transfer_function,
-                                font = self.scale_font,
-                                text_color = self.scale_text,
-                                line_color = self.scale_line,
-                                line_thickness = self.scale_line_thickness,
-                                value_range = value_range,
-                                unit = unit)
+            sc = ScaleBarDrawer(position=self.scale_position,
+                                transfer_function=self.transfer_function,
+                                font=self.scale_font,
+                                text_color=self.scale_text,
+                                line_color=self.scale_line,
+                                line_thickness=self.scale_line_thickness,
+                                value_range=value_range,
+                                unit=unit)
             log_debug("Drawing scale bar!")
             if not self.scale_bar_outside_image:
                 sc.draw(painter, size)
             else:
                 if size is None:
-                    viewport = painter.viewport() # viewport rectangle
+                    viewport = painter.viewport()  # viewport rectangle
                     mat, ok = painter.worldMatrix().inverted()
                     if not ok:
                         raise ValueError("Transformation matrix of painter is singular.")
@@ -594,11 +595,11 @@ class ScaleBar(QObject):
     def load(params, settings):
         col = QColor(settings.value("ScaleText"))
         if not col.isValid():
-            col = QColor(0,0,0)
+            col = QColor(0, 0, 0)
         params.scale_text = col
         col = QColor(settings.value("ScaleLine"))
         if not col.isValid():
-            col = QColor(0,0,0)
+            col = QColor(0, 0, 0)
         params.scale_line = col
         try:
             params.scale_line_thickness = int(settings.value("ScaleLineThickness"))
@@ -620,8 +621,9 @@ class ScaleBar(QObject):
         settings.setValue("ScaleShow", params.scale_show)
         settings.setValue("ScaleBarOutsideImage", params.scale_bar_outside_image)
 
-def fixRangeParameters(m,M):
-    range = (m,M)
+def fixRangeParameters(m, M):
+    range = (m, M)
+
     class FixRangeParameters(ScaleBar):
         """
         Parameters for the theta object.
@@ -665,7 +667,7 @@ def fixRangeParameters(m,M):
             self.addScaleBarWidget(config)
             return self._config
 
-        def drawScaleBar(self, painter, value_range, unit, size = None):
+        def drawScaleBar(self, painter, value_range, unit, size=None):
             return ScaleBar.drawScaleBar(self, painter, self.range, unit, size)
 
         @Slot()
@@ -684,6 +686,8 @@ def fixRangeParameters(m,M):
                 params.transfer_function = TransferFunction.loads(tr)
             else:
                 params.transfer_function = TransferFunction.hue_scale()
+            params.symetric_coloring = False
+            params.value_capping = None
 
         @staticmethod
         def save(params, settings):
@@ -779,7 +783,8 @@ class TransferFunctionParameters(ScaleBar):
                 self.resetMinMax(value)
 
     def resetMinMax(self, bounds):
-        step = abs(bounds[1]-bounds[0])/20
+        self._config.minCap.setText(u"{:.5g}".format(bounds[0]))
+        self._config.maxCap.setText(u"{:.5g}".format(bounds[1]))
 
     def widget(self, parent):
         config = createForm("plot_param_fct.ui", parent)
@@ -793,13 +798,11 @@ class TransferFunctionParameters(ScaleBar):
         config.maxCap.textChanged["const QString&"].connect(self._maxCapStringChanged)
         value = self.minmax_values
         self.resetMinMax(value)
-        config.minCap.setText(unicode(value[0]))
-        config.maxCap.setText(unicode(value[1]))
         config.symetricColoring.setChecked(self._symetric_coloring)
         if self._value_capping is not None:
             config.capping.setChecked(True)
-            config.minCap.setText(unicode(self._value_capping[0]))
-            config.maxCap.setText(unicode(self._value_capping[1]))
+            config.minCap.setText(u"{:.5g}".format(self._value_capping[0]))
+            config.maxCap.setText(u"{:.5g}".format(self._value_capping[1]))
         self.addScaleBarWidget(config)
         return self._config
 
@@ -856,23 +859,23 @@ class TransferFunctionParameters(ScaleBar):
         params.symetric_coloring = toBool(settings.value("SymetricColoring", "False"))
         isc = toBool(settings.value("IsCapping", "False"))
         if isc:
-            vc = [0,0]
+            vc = [0, 0]
             try:
                 vc[0] = float(settings.value("ValueCappingMin"))
             except (ValueError, TypeError):
-              vc[0] = 0
+                vc[0] = 0
             try:
                 vc[1] = float(settings.value("ValueCappingMax"))
             except (ValueError, TypeError):
-              vc[1] = 1
+                vc[1] = 1
             params.value_capping = vc
         else:
-          params.value_capping = None
+            params.value_capping = None
 
     @staticmethod
     def save(params, settings):
         ScaleBar.save(params, settings)
-        tf = unicode(params.transfer_function.dumps())
+        tf = params.transfer_function.dumps()
         settings.setValue("TransferFunction", tf)
         settings.setValue("SymetricColoring", params.symetric_coloring)
         if params.value_capping is not None:
@@ -896,12 +899,12 @@ class DirectionGrowthParameters(ScaleBar):
         self._data_file = ""
         self.data = None
         self._direction = None
-        self._data_points = (0,1)
+        self._data_points = (0, 1)
         self._next_data_file = None
         self._orthogonal = params.orthogonal
         self._draw_line = params.draw_line
         self._line_width = params.line_width
-        self._line_color= params.line_color
+        self._line_color = params.line_color
         self.edit_timer = QTimer(self)
         self.edit_timer.setSingleShot(True)
         self.edit_timer.setInterval(500)
@@ -1119,7 +1122,8 @@ class DirectionGrowthParameters(ScaleBar):
                 self.resetMinMax(value)
 
     def resetMinMax(self, bounds):
-        step = abs(bounds[1]-bounds[0])/20
+        self._config.minCap.setText(u"{:.5g}".format(bounds[0]))
+        self._config.maxCap.setText(u"{:.5g}".format(bounds[1]))
 
     @Slot()
     def _changeLineColor(self):
@@ -1148,8 +1152,6 @@ class DirectionGrowthParameters(ScaleBar):
         config.dataFile.setText(self.data_file)
         value = self.minmax_values
         self.resetMinMax(value)
-        config.minCap.setText(unicode(value[0]))
-        config.maxCap.setText(unicode(value[1]))
         config.orthogonal.setChecked(self.orthogonal)
         config.symetricColoring.setChecked(self._symetric_coloring)
         config.drawLine.setChecked(self.draw_line)
@@ -1157,8 +1159,8 @@ class DirectionGrowthParameters(ScaleBar):
         setColor(config.lineColor, self.line_color)
         if self._value_capping is not None:
             config.capping.setChecked(True)
-            config.minCap.setText(unicode(self._value_capping[0]))
-            config.maxCap.setText(unicode(self._value_capping[1]))
+            config.minCap.setText(u"{:.5g}".format(self._value_capping[0]))
+            config.maxCap.setText(u"{:.5g}".format(self._value_capping[1]))
         if self.data is not None:
             config = self._config
             config.point1.clear()
@@ -1174,7 +1176,9 @@ class DirectionGrowthParameters(ScaleBar):
     @Slot()
     def _selectDataFile(self):
         fn = QFileDialog.getOpenFileName(self._config, "Select the data file defining your line", self.data_file,
-                                         "All data files (*.csv *.xls);;CSV Files (*.csv);;XLS files (*.xls);;All files (*.*)")
+                                         "All data files (*.csv *.xls);;CSV Files (*.csv);;"
+                                         "XLS files (*.xls);;"
+                                         "All files (*.*)")
         if fn:
             self._config.dataFile.setText(fn)
 
@@ -1262,7 +1266,7 @@ class DirectionGrowthParameters(ScaleBar):
         params.draw_line = toBool(settings.value("DrawLine", False))
         col = QColor(settings.value("LineColor"))
         if not col.isValid():
-            col = QColor(0,0,0)
+            col = QColor(0, 0, 0)
         params.line_color = col
         try:
             lw = int(settings.value("LineWidth", 0))
@@ -1271,18 +1275,18 @@ class DirectionGrowthParameters(ScaleBar):
         params.line_width = lw
         isc = toBool(settings.value("IsCapping"))
         if isc:
-            vc = [0,0]
+            vc = [0, 0]
             try:
-              vc[0] = float(settings.value("ValueCappingMin"))
+                vc[0] = float(settings.value("ValueCappingMin"))
             except (ValueError, TypeError):
-              vc[0] = 0
+                vc[0] = 0
             try:
-              vc[1] = float(settings.value("ValueCappingMax"))
+                vc[1] = float(settings.value("ValueCappingMax"))
             except (ValueError, TypeError):
-              vc[1] = 1
+                vc[1] = 1
             params.value_capping = vc
         else:
-          params.value_capping = None
+            params.value_capping = None
 
     @staticmethod
     def save(params, settings):
@@ -1294,7 +1298,7 @@ class DirectionGrowthParameters(ScaleBar):
         settings.setValue("DrawLine", params.draw_line)
         settings.setValue("LineWidth", params.line_width)
         settings.setValue("LineColor", params.line_color)
-        tf = unicode(params.transfer_function.dumps())
+        tf = params.transfer_function.dumps()
         settings.setValue("TransferFunction", tf)
         settings.setValue("SymetricColoring", params.symetric_coloring)
         if params.value_capping is not None:
@@ -1310,9 +1314,9 @@ class ColorParameters(QObject):
     """
     Parameters for continuous objects.
     """
-    def __init__(self, params, parent = None):
+    def __init__(self, params, parent=None):
         QObject.__init__(self, parent)
-        log_debug( "Parameter object: %s" % id(params))
+        log_debug("Parameter object: %s" % id(params))
         self._color = params.color
         self._params = params
 
@@ -1345,13 +1349,12 @@ class ColorParameters(QObject):
 
     @staticmethod
     def load(params, settings):
-        log_debug( "Loading with parameter object: %s" % id(params))
+        log_debug("Loading with parameter object: %s" % id(params))
         color = QColor(settings.value("Color"))
         if not color.isValid():
-            color = QColor(0,0,0)
+            color = QColor(0, 0, 0)
         params.color = color
 
     @staticmethod
     def save(params, settings):
         settings.setValue("Color", params.color)
-
