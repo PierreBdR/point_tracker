@@ -11,14 +11,12 @@ from setuptools.command.build_py import build_py
 
 import sys
 import os
-from fnmatch import fnmatch
 from distutils import log
 
 class build_pyqt4(build_py):
-    user_options = build_py.user_options + [
-                   ('rcc=', 'r', 'Program used to compile Qt resource files into python module'),
-                   ('uic=', 'u', 'Program used to compile Qt UI files into python module')
-                   ]
+    user_options = (build_py.user_options +
+                    [('rcc=', 'r', 'Program used to compile Qt resource files into python module'),
+                     ('uic=', 'u', 'Program used to compile Qt UI files into python module')])
 
     def initialize_options(self):
         build_py.initialize_options(self)
@@ -57,7 +55,7 @@ class build_pyqt4(build_py):
         src_file = os.path.join(src, name)
         new_name = "ui_{0}.py".format(name[:-3])
         dst_file = os.path.join(pth, new_name)
-        cmd = [ self.uic, '--from-imports', '-o', dst_file, src_file ]
+        cmd = [self.uic, '--from-imports', '-o', dst_file, src_file]
         log.info('Compile UI file "{0}" into "{1}"'.format(name, dst_file))
         self.spawn(cmd)
         return new_name
@@ -70,7 +68,7 @@ class build_pyqt4(build_py):
             ver = '-py2'
         else:
             ver = '-py3'
-        cmd = [ self.rcc, ver, '-o', dst_file, src_file ]
+        cmd = [self.rcc, ver, '-o', dst_file, src_file]
         log.info('Compile RC file "{0}" into "{1}"'.format(name, dst_file))
         self.spawn(cmd)
         return new_name
@@ -83,8 +81,8 @@ setup(name='point-tracker',
       author_email='pierre.barbierdereuille@gmail.com',
       packages=['point_tracker', 'point_tracker.tissue_plot'],
       package_data={'point_tracker': ['*.ui', '*.qrc', '*.png'],
-                    'point_tracker.tissue_plot': ['*.ui']},
-      version="0.7.3",
+                    'point_tracker.tissue_plot': ['*.ui', '*.qrc']},
+      version="0.7.4",
       classifiers=['Development Status :: 5 - Production/Stable',
                    'Environment :: X11 Applications :: Qt',
                    'Intended Audience :: Science/Research',
@@ -106,12 +104,10 @@ setup(name='point-tracker',
                         'matplotlib'
                         ],
       url=['https://github.com/PierreBdR/point_tracker'],
-      entry_points = {
+      entry_points={
           'console_scripts': ['track_color = point_tracker.track_color:main'],
-          'gui_scripts': ['point_tracker = point_tracker.tracking:main']
-          },
+          'gui_scripts': ['point_tracker = point_tracker.tracking:main']},
       test_suite="nose.collector",
       tests_require="nose",
-      cmdclass = { 'build_py': build_pyqt4 },
+      cmdclass={'build_py': build_pyqt4},
       )
-
