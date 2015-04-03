@@ -4,11 +4,11 @@ This package maintain the classes used for plotting on the tissue.
 """
 __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 
-__all__ = ['cell_colorings_cls', 'wall_colorings_cls', 'point_colorings_cls', 'reset_classes', 'loader']
+__all__ = ['cell_colorings_cls', 'wall_colorings_cls', 'point_colorings_cls', 'loader']
 
 from ..path import path
 from . import tracking_plot
-from .tracking_plot import cell_colorings_cls, wall_colorings_cls, point_colorings_cls, reset_classes
+from .tracking_plot import cell_colorings_cls, wall_colorings_cls, point_colorings_cls
 from ..debug import log_debug, log_error
 import sys
 import traceback
@@ -16,7 +16,6 @@ from .. import loader
 import importlib
 
 def loadClasses():
-    reset_classes()
     system_files = [__file__, tracking_plot.__file__]
     sys_files = []
     for f in system_files:

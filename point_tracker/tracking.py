@@ -6,19 +6,15 @@ __author__ = "Pierre Barbier de Reuille <pierre@barbierdereuille.net>"
 from . import python2  # NOQA --> change python to match python3 better
 from PyQt4 import QtGui, QtCore
 import sys
-from . import image_cache
-from . import parameters
 from . import debug
 from .sys_utils import compileForm
 from .path import path
-
 
 def setAppConfig():
     QtCore.QCoreApplication.setOrganizationName("PBdR")
     QtCore.QCoreApplication.setApplicationName("PointTracker")
     QtCore.QCoreApplication.setOrganizationDomain("barbierdereuille.net")
-    #QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
-
+    # QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
 
 def compileUis():
     """
@@ -30,6 +26,8 @@ def compileUis():
 
 
 def createWindow():
+    from . import image_cache
+    from . import parameters
     global main_win
     setAppConfig()
     if QtGui.QApplication.startingUp():

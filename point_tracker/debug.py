@@ -17,9 +17,9 @@ def init():
     """
     global log
     file_location = path(QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation))
-    file_location = file_location / 'point-tracker.log'
+    file_location = (file_location / 'point-tracker.log').abspath()
 
-    logging.basicConfig(level=logging.INFO, filename=file_location, filemode='w')
+    logging.basicConfig(level=logging.DEBUG, filename=file_location, filemode='w')
     print("Location of log file: '{0}'".format(file_location), file=sys.stderr)
     log = logging.getLogger("point-tracker")
 
@@ -83,7 +83,7 @@ def print_simple(msg, level):
     Simply print the message in the log file.
     """
     log.log(level, msg)
-    #print(msg) #, file=log)
+    # print(msg) #, file=log)
 
 
 def print_calling_class(msg, level):
@@ -96,8 +96,8 @@ def print_calling_class(msg, level):
     else:
         msg = "[GLOBAL] %s" % (msg,)
     log.log(level, msg)
-    #print(msg)
-    #log.flush()
+    # print(msg)
+    # log.flush()
 
 log_debug = partial(print_calling_class, level=logging.DEBUG)
 log_info = partial(print_calling_class, level=logging.INFO)

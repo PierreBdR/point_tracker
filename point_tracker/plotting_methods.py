@@ -14,7 +14,6 @@ from . import tissue_plot
 from math import pi
 from .sys_utils import cleanQObject
 
-#debug_object = object
 cell_colorings_dict = {}
 """
 Dictionnary version of `cell_colorings_cls`. The key is the class coloring name.
@@ -29,6 +28,7 @@ def resetClasses():
 
     Save the current classes preferences and load the new ones.
     """
+    log_debug("resetClasses()")
     saveCellParamClasses()
     saveWallParamClasses()
     savePointParamClasses()
