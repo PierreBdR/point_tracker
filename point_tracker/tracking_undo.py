@@ -265,10 +265,10 @@ class MergeCells(PointsCommand):
         self.ls_new_cid = ls_new_cid
         self.cell = list(data_manager.cells[cell_id])
         self.new_cell = list(data_manager.cells[new_cell_id])
-        assert(ls_cid.daughters is None or ls_new_cid.daughters is None,
-               "Both cells are dividing. It is not possible to merge them.")
-        assert(ls_cid.parent is None or ls_new_cid.parent is None,
-               "Both cells results from division of a mother cell. It is not possible to merge them.")
+        assert ls_cid.daughters is None or ls_new_cid.daughters is None, \
+            "Both cells are dividing. It is not possible to merge them."
+        assert ls_cid.parent is None or ls_new_cid.parent is None, \
+            "Both cells results from division of a mother cell. It is not possible to merge them."
 
     def undo(self):
         if self.ls_cid.parent:
@@ -672,8 +672,8 @@ class DivideCellCommand(TrackingCommand):
         image_data = data_manager[image_name]
         cells = image_data.cells
         all_cells = data_manager.cells
-        assert(cell_id in cells,
-               "The cell %d cannot be divided in image %s as it does not exist" % (cell_id, image_name))
+        assert cell_id in cells, \
+            "The cell %d cannot be divided in image %s as it does not exist" % (cell_id, image_name)
         assert cid1 not in all_cells, "The cell %d cannot be created, it already exists" % cid1
         assert cid2 not in all_cells, "The cell %d cannot be created, it already exists" % cid2
         cell_shape = cells[cell_id]
