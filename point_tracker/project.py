@@ -235,7 +235,6 @@ class Project(QObject):
     @data_dir.setter
     def data_dir(self, dir_):
         if not dir_.exists():
-            self._data_dir= dir_
+            self._data_dir = dir_
             return
         self._data_dir = dir_
-
