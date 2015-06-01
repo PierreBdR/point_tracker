@@ -59,7 +59,7 @@ class CellGeometry(ColoringClass('cell')):
 
     def init(self):
         caps = self.parameters.value_capping
-        if caps is None:
+        if caps is None or caps[0] >= caps[1]:
             caps = self.value_range()
             if self.parameters.symetric_coloring:
                 caps = make_cap_symetric(caps)

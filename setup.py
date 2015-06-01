@@ -82,7 +82,7 @@ setup(name='point-tracker',
       packages=['point_tracker', 'point_tracker.tissue_plot'],
       package_data={'point_tracker': ['*.ui', '*.qrc', '*.png'],
                     'point_tracker.tissue_plot': ['*.ui', '*.qrc']},
-      version="0.7.5",
+      version="0.7.6",
       classifiers=['Development Status :: 5 - Production/Stable',
                    'Environment :: X11 Applications :: Qt',
                    'Intended Audience :: Science/Research',
@@ -101,7 +101,8 @@ setup(name='point-tracker',
       license='LICENSE',
       install_requires=['numpy >=1.5.0',
                         'scipy >=0.10.0',
-                        'matplotlib'
+                        'matplotlib',
+                        'scikit-image'
                         ],
       url=['https://github.com/PierreBdR/point_tracker'],
       entry_points={

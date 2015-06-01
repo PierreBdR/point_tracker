@@ -1,6 +1,7 @@
 from __future__ import print_function, division, absolute_import
 from .tracking_plot import ColoringClass, TransferFunctionParameters
 from PyQt4.QtGui import QColor
+from numpy import inf
 
 class NbVerticesDrawing(ColoringClass('cell')):
     coloring_name = "Number of divisions"
@@ -15,7 +16,12 @@ class NbVerticesDrawing(ColoringClass('cell')):
         ColoringClass('cell').__init__(self, result)
 
     def init(self):
-        self.max_nb_vertices = self.maxNbDivisions()
+        caps = self.parameters.value_capping
+        if caps is None or caps[0] >= caps[1]:
+            caps = (0, self.maxNbDivisions())
+        self.caps = caps
+        self.shift = caps[0]
+        self.delta = 1 / (caps[1] - caps[0])
 
     def maxNbDivisions(self):
         result = self.result
@@ -42,8 +48,8 @@ class NbVerticesDrawing(ColoringClass('cell')):
             return QColor(0, 0, 0, 0)
         value = self.nb_divs[cid]
         col = QColor()
-        col.setRgbF(*fct.rgba(value/self.max_nb_vertices))
+        col.setRgbF(*fct.rgba((value - self.shift)*self.delta))
         return col
 
     def finalizeImage(self, painter, imageid, image_transform, size=None):
-        return self.parameters.drawScaleBar(painter, (0, self.max_nb_vertices), "", size)
+        return self.parameters.drawScaleBar(painter, self.caps, "", size)
