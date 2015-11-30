@@ -13,6 +13,26 @@ import sys
 import os
 from distutils import log
 
+
+def is_exe(fpath):
+    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+
+def which(program):
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
 class build_pyqt4(build_py):
     user_options = (build_py.user_options +
                     [('rcc=', 'r', 'Program used to compile Qt resource files into python module'),
@@ -29,9 +49,17 @@ class build_pyqt4(build_py):
         self.ensure_filename('uic')
 
         if self.rcc is None:
-            self.rcc = 'pyrcc4'
+            self.rcc = which('pyrcc4')
+            if self.rcc is None:
+                self.rcc = which('pyrcc')
+            if self.rcc is None:
+                raise RuntimeError("Error, cannot find pyrcc program")
         if self.uic is None:
-            self.uic = 'pyuic4'
+            self.uic = which('pyuic4')
+            if self.uic is None:
+                self.uic = which('pyuic')
+            if self.uic is None:
+                raise RuntimeError("Error, cannot find pyuic program")
 
     def run(self):
         build_py.run(self)
