@@ -13,6 +13,12 @@ import sys
 import os
 from distutils import log
 
+exe_exts = os.environ.get('PATHEXT', "")
+if sys.platform == 'win32':
+    exe_exts = exe_exts.split(";")
+else:
+    exe_exts = exe_exts.split(":")
+
 
 def is_exe(fpath):
     return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
@@ -29,7 +35,9 @@ def which(program):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
-
+            for ext in exe_exts:
+                if is_exe(exe_file + ext):
+                    return exe_file + ext
     return None
 
 
@@ -110,7 +118,7 @@ setup(name='point-tracker',
       packages=['point_tracker', 'point_tracker.tissue_plot'],
       package_data={'point_tracker': ['*.ui', '*.qrc', '*.png'],
                     'point_tracker.tissue_plot': ['*.ui', '*.qrc']},
-      version="0.7.7",
+      version="0.7.8",
       classifiers=['Development Status :: 5 - Production/Stable',
                    'Environment :: X11 Applications :: Qt',
                    'Intended Audience :: Science/Research',
