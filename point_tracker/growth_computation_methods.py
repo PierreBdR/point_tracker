@@ -22,6 +22,7 @@ from numpy import isnan, isinf, sqrt, array
 from .debug import log_debug
 from .project import Project
 
+
 class GrowthResultException(Exception):
     """
     Exception launched by the `Result` object when an error linked to the
@@ -425,19 +426,24 @@ class Result(object):
             raise GrowthResultException("Unknown version number: %s" % version)
         Result.versions_loader[version](self, filename, **opts)
 
+
 def wall(p1, p2):
     if p1 < p2:
         return (p1, p2)
     return (p2, p1)
 
+
 def polygonToCoordinates(poly, img_data):
     return array([[img_data[p].x(), img_data[p].y()] for p in poly if p in img_data])
+
 
 def polygonToPointList(poly, img_data):
     return [img_data[p] for p in poly if p in img_data]
 
+
 def cellToPointList(cid, img_data):
     return polygonToPointList(img_data.cells[cid], img_data)
+
 
 class GrowthMethod(object):
     def __init__(self):
@@ -488,7 +494,7 @@ class ForwardMethod(GrowthMethod):
             img_name = used_images[i]
             used_imgs = self.computeFromImages(list_img, i)
             cells_pts = cells_selection(used_imgs, data)
-            #print "%d cells for images %s" % (len(cells_pts), used_imgs)
+            # print "%d cells for images %s" % (len(cells_pts), used_imgs)
             if cells_pts:
                 img_data = data[used_imgs[0]]
                 next_img_data = data[used_imgs[1]]
@@ -499,7 +505,7 @@ class ForwardMethod(GrowthMethod):
                 cell_area_result = result.cells_area[n]
                 walls = set()
                 for c in sorted(cells_pts.keys()):
-                    #print "Processing cell %d" % c
+                    # print "Processing cell %d" % c
                     pts = [pid for pid in cells_pts[c] if pid in img_data and pid in next_img_data]
                     if not pts:
                         continue
@@ -525,14 +531,14 @@ class ForwardMethod(GrowthMethod):
                             continue
                         r = log(a2 / a1) / dt
                         if isnan(r) or isinf(r) or isnan(gp).any():
-                            #print "  Invalid growth:\n %s" % (gp,)
+                            # print "  Invalid growth:\n %s" % (gp,)
                             continue
                         cell_area_result[c] = r
                         cell_result[c] = gp
                         cell_shapes[c] = (ps, qs)
-                        #print "  Growth area: %g" % r
-                    #else:
-                        #print "  No growth parameter"
+                        # print "  Growth area: %g" % r
+                    # else:
+                        # print "  No growth parameter"
                 for p1, p2 in walls:
                     if p1 in next_img_data and p2 in next_img_data:
                         pos11 = img_data[p1]
@@ -548,6 +554,7 @@ class ForwardMethod(GrowthMethod):
             thread.nextImage()
         return result
 
+
 class BackwardMethod(ForwardMethod):
     def usedImages(self, list_img):
         return list_img[1:]
@@ -561,11 +568,27 @@ class BackwardMethod(ForwardMethod):
     def parameters(self):
         return ["Backward"]
 
+
+class StartMethod(ForwardMethod):
+    def usedImages(self, list_img):
+        return list_img[1:]
+
+    def computeFromImages(self, list_img, i):
+        return (list_img[0], list_img[i])
+
+    def growthParams(self, ps, qs, dt):
+        return growthParams(ps, qs, dt, at_start=False)
+
+    def parameters(self):
+        return ["Start"]
+
 # Functions needes for the ForwardDenseMethod
+
 
 def length_polyline(w):
     vects = [w[i + 1] - w[i] for i in range(len(w) - 1)]
     return sum(sqrt(pos.x() * pos.x() + pos.y() * pos.y()) for pos in vects)
+
 
 def length_segment(s, data):
     total_length = 0
@@ -578,6 +601,7 @@ def length_segment(s, data):
         total_length += l
         lengths.append(total_length)
     return lengths
+
 
 def align_segments(s1, s2, data1, data2):
     """
@@ -597,37 +621,38 @@ def align_segments(s1, s2, data1, data2):
     len_s2 = lengths_s2[-1]
     all_pos = list(set(ratios_s1+ratios_s2))
     all_pos.sort()
-    def _align(length,s, ratios, data):
-        align = [None] * (len(all_pos)-1)
+
+    def _align(length, s, ratios, data):
+        align = [None]*(len(all_pos)-1)
         ratios = set(ratios)
-        p1,p2 = 0,1 # Position in s1
+        p1, p2 = 0, 1  # Position in s1
         pos = data[s[p1]]
         cur = s[p1]
         next = None
-        w = data.walls[s[p1],s[p2]]
-        for j,(r1,r2) in enumerate(zip(all_pos[:-1],all_pos[1:])):
+        w = data.walls[s[p1], s[p2]]
+        for j, (r1, r2) in enumerate(zip(all_pos[:-1], all_pos[1:])):
             w1 = [pos]
-            if r2 in ratios: # If the next point is in the current wall
+            if r2 in ratios:  # If the next point is in the current wall
                 w1.extend(w)
                 pos = data[s[p2]]
-                p1,p2 = p1+1,p2+1
+                p1, p2 = p1+1, p2+1
                 if p2 < len(s):
-                    w = data.walls[s[p1],s[p2]]
+                    w = data.walls[s[p1], s[p2]]
                     next = s[p1]
-            else: # Otherwise, find where it stops
+            else:  # Otherwise, find where it stops
                 l = (r2-r1)*length
                 acc = 0
                 while w:
                     p = w[0]
                     vec = p - w1[-1]
                     dl = sqrt(vec.x()*vec.x() + vec.y()*vec.y())
-                    if acc+dl > l: # If we go past the next stop
+                    if acc+dl > l:  # If we go past the next stop
                         pos = w1[-1] + vec*((l-acc)/dl)
                         break
                     acc += dl
                     w1.append(p)
                     w.pop(0)
-                else: # If the end of the wall has been reached
+                else:  # If the end of the wall has been reached
                     p = data[s[p2]]
                     vec = p - w1[-1]
                     dl = sqrt(vec.x()*vec.x() + vec.y()*vec.y())
@@ -640,6 +665,7 @@ def align_segments(s1, s2, data1, data2):
     align_s2 = _align(len_s2, s2, ratios_s2, data2)
     return align_s1, align_s2
 
+
 def discretize_segment(seg, n, l):
     dl = l/n
     result = []
@@ -651,7 +677,8 @@ def discretize_segment(seg, n, l):
     shift = 0
     for j in range(n):
         result.append(pos)
-        if j == n-1: break
+        if j == n-1:
+            break
         needed_dl = dl
         while shift+needed_dl > vec_size:
             idx += 1
@@ -665,6 +692,7 @@ def discretize_segment(seg, n, l):
         shift += needed_dl
     return result
 
+
 def alignCells(c, pts, new_pts, img_data, next_img_data, nb_points):
     # First, find a common vertex between the cells
     for common in pts:
@@ -675,18 +703,20 @@ def alignCells(c, pts, new_pts, img_data, next_img_data, nb_points):
             new_pts = new_pts[idx1:] + new_pts[:idx1]
             break
     else:
-        log_debug("Error, cell %d have no common points between times %s and %s" % (c, img_data.image_name, next_img_data.image_name))
+        log_debug("Error, cell %d have no common points between times %s and %s" % (c, img_data.image_name,
+                                                                                    next_img_data.image_name))
         return
     # Then, align the cells. i.e. add missing points
     aligned_pts = []
     aligned_new_pts = []
-    i1,j1 = 0,0
-    for i2,pid in enumerate(pts[1:]):
+    i1, j1 = 0, 0
+    for i2, pid in enumerate(pts[1:]):
         i2 = i2+1
         if pid in new_pts:
             j2 = new_pts.index(pid)
             if j2 < j1:
-                log_debug("Error, cell %d is inconsistent between times %s and %s" % (c, img_data.image_name, next_img_data.image_name))
+                log_debug("Error, cell %d is inconsistent between times %s and %s" % (c, img_data.image_name,
+                                                                                      next_img_data.image_name))
                 aligned_pts = []
                 aligned_new_pts = []
                 i1 = 0
@@ -706,15 +736,15 @@ def alignCells(c, pts, new_pts, img_data, next_img_data, nb_points):
         return
     # Next, for the cell, start by resampling them
     # Compute total perimeter of first cell
-    l1 = sum((seg for (seg,_) in aligned_pts), [])
+    l1 = sum((seg for (seg, _) in aligned_pts), [])
     l1.append(l1[0])
     len_c1 = length_polyline(l1)
     # Approximate the dl
     dl = len_c1 / nb_points
-    ps = [] # Resampled first cell
-    qs = [] # Resampled second cell
+    ps = []  # Resampled first cell
+    qs = []  # Resampled second cell
     nb_seg = len(aligned_pts)
-    for i,((seg1,_),(seg2,_)) in enumerate(zip(aligned_pts, aligned_new_pts)):
+    for i, ((seg1, _), (seg2, _)) in enumerate(zip(aligned_pts, aligned_new_pts)):
         seg1 = seg1 + aligned_pts[(i+1) % nb_seg][0][0:1]
         seg2 = seg2 + aligned_new_pts[(i+1) % nb_seg][0][0:1]
         l1 = length_polyline(seg1)
@@ -726,8 +756,9 @@ def alignCells(c, pts, new_pts, img_data, next_img_data, nb_points):
         qs += discretize_segment(seg2, n, l2)
     return aligned_pts, aligned_new_pts, ps, qs
 
+
 class ForwardDenseMethod(GrowthMethod):
-    def __init__(self, nb_points = 100):
+    def __init__(self, nb_points=100):
         GrowthMethod.__init__(self)
         self._nb_points = nb_points
 
@@ -784,15 +815,15 @@ class ForwardDenseMethod(GrowthMethod):
             return
         aligned_pts, aligned_new_pts, ps, qs = result
         # Now, we know enough to compute growth of walls
-        w1,prev = aligned_pts[0]
-        w2,_ = aligned_new_pts[0]
+        w1, prev = aligned_pts[0]
+        w2, _ = aligned_new_pts[0]
         shifted1 = aligned_pts[1:] + aligned_pts[0:1]
         shifted2 = aligned_new_pts[1:] + aligned_new_pts[0:1]
-        for (seg1,p1),(seg2,p2) in zip(shifted1, shifted2):
+        for (seg1, p1), (seg2, p2) in zip(shifted1, shifted2):
             if p1 in ref_pts or p2 in ref_pts:
                 cur = p2 if p1 is None else p1
                 assert prev is not None and cur is not None
-                id = data.wallId(prev,cur)
+                id = data.wallId(prev, cur)
                 if id not in walls:
                     walls.add(id)
                     w1.append(seg1[0])
@@ -811,11 +842,11 @@ class ForwardDenseMethod(GrowthMethod):
         qs = array([[p.x(), p.y()] for p in qs])
         gp = self.growthParams(ps, qs, dt)
         if gp is not None:
-            poly1 = sum([ s[0] for s in aligned_pts ], [])
-            poly2 = sum([ s[0] for s in aligned_new_pts ], [])
+            poly1 = sum([s[0] for s in aligned_pts], [])
+            poly2 = sum([s[0] for s in aligned_new_pts], [])
             a1 = polygonArea(poly1)
             a2 = polygonArea(poly2)
-            if a2/(a2+a1) < 1e-15: # Too small, there is a pb
+            if a2/(a2+a1) < 1e-15:  # Too small, there is a pb
                 return
             r = log(a2/a1)/dt
             if isnan(r) or isinf(r) or isnan(gp).any():
@@ -845,11 +876,12 @@ class ForwardDenseMethod(GrowthMethod):
                 self.cell_area_result = result.cells_area[n]
                 self.walls = set()
                 for c in sorted(cells_pts.keys()):
-                    self.processCell(c, img_data, next_img_data, ref_is_img = (ref_img == used_imgs[0]))
+                    self.processCell(c, img_data, next_img_data, ref_is_img=(ref_img == used_imgs[0]))
             if thread.stopped():
                 return
             thread.nextImage()
         return result
+
 
 class BackwardDenseMethod(ForwardDenseMethod):
     def __init__(self, nb_points):
@@ -871,6 +903,26 @@ class BackwardDenseMethod(ForwardDenseMethod):
         return ["BackwardDense", self._nb_points]
 
 
+class StartDenseMethod(ForwardDenseMethod):
+    def __init__(self, nb_points):
+        ForwardDenseMethod.__init__(self, nb_points)
+
+    def usedImages(self, list_img):
+        return list_img[1:]
+
+    def computeFromImages(self, list_img, i):
+        return (list_img[0], list_img[i+1])
+
+    def baseImage(self, list_img, i):
+        return list_img[i+1]
+
+    def growthParams(self, ps, qs, dt):
+        return growthParams(ps, qs, dt, at_start=False)
+
+    def parameters(self):
+        return ["StartDense", self._nb_points]
+
+
 class FullCellsOnlySelection(object):
     def __init__(self, daughterCells):
         self.daughterCells = daughterCells
@@ -878,7 +930,7 @@ class FullCellsOnlySelection(object):
     def parameters(self):
         params = ["AddDivisionOnly"]
         if self.daughterCells:
-            params +=  ["with cell division"]
+            params += ["with cell division"]
         else:
             params += ["without cell division"]
         return params
@@ -889,14 +941,14 @@ class FullCellsOnlySelection(object):
         division_points = data.divisionPoints()
         if not self.daughterCells:
             cells = list(set(data.oldestAncestor(c) for c in cells))
-        cells_pts = dict([ (c,[ p for p in data.cells[c] if p in img_data ]) for c in cells ])
+        cells_pts = dict([(c, [p for p in data.cells[c] if p in img_data]) for c in cells])
         for c in cells_pts.keys():
             if len(cells_pts[c]) < 3:
                 del cells_pts[c]
         log_debug("Initial list of cells: %s" % (sorted(cells_pts.keys()),))
         for img in list_img:
             new_img_data = data[img]
-            for c,_ in cells_pts.items():
+            for c, _ in cells_pts.items():
                 missing_pts = set(p for p in data.cells[c] if p not in new_img_data)
                 for p in missing_pts:
                     if p not in division_points:
@@ -910,6 +962,7 @@ class FullCellsOnlySelection(object):
                         cells_pts[c] = new_cell
         return cells_pts
 
+
 class AddPointsSelection(object):
     def __init__(self, daughterCells, max_variation):
         self.daughterCells = daughterCells
@@ -918,7 +971,7 @@ class AddPointsSelection(object):
     def parameters(self):
         params = ["AddPoints", "%f%% variation" % (self.max_variation*100,)]
         if self.daughterCells:
-            params +=  ["with cell division"]
+            params += ["with cell division"]
         else:
             params += ["without cell division"]
         return params
@@ -929,7 +982,7 @@ class AddPointsSelection(object):
         cells = list(img_data.cells)
         if not self.daughterCells:
             cells = list(set(data.oldestAncestor(c) for c in cells))
-        cells_pts = dict([ (c,[ p for p in data.cells[c] if p in img_data ]) for c in cells ])
+        cells_pts = dict([(c, [p for p in data.cells[c] if p in img_data]) for c in cells])
         for c in cells_pts.keys():
             if len(cells_pts[c]) < 3:
                 log_debug("Deleting cell %s because it has less than three vertices" % c)
@@ -937,21 +990,22 @@ class AddPointsSelection(object):
         print("Initial list of cells: %s" % (sorted(cells_pts.keys()),))
         for img in list_img[1:]:
             new_img_data = data[img]
-            for c,pts in cells_pts.items():
+            for c, pts in cells_pts.items():
                 for p in pts:
                     if p not in new_img_data:
                         log_debug("Deleting cell %d because it is not in the other image" % c)
                         del cells_pts[c]
                         break
                 else:
-                    p1 = [ new_img_data[p] for p in data.cells[c] if p in img_data ]
-                    p2 = [ new_img_data[p] for p in data.cells[c] if p in new_img_data ]
+                    p1 = [new_img_data[p] for p in data.cells[c] if p in img_data]
+                    p2 = [new_img_data[p] for p in data.cells[c] if p in new_img_data]
                     a1 = polygonArea(p1)
                     a2 = polygonArea(p2)
                     if abs((a2-a1)/a1) > self.max_variation:
                         log_debug("Deleting cell %d because of big size variation" % c)
                         del cells_pts[c]
         return cells_pts
+
 
 class AllCellsSelection(object):
     def __init__(self, daughterCells, max_variation):
@@ -973,7 +1027,7 @@ class AllCellsSelection(object):
         cells = list(img_data.cells)
         if not self.daughterCells:
             cells = list(set(data.oldestAncestor(c) for c in cells))
-        cells_pts = dict([ (c,[ p for p in data.cells[c] if p in img_data ]) for c in cells ])
+        cells_pts = dict([(c, [p for p in data.cells[c] if p in img_data]) for c in cells])
         log_debug("Initial list of cells: %s" % (sorted(cells_pts.keys()),))
         for c in cells_pts.keys():
             if len(cells_pts[c]) < 3:
@@ -981,12 +1035,11 @@ class AllCellsSelection(object):
         if self.max_variation is not None:
             for img in list_img[1:]:
                 new_img_data = data[img]
-                for c,_ in cells_pts.items():
-                    p1 = [ img_data[p] for p in data.cells[c] if p in img_data ]
-                    p2 = [ new_img_data[p] for p in data.cells[c] if p in new_img_data ]
+                for c, _ in cells_pts.items():
+                    p1 = [img_data[p] for p in data.cells[c] if p in img_data]
+                    p2 = [new_img_data[p] for p in data.cells[c] if p in new_img_data]
                     a1 = polygonArea(p1)
                     a2 = polygonArea(p2)
                     if abs((a2-a1)/a1) > self.max_variation:
                         del cells_pts[c]
         return cells_pts
-

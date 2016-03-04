@@ -58,7 +58,7 @@ class GrowthComputationDlg(QDialog):
         self.withVariation = False
         self.ui.allCells.setChecked(True)
         self.ui.withVariation.setChecked(False)
-        self.ui.forwardMethod.setChecked(True)
+        self.ui.method.setCurrentIndex(0)
         self.resample = 100
         self.ui.resample.setChecked(True)
 
@@ -92,9 +92,11 @@ class GrowthComputationDlg(QDialog):
                 # Second, load growth method
                 meth = res.method_params
                 if meth[0].startswith('Forward'):
-                    self.ui.forwardMethod.setChecked(True)
+                    self.ui.method.setCurrentIndex(0)
                 elif meth[0].startswith('Backward'):
-                    self.ui.backwardMethod.setChecked(True)
+                    self.ui.method.setCurrentIndex(1)
+                elif meth[0].startswith('Start'):
+                    self.ui.method.setCurrentIndex(2)
                 if meth[0].endswith('Dense'):
                     self.ui.resample.setChecked(True)
                     self.ui.samplingPoints.setValue(int(meth[1]))
@@ -219,15 +221,16 @@ class GrowthComputationDlg(QDialog):
                 filename += ".xls"
             self.ui.savePath.setText(filename)
 
-    @pyqtSignature("bool")
-    def on_forwardMethod_toggled(self, value):
-        if value:
+    @pyqtSignature("int")
+    def on_method_currentIndexChanged(self, value):
+        if value == 0:
             self.method = "Forward"
-
-    @pyqtSignature("bool")
-    def on_backwardMethod_toggled(self, value):
-        if value:
+        elif value == 1:
             self.method = "Backward"
+        elif value == 2:
+            self.method = "Start"
+        else:
+            raise ValueError("Invalid current index: {0}".format(value))
 
     @pyqtSignature("bool")
     def on_resample_toggled(self, value):
@@ -276,11 +279,15 @@ class GrowthComputationDlg(QDialog):
                 method = growth_computation_methods.ForwardMethod()
             elif self.method == "Backward":
                 method = growth_computation_methods.BackwardMethod()
+            elif self.method == "Start":
+                method = growth_computation_methods.StartMethod()
         else:
             if self.method == "Forward":
                 method = growth_computation_methods.ForwardDenseMethod(self.resample)
             elif self.method == "Backward":
                 method = growth_computation_methods.BackwardDenseMethod(self.resample)
+            elif self.method == "Start":
+                method = growth_computation_methods.StartDenseMethod(self.resample)
         use_daughters = self.ui.daughterCells.isChecked()
         if self.cells_selection == "AddPoints":
             cells_selection = growth_computation_methods.AddPointsSelection(use_daughters, self.ui.maxVariationAddPoints.value()/100.)
