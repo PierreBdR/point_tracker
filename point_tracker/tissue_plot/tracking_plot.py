@@ -732,13 +732,15 @@ class TransferFunctionParameters(ScaleBar):
         '''
         return self._symetric_coloring
 
-    @symetric_coloring.setter
-    def symetric_coloring(self, value):
+    @Slot(bool)
+    def _set_symetric_coloring(self, value):
         value = bool(value)
         if self._symetric_coloring != value:
             self._symetric_coloring = value
             self._params.symetric_coloring = value
             self.changed.emit()
+
+    symetric_coloring.setter(_set_symetric_coloring)
 
     @Slot(bool)
     def set_symetric_coloring(self, value):
@@ -1020,41 +1022,45 @@ class DirectionGrowthParameters(ScaleBar):
         '''
         return self._symetric_coloring
 
-    @symetric_coloring.setter
-    def symetric_coloring(self, value):
+    @Slot(bool)
+    def _set_symetric_coloring(self, value):
         value = bool(value)
         if self._symetric_coloring != value:
             self._symetric_coloring = value
             self._params.symetric_coloring = value
             self.changed.emit()
 
+    symetric_coloring.setter(_set_symetric_coloring)
+
     @property
     def orthogonal(self):
         """If true, the points mark the line orthogonal to the direction wanted"""
         return self._orthogonal
 
-    @orthogonal.setter
     @Slot(bool)
-    def orthogonal(self, value):
+    def _set_orthogonal(self, value):
         value = bool(value)
         if self._orthogonal != value:
             self._orthogonal = value
             self._params.orthogonal = value
             self.changed.emit()
 
+    orthogonal.setter(_set_orthogonal)
+
     @property
     def draw_line(self):
         """If truem draw the line defining the direction"""
         return self._draw_line
 
-    @draw_line.setter
     @Slot(bool)
-    def draw_line(self, value):
+    def _set_draw_line(self, value):
         value = bool(value)
         if self._draw_line != value:
             self._draw_line = value
             self._params.draw_line = value
             self.changed.emit()
+
+    draw_line.setter(_set_draw_line)
 
     @property
     def line_color(self):
@@ -1074,14 +1080,14 @@ class DirectionGrowthParameters(ScaleBar):
         """Width of the line in pixels"""
         return self._line_width
 
-    @line_width.setter
     @Slot(int)
-    def line_width(self, value):
+    def _set_line_width(self, value):
         value = int(value)
         if self._line_width != value:
             self._line_width = value
             self._params.line_width = value
             self.changed.emit()
+    line_width.setter(_set_line_width)
 
     @property
     def value_capping(self):
