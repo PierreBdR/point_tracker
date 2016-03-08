@@ -75,7 +75,7 @@ class GrowthComputationDlg(QDialog):
         if filename:
             try:
                 res = growth_computation_methods.Result(None)
-                res.load(path(filename), force_load=True, no_data = True) # make sure there is no problem
+                res.load(path(filename), force_load=True, no_data=True)  # make sure there is no problem
                 # First, load the images
                 imgs = set(res.images_used)
                 allimages_model = self.allimages_model

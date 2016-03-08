@@ -21,6 +21,7 @@ else:
 from numpy import isnan, isinf, sqrt, array
 from .debug import log_debug
 from .project import Project
+from PyQt4.QtCore import QPointF
 
 
 class GrowthResultException(Exception):
@@ -69,7 +70,7 @@ class Result(object):
         self.cells_selection_params = []
         self.data = None
 
-    CURRENT_VERSION = "0.4"
+    CURRENT_VERSION = "0.5"
     """
     Current version number for the results.
     """
@@ -147,7 +148,7 @@ class Result(object):
     header_order = ["Data file", "List of the images used", "Estimation method", "Cell selection"]
 
     fields = ["Image", "Cell", "karea (1/h)", "kmaj (1/h)", "kmin (1/h)",
-              "Orientation of the major axis (° to the x axis)", "phi (1/h)", "", "Wall", "k (1/h)"]
+              "Orientation of the major axis (° to the x axis)", "phi (1/h)", "X (m)", "Y (m)", "", "Wall", "k (1/h)"]
 
     fields_num = {"image": 0,
                   "cell" : 1,
@@ -156,8 +157,10 @@ class Result(object):
                   "kmin" : 4,
                   "theta": 5,
                   "phi"  : 6,
-                  "wall" : 8,
-                  "kwall": 9}
+                  "x"    : 7,
+                  "y"    : 8,
+                  "wall" : 10,
+                  "kwall": 11}
 
     growth_num = {"kmax" : 0,
                   "kmin" : 1,
@@ -178,23 +181,38 @@ class Result(object):
         w.writerow([])
         w.writerow(["Growth per image"])
         w.writerow(Result.fields)
+        wall_shift = self.fields_num["wall"]-1
         for img_id in range(len(self.images)):
             img = self.images[img_id]
             w.writerow([img])
             cells = self.cells[img_id]
             cells_area = self.cells_area[img_id]
             walls = self.walls[img_id]
+            data = self.data[img]
+            cells_shape = data.cells
             rows = []
             for c in sorted(cells.keys()):
+                # Get the center of mass of the cell
+                cell = [data[p] for p in cells_shape[c] if p in data]
+                center = QPointF(0, 0)
+                area = 0.0
+                u1 = cell[-1]
+                for i in range(len(cell)):
+                    u2 = cell[i]
+                    loc_area = u1.x() * u2.y() - u1.y() * u2.x()
+                    center += loc_area*(u1 + u2)
+                    area += loc_area
+                    u1 = u2
+                center /= area
                 row = ["", "Cell %d" % invert_cells[c], cells_area[c], cells[c][growth_num["kmax"]],
                        cells[c][growth_num["kmin"]], cells[c][growth_num["theta"]] * 180 / pi,
-                       cells[c][growth_num["phi"]]]
+                       cells[c][growth_num["phi"]], center.x(), center.y()]
                 rows.append(row)
             lr = len(rows)
             for i, ws in enumerate(sorted(walls.keys())):
                 wll = ["", "Wall %d-%d" % (invert_pts[ws[0]], invert_pts[ws[1]]), walls[ws]]
                 if i >= lr:
-                    rows.append([""] * 7)
+                    rows.append([""] * wall_shift)
                 rows[i] += wll
             w.writerows(rows)
         w.writerow(["Actual cell shapes"])
@@ -315,7 +333,7 @@ class Result(object):
             if "no_data" not in opts or not opts["no_data"]:
                 self.data.load(f=f, **opts)
 
-    def load_version04(self, filename, **opts):
+    def load_version_(self, filename, expected_version, nb_growth_fields, **opts):
         fields_num = Result.fields_num
         f = open(filename, "r")
         l1 = f.readline()
@@ -330,7 +348,7 @@ class Result(object):
         r = csv.reader(f, delimiter=delim)
         l = next(r)
         if "force_load" not in opts or not opts['force_load']:
-            assert l[0] == "TRKR_VERSION" and l[1] == "0.4", "Wrong reader for version %s:%s" % (l[0], l[1])
+            assert l[0] == "TRKR_VERSION" and l[1] == expected_version, "Wrong reader for version %s:%s" % (l[0], l[1])
         l = next(r)
 # First, the header
         header_fields = self.header_fields
@@ -360,7 +378,7 @@ class Result(object):
                     cells_area[cid] = float(l[fields_num["karea"]])
                     cells[cid] = (float(l[fields_num["kmaj"]]), float(l[fields_num["kmin"]]),
                                   float(l[fields_num["theta"]]) * pi / 180, float(l[fields_num["phi"]]))
-                if len(l) > 7:  # The is a wall
+                if len(l) > nb_growth_fields:  # The is a wall
                     p1, p2 = (int(i) for i in split_wall_re.split(l[fields_num["wall"]])[1:3])
                     k = float(l[fields_num["kwall"]])
                     walls[p1, p2] = k
@@ -394,11 +412,18 @@ class Result(object):
             if "no_data" not in opts or not opts["no_data"]:
                 self.data.load(f=f, **opts)
 
+    def load_version04(self, filename, **opts):
+        return self.load_version_(filename, "0.4", 7, **opts)
+
+    def load_version05(self, filename, **opts):
+        return self.load_version_(filename, "0.5", 9, **opts)
+
     versions_loader = {
         "0.1": load_version01,
         "0.2": load_version02,
         "0.3": load_version03,
-        "0.4": load_version04
+        "0.4": load_version04,
+        "0.5": load_version05
     }
     """
     Which function load which version of the result

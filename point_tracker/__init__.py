@@ -11,4 +11,4 @@ QtCore.Signal = QtCore.pyqtSignal
 QtCore.Slot = QtCore.pyqtSlot
 
 __version__ = "0.7"
-__revision__ = "10"
+__revision__ = "11"
