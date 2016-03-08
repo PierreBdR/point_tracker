@@ -200,7 +200,7 @@ class Result(object):
                 for i in range(len(cell)):
                     u2 = cell[i]
                     loc_area = u1.x() * u2.y() - u1.y() * u2.x()
-                    center += loc_area*(u1 + u2)
+                    center += (u1 + u2)*loc_area
                     area += loc_area
                     u1 = u2
                 center /= area
